@@ -1,0 +1,21 @@
+{
+  "verified_at": "2026-10-27T12:41:31-0500",
+  "request": {
+    "method": "POST",
+    "url": "https://api.meta.ai/v1/asr/transcribe?sessionId=723aee55-8ef5-48a2-aa9a-e2b7351b9c76",
+    "json": null
+  },
+  "status": 200,
+  "latency_ms": 1472,
+  "tokens": {},
+  "usd_estimated": 0.0002,
+  "response_headers": {
+    "content-type": "application/json"
+  },
+  "response": {
+    "sessionId": "723aee55-8ef5-48a2-aa9a-e2b7351b9c76",
+    "transcript": "Hola, le habla el banco. Su cuenta fue bloqueada, llame ya..",
+    "audioDurationMs": 4320,
+    "turns": []
+  }
+}
