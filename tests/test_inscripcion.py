@@ -468,7 +468,6 @@ async def test_adv_enumeracion_transferir_transfer_does_not_reveal_another_busin
     assert employee is not None and employee.role == "employee"
 
 
-@pytest.mark.xfail(strict=True, reason="incident adv-enumeracion-tope-correo, fix follows")
 async def test_adv_enumeracion_tope_correo_cap_does_not_reveal_another_business(
     app_conn: asyncpg.Connection, recorder: Recorder
 ) -> None:
@@ -491,3 +490,48 @@ async def test_adv_enumeracion_tope_correo_cap_does_not_reveal_another_business(
 
     assert replies[EMAIL][-1] == t("es", "email.code_rate_limited")
     assert replies["libre@correo.example"][-1] == t("es", "email.code_rate_limited")
+
+
+@pytest.mark.parametrize("email", [EMAIL, "libre@correo.example"], ids=["taken", "free"])
+async def test_adv_enumeracion_codigo_senuelo_code_does_not_reveal_another_business(
+    app_conn: asyncpg.Connection, recorder: Recorder, email: str
+) -> None:
+    """Incident adv-enumeracion-codigo-senuelo: ``codigo`` after ``mi correo`` tells them apart.
+
+    The decoy for an email verified elsewhere was born expired (``email.code_none``) while a
+    free address has a live code the prober mistypes (``email.code_invalid``, then locked).
+    """
+    await _enroll_owner(app_conn, recorder)
+    await handle(app_conn, recorder.ports, message(OWNER, f"mi correo {EMAIL}"))
+    await handle(app_conn, recorder.ports, message(OWNER, f"codigo {_code(recorder)}"))
+    await _second_business(app_conn, recorder)
+    tries = settings.code_max_attempts + 1
+
+    await handle(app_conn, recorder.ports, message(STRANGER, f"mi correo {email}"))
+    replies = [
+        await handle(app_conn, recorder.ports, message(STRANGER, "codigo 000000"))
+        for _ in range(tries)
+    ]
+
+    invalid, locked = t("es", "email.code_invalid"), t("es", "email.code_locked")
+    assert replies == [invalid] * (tries - 2) + [locked] * 2
+
+
+@pytest.mark.parametrize("phone", [OWNER, "+573000000298"], ids=["taken", "free"])
+async def test_adv_enumeracion_codigo_senuelo_team_email_leaves_the_owner_without_a_code(
+    app_conn: asyncpg.Connection, recorder: Recorder, phone: str
+) -> None:
+    """``equipo`` with a phone of another business files the decoy under the sender.
+
+    For a free phone the code belongs to the new employee, so the sender has none; the
+    decoy must not give the sender a live code either.
+    """
+    await _enroll_owner(app_conn, recorder)
+    await _second_business(app_conn, recorder)
+
+    await handle(
+        app_conn, recorder.ports, message(STRANGER, f"equipo {phone} Luis libre@correo.example")
+    )
+    reply = await handle(app_conn, recorder.ports, message(STRANGER, "codigo 000000"))
+
+    assert reply == t("es", "email.code_none")

@@ -45,6 +45,8 @@ GATE_MAX = {"fp_legitimo": 0.10, "dudosos": 0.25}
 FLOOR_MAX = {"manipulacion_legitimo": 0.0}  # D-051: every floor FP is an incident, any mode
 HIGHER_IS_BETTER = ("exactitud", "recall_estafa")
 LOWER_IS_BETTER = ("fp_legitimo", "dudosos")
+RULES_CEILING = ("exactitud", "dudosos")
+"""Skipped by :func:`regressions` without the analyst: they track the legit count (D-057)."""
 MAX_DROP = 0.02  # specs/06: no metric may fall more than 2 points
 EXIT_OK, EXIT_GATE, EXIT_BUDGET, EXIT_UNAVAILABLE = 0, 1, 2, 3
 
@@ -243,9 +245,18 @@ def gate_failures(metrics: dict[str, Any], full: bool = True) -> list[str]:
     return low + high
 
 
-def regressions(metrics: dict[str, Any], baseline: dict[str, Any]) -> list[str]:
-    """Metrics that got more than :data:`MAX_DROP` worse than the baseline run."""
+def regressions(
+    metrics: dict[str, Any], baseline: dict[str, Any], full: bool = True
+) -> list[str]:
+    """Metrics that got more than :data:`MAX_DROP` worse than the baseline run.
+
+    Without ``full`` (rules only) accuracy and doubtful are skipped: rules never answer
+    ``legitimo``, so every legit case added is one more ``dudoso`` and lowers accuracy
+    without anything getting worse; recall and false positives still count.
+    """
     worse = {k: 1 for k in HIGHER_IS_BETTER} | {k: -1 for k in LOWER_IS_BETTER}
+    if not full:
+        worse = {k: v for k, v in worse.items() if k not in RULES_CEILING}
     return [
         k
         for k, sign in worse.items()
@@ -434,7 +445,7 @@ def main(argv: list[str], classify: Classifier | None = None, out_dir: Path = EV
     suffix = ".deterministas" if mode == "deterministas" else ""
     baseline = out_dir / f"ultimo{suffix}.resultado.json"
     previous = json.loads(baseline.read_text("utf-8"))["metricas"] if baseline.is_file() else {}
-    regressed = [] if args.filtro else regressions(metrics, previous)
+    regressed = [] if args.filtro else regressions(metrics, previous, full=mode == "completo")
     code = EXIT_BUDGET if over_budget else EXIT_GATE if failures or regressed else EXIT_OK
     result = {
         "fecha": date.today().isoformat(),

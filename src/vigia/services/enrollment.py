@@ -121,7 +121,9 @@ async def _send_code(session: Session, member_id: UUID | None, email: str) -> st
     """Issue a code for ``email`` and mail it; returns the reply for the sender.
 
     ``member_id`` is ``None`` when the member was not added because their phone is
-    enrolled in another business: the reply is the same, nothing is issued (D-053).
+    enrolled in another business. Then, or when the email is verified elsewhere, the
+    reply is the same and nothing is mailed, but a live decoy row that no code matches
+    counts for the caps and for ``codigo`` (D-053, adv-enumeracion-codigo-senuelo).
 
     Capped per address and per business each hour (D-028) so VIGIA cannot be used to mail
     arbitrary addresses (incident adv-relay-correo).
@@ -133,6 +135,7 @@ async def _send_code(session: Session, member_id: UUID | None, email: str) -> st
     if not await store.can_issue_email_code(session.conn, session.vault.hash(email)):
         return session.reply("email.code_rate_limited")
     if taken == "elsewhere" or member_id is None:  # same reply, nothing sent (D-053)
+        await store.issue_decoy_code(session.conn, session.vault, member_id, email)
         return session.reply("email.code_sent", email=email)
     code = await store.issue_email_code(session.conn, session.vault, member_id, email)
     await session.send_email(email, session.reply("email.code_body", code=code))

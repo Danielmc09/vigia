@@ -199,6 +199,38 @@ async def issue_email_code(
     return code
 
 
+async def issue_decoy_code(
+    conn: asyncpg.Connection, vault: Vault, member_id: UUID | None, email: str
+) -> None:
+    """Store a live code row that counts for both caps but no code can ever match.
+
+    Used when no code may go out (the email or the phone is enrolled elsewhere), so
+    neither the caps nor ``codigo`` can tell a free address from a taken one (D-053,
+    adv-enumeracion-tope-correo, adv-enumeracion-codigo-senuelo): its hash is random
+    bytes, not the HMAC of any code, so wrong guesses, attempts, lock and TTL behave as
+    for a free address whose code was mistyped.
+
+    Args:
+        conn: Connection scoped to the business.
+        vault: Open vault of the business.
+        member_id: Member the code would be for. ``None`` when nobody was added (phone
+            of another business): the row goes under the owner, born expired, because
+            for a free phone the code belongs to the new employee and the owner has none.
+        email: Normalized email that was asked for.
+    """
+    filer = member_id or await conn.fetchval("SELECT id FROM members WHERE role = 'owner'")
+    code = await issue_email_code(conn, vault, filer, email)
+    await conn.execute(
+        "UPDATE verification_codes SET code_hash = $3,"
+        " expires_at = CASE WHEN $4 THEN expires_at ELSE now() END"
+        " WHERE member_id = $1 AND code_hash = $2",
+        filer,
+        vault.hash(f"{filer}|{code}"),
+        secrets.token_bytes(32),
+        member_id is not None,
+    )
+
+
 async def redeem_email_code(
     conn: asyncpg.Connection, vault: Vault, member_id: UUID, code: str
 ) -> CodeCheck:

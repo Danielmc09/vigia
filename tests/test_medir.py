@@ -352,3 +352,31 @@ def test_a_legit_case_flagged_by_the_gate_floor_fails_the_deterministic_run(
     assert result["metricas"]["manipulacion_legitimo"] == 1.0
     assert result["gate"] == ["manipulacion_legitimo"]
     assert result["casos"][1]["manipulacion"] is True
+
+
+def test_regression_ignores_accuracy_and_doubtful_in_deterministic_mode() -> None:
+    """Rules alone never answer legitimo: a legit case added is one more dudoso there."""
+    baseline = {"exactitud": 0.60, "recall_estafa": 0.70, "fp_legitimo": 0.0, "dudosos": 0.40}
+    metrics = {"exactitud": 0.50, "recall_estafa": 0.70, "fp_legitimo": 0.0, "dudosos": 0.50}
+
+    assert measure.regressions(metrics, baseline) == ["exactitud", "dudosos"]
+    assert measure.regressions(metrics, baseline, full=False) == []
+    assert measure.regressions({**metrics, "recall_estafa": 0.6}, baseline, full=False) == [
+        "recall_estafa"
+    ]
+
+
+def test_full_mode_still_fails_on_accuracy_and_doubtful_regressions(tmp_path: Path) -> None:
+    """D-057 only relaxes rules-only runs: with the analyst both metrics stay under regression."""
+    baseline = {"metricas": {"exactitud": 1.0, "recall_estafa": 1.0, "fp_legitimo": 0.0}}
+    baseline["metricas"]["dudosos"] = 0.0
+    (tmp_path / "ultimo.resultado.json").write_text(json.dumps(baseline), encoding="utf-8")
+    legits = [_case(f"l-{i}", "legitimo", "legit") for i in range(20)]
+    path = _write(tmp_path, SCAM_1, SCAM_2, *legits, _case("l-x", "legitimo", "unsure"))
+    answers = {"scam one": "scam", "scam two": "scam", "legit": "legit", "unsure": "doubtful"}
+
+    code = measure.main([str(path)], classify=_by_text(answers), out_dir=tmp_path)
+
+    assert code == 1
+    assert _result(tmp_path)["gate"] == []
+    assert _result(tmp_path)["regresiones"] == ["exactitud", "dudosos"]
