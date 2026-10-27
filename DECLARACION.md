@@ -4,9 +4,12 @@ Building period: Oct 27 – Nov 4, 2026. First commit of this repository: Oct 27
 
 ## Built during the hackathon (original work)
 - Everything under `src/vigia/`: channels (WhatsApp adapter, email adapter, local), ingestion, deterministic signals (URLs, QR, patterns, email headers, supplier book, country packs), Jev gate, analyst tool loop and prompts, fusion, policy, storage with RLS, panel, API, observability, sentinel.
+- `tools/` and `herramientas/` (repo scripts: case validator, repo map, architecture-doc check).
 - `medir.py`, `evals/` (cases, adversarial suite, blind suite), `bench/`.
 - `vigia_mcp/`, Hermes profile (`analista/`), country packs `CO.json`, `US.json`, i18n files.
 - All docs: README, ARCHITECTURE, MAP, THREAT_MODEL, PRIVACY, decisions, runbook.
+
+Country packs contain only public data (brand names, official domains and service lines) taken from each brand's official site; every brand records its `fuente_url`. All eval cases are synthetic.
 
 ## Third-party services used as-is (not built by us)
 - Meta Model API (Muse Spark, SAM 3.1, Muse Voice Transcribe), Muse Glimmer open weights. Standard tier.

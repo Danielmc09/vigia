@@ -1,0 +1,193 @@
+{
+ "pais": "US",
+ "idioma": "en",
+ "marcas": [
+  {
+   "marca": "Chase",
+   "dominios": [
+    "chase.com"
+   ],
+   "canal_oficial": "official app or https://www.chase.com",
+   "tipo": "banco",
+   "fuente_url": "https://www.chase.com/"
+  },
+  {
+   "marca": "Bank of America",
+   "dominios": [
+    "bankofamerica.com"
+   ],
+   "canal_oficial": "official app or https://www.bankofamerica.com",
+   "tipo": "banco",
+   "fuente_url": "https://www.bankofamerica.com/"
+  },
+  {
+   "marca": "Wells Fargo",
+   "dominios": [
+    "wellsfargo.com"
+   ],
+   "canal_oficial": "official app or https://www.wellsfargo.com",
+   "tipo": "banco",
+   "fuente_url": "https://www.wellsfargo.com/"
+  },
+  {
+   "marca": "IRS",
+   "dominios": [
+    "irs.gov"
+   ],
+   "canal_oficial": "official app or https://www.irs.gov",
+   "tipo": "estado",
+   "fuente_url": "https://www.irs.gov/"
+  },
+  {
+   "marca": "USPS",
+   "dominios": [
+    "usps.com"
+   ],
+   "canal_oficial": "official app or https://www.usps.com; phone 1-800-275-8777",
+   "tipo": "transportadora",
+   "fuente_url": "https://www.usps.com/"
+  },
+  {
+   "marca": "FedEx",
+   "dominios": [
+    "fedex.com"
+   ],
+   "canal_oficial": "official app or https://www.fedex.com",
+   "tipo": "transportadora",
+   "fuente_url": "https://www.fedex.com/"
+  },
+  {
+   "marca": "UPS",
+   "dominios": [
+    "ups.com"
+   ],
+   "canal_oficial": "official app or https://www.ups.com",
+   "tipo": "transportadora",
+   "fuente_url": "https://www.ups.com/"
+  },
+  {
+   "marca": "Amazon",
+   "dominios": [
+    "amazon.com"
+   ],
+   "canal_oficial": "official app or https://www.amazon.com",
+   "tipo": "comercio",
+   "fuente_url": "https://www.amazon.com/"
+  },
+  {
+   "marca": "PayPal",
+   "dominios": [
+    "paypal.com"
+   ],
+   "canal_oficial": "official app or https://www.paypal.com",
+   "tipo": "billetera",
+   "fuente_url": "https://www.paypal.com/co/home"
+  },
+  {
+   "marca": "Venmo",
+   "dominios": [
+    "venmo.com"
+   ],
+   "canal_oficial": "official app or https://venmo.com",
+   "tipo": "billetera",
+   "fuente_url": "https://venmo.com/"
+  },
+  {
+   "marca": "Zelle",
+   "dominios": [
+    "zelle.com",
+    "zellepay.com"
+   ],
+   "canal_oficial": "official app or https://www.zellepay.com",
+   "tipo": "billetera",
+   "fuente_url": "https://www.zelle.com/"
+  },
+  {
+   "marca": "Apple",
+   "dominios": [
+    "apple.com"
+   ],
+   "canal_oficial": "official app or https://www.apple.com; phone 1-800-275-2273",
+   "tipo": "comercio",
+   "fuente_url": "https://www.apple.com/"
+  },
+  {
+   "marca": "Microsoft",
+   "dominios": [
+    "microsoft.com"
+   ],
+   "canal_oficial": "official app or https://www.microsoft.com",
+   "tipo": "comercio",
+   "fuente_url": "https://www.microsoft.com/"
+  },
+  {
+   "marca": "Netflix",
+   "dominios": [
+    "netflix.com"
+   ],
+   "canal_oficial": "official app or https://www.netflix.com",
+   "tipo": "comercio",
+   "fuente_url": "https://www.netflix.com/co-en/"
+  },
+  {
+   "marca": "SSA",
+   "dominios": [
+    "ssa.gov"
+   ],
+   "canal_oficial": "official app or https://www.ssa.gov",
+   "tipo": "estado",
+   "fuente_url": "https://www.ssa.gov/"
+  }
+ ],
+ "patrones": {
+  "urgencia": [
+   "will be (locked|suspended|closed)",
+   "final notice",
+   "within 24 hours",
+   "immediately"
+  ],
+  "pide_credenciales": [
+   "password",
+   "verification code",
+   "one-time code",
+   "PIN",
+   "SSN",
+   "CVV"
+  ],
+  "autoridad": [
+   "IRS",
+   "Social Security",
+   "SSA",
+   "warrant",
+   "police"
+  ],
+  "premio": [
+   "you (won|have won)",
+   "gift card",
+   "refund",
+   "reward"
+  ],
+  "pago_personal": [
+   "Zelle",
+   "Venmo",
+   "Cash App",
+   "gift cards?",
+   "wire"
+  ],
+  "familiar": [
+   "new number",
+   "had an accident",
+   "in jail"
+  ]
+ },
+ "reportar_a": [
+  {
+   "nombre": "FTC",
+   "url": "https://reportfraud.ftc.gov/"
+  },
+  {
+   "nombre": "FBI IC3",
+   "url": "https://www.ic3.gov/"
+  }
+ ]
+}

@@ -1,0 +1,559 @@
+{
+ "pais": "CO",
+ "idioma": "es",
+ "marcas": [
+  {
+   "marca": "Bancolombia",
+   "dominios": [
+    "bancolombia.com"
+   ],
+   "canal_oficial": "app oficial o https://www.bancolombia.com; línea 018000912345",
+   "tipo": "banco",
+   "fuente_url": "https://www.bancolombia.com/personas"
+  },
+  {
+   "marca": "Banco de Bogotá",
+   "dominios": [
+    "bancodebogota.com"
+   ],
+   "canal_oficial": "app oficial o https://www.bancodebogota.com",
+   "tipo": "banco",
+   "fuente_url": "https://www.bancodebogota.com/"
+  },
+  {
+   "marca": "Davivienda",
+   "dominios": [
+    "davivienda.com"
+   ],
+   "canal_oficial": "app oficial o https://www.davivienda.com",
+   "tipo": "banco",
+   "fuente_url": "https://www.davivienda.com/"
+  },
+  {
+   "marca": "BBVA Colombia",
+   "dominios": [
+    "bbva.com.co"
+   ],
+   "canal_oficial": "app oficial o https://www.bbva.com.co",
+   "tipo": "banco",
+   "fuente_url": "https://www.bbva.com.co/"
+  },
+  {
+   "marca": "Banco de Occidente",
+   "dominios": [
+    "bancodeoccidente.com.co"
+   ],
+   "canal_oficial": "app oficial o https://www.bancodeoccidente.com.co",
+   "tipo": "banco",
+   "fuente_url": "https://www.bancodeoccidente.com.co/"
+  },
+  {
+   "marca": "Banco Popular",
+   "dominios": [
+    "bancopopular.com.co"
+   ],
+   "canal_oficial": "app oficial o https://www.bancopopular.com.co; línea 018000184646",
+   "tipo": "banco",
+   "fuente_url": "https://www.bancopopular.com.co/"
+  },
+  {
+   "marca": "Banco AV Villas",
+   "dominios": [
+    "avvillas.com.co"
+   ],
+   "canal_oficial": "app oficial o https://www.avvillas.com.co",
+   "tipo": "banco",
+   "fuente_url": "https://www.avvillas.com.co/"
+  },
+  {
+   "marca": "Banco Caja Social",
+   "dominios": [
+    "bancocajasocial.com"
+   ],
+   "canal_oficial": "app oficial o https://www.bancocajasocial.com",
+   "tipo": "banco",
+   "fuente_url": "https://www.bancocajasocial.com/"
+  },
+  {
+   "marca": "Scotiabank Colpatria",
+   "dominios": [
+    "davibank.com",
+    "scotiabankcolpatria.com"
+   ],
+   "canal_oficial": "app oficial o https://www.scotiabankcolpatria.com",
+   "tipo": "banco",
+   "fuente_url": "https://www.davibank.com/personas"
+  },
+  {
+   "marca": "Itaú Colombia",
+   "dominios": [
+    "itau.co"
+   ],
+   "canal_oficial": "app oficial o https://www.itau.co; línea 018000512633",
+   "tipo": "banco",
+   "fuente_url": "https://www.itau.co/"
+  },
+  {
+   "marca": "Banco Agrario",
+   "dominios": [
+    "bancoagrario.gov.co"
+   ],
+   "canal_oficial": "app oficial o https://www.bancoagrario.gov.co",
+   "tipo": "banco",
+   "fuente_url": "https://www.bancoagrario.gov.co/"
+  },
+  {
+   "marca": "Banco Falabella",
+   "dominios": [
+    "bancofalabella.com.co"
+   ],
+   "canal_oficial": "app oficial o https://www.bancofalabella.com.co; línea 018000958780",
+   "tipo": "banco",
+   "fuente_url": "https://www.bancofalabella.com.co/"
+  },
+  {
+   "marca": "Banco Pichincha",
+   "dominios": [
+    "bancopichincha.com.co"
+   ],
+   "canal_oficial": "app oficial o https://www.bancopichincha.com.co; línea 018000930740",
+   "tipo": "banco",
+   "fuente_url": "https://www.bancopichincha.com.co/"
+  },
+  {
+   "marca": "GNB Sudameris",
+   "dominios": [
+    "gnbsudameris.com.co"
+   ],
+   "canal_oficial": "app oficial o https://www.gnbsudameris.com.co",
+   "tipo": "banco",
+   "fuente_url": "https://www.gnbsudameris.com.co/"
+  },
+  {
+   "marca": "Banco W",
+   "dominios": [
+    "bancow.com.co"
+   ],
+   "canal_oficial": "app oficial o https://www.bancow.com.co; línea 018000515656",
+   "tipo": "banco",
+   "fuente_url": "https://www.bancow.com.co/"
+  },
+  {
+   "marca": "Bancamía",
+   "dominios": [
+    "bancamia.com.co"
+   ],
+   "canal_oficial": "app oficial o https://www.bancamia.com.co; línea 018000126100",
+   "tipo": "banco",
+   "fuente_url": "https://www.bancamia.com.co/"
+  },
+  {
+   "marca": "Banco Finandina",
+   "dominios": [
+    "bancofinandina.com"
+   ],
+   "canal_oficial": "app oficial o https://www.bancofinandina.com; línea 018000912886",
+   "tipo": "banco",
+   "fuente_url": "https://www.bancofinandina.com/"
+  },
+  {
+   "marca": "Lulo Bank",
+   "dominios": [
+    "lulobank.com"
+   ],
+   "canal_oficial": "app oficial o https://www.lulobank.com",
+   "tipo": "banco",
+   "fuente_url": "https://www.lulobank.com/"
+  },
+  {
+   "marca": "Nu Colombia",
+   "dominios": [
+    "nu.com.co"
+   ],
+   "canal_oficial": "app oficial o https://nu.com.co",
+   "tipo": "banco",
+   "fuente_url": "https://nu.com.co/"
+  },
+  {
+   "marca": "Banco Serfinanza",
+   "dominios": [
+    "bancoserfinanza.com"
+   ],
+   "canal_oficial": "app oficial o https://www.bancoserfinanza.com",
+   "tipo": "banco",
+   "fuente_url": "https://bancoserfinanza.com/"
+  },
+  {
+   "marca": "Nequi",
+   "dominios": [
+    "nequi.com.co"
+   ],
+   "canal_oficial": "app oficial o https://www.nequi.com.co",
+   "tipo": "billetera",
+   "fuente_url": "https://www.nequi.com.co/"
+  },
+  {
+   "marca": "Daviplata",
+   "dominios": [
+    "daviplata.com"
+   ],
+   "canal_oficial": "app oficial o https://www.daviplata.com",
+   "tipo": "billetera",
+   "fuente_url": "https://www.daviplata.com/"
+  },
+  {
+   "marca": "Movii",
+   "dominios": [
+    "movii.com.co"
+   ],
+   "canal_oficial": "app oficial o https://www.movii.com.co",
+   "tipo": "billetera",
+   "fuente_url": "https://www.movii.com.co/"
+  },
+  {
+   "marca": "Dale",
+   "dominios": [
+    "dale.com.co"
+   ],
+   "canal_oficial": "app oficial o https://www.dale.com.co",
+   "tipo": "billetera",
+   "fuente_url": "https://www.dale.com.co/"
+  },
+  {
+   "marca": "RappiPay",
+   "dominios": [
+    "rappipay.co"
+   ],
+   "canal_oficial": "app oficial o https://www.rappipay.co",
+   "tipo": "billetera",
+   "fuente_url": "https://www.rappipay.co/"
+  },
+  {
+   "marca": "PSE",
+   "dominios": [
+    "pse.com.co"
+   ],
+   "canal_oficial": "app oficial o https://www.pse.com.co",
+   "tipo": "pagos",
+   "fuente_url": "https://www.pse.com.co/persona"
+  },
+  {
+   "marca": "ACH Colombia",
+   "dominios": [
+    "achcolombia.com.co"
+   ],
+   "canal_oficial": "app oficial o https://www.achcolombia.com.co",
+   "tipo": "pagos",
+   "fuente_url": "https://www.achcolombia.com.co/home"
+  },
+  {
+   "marca": "Efecty",
+   "dominios": [
+    "efecty.com.co"
+   ],
+   "canal_oficial": "app oficial o https://www.efecty.com.co",
+   "tipo": "pagos",
+   "fuente_url": "https://www.efecty.com.co/web/"
+  },
+  {
+   "marca": "DIAN",
+   "dominios": [
+    "dian.gov.co"
+   ],
+   "canal_oficial": "app oficial o https://www.dian.gov.co",
+   "tipo": "estado",
+   "fuente_url": "https://www.dian.gov.co/"
+  },
+  {
+   "marca": "SIMIT",
+   "dominios": [
+    "fcm.org.co"
+   ],
+   "canal_oficial": "app oficial o https://www.fcm.org.co",
+   "tipo": "estado",
+   "fuente_url": "https://www.fcm.org.co/simit/"
+  },
+  {
+   "marca": "RUNT",
+   "dominios": [
+    "runt.gov.co"
+   ],
+   "canal_oficial": "app oficial o https://www.runt.gov.co; línea 018000930060",
+   "tipo": "estado",
+   "fuente_url": "https://www.runt.gov.co/"
+  },
+  {
+   "marca": "Colpensiones",
+   "dominios": [
+    "colpensiones.gov.co"
+   ],
+   "canal_oficial": "app oficial o https://www.colpensiones.gov.co",
+   "tipo": "estado",
+   "fuente_url": "https://www.colpensiones.gov.co/"
+  },
+  {
+   "marca": "Policía Nacional",
+   "dominios": [
+    "policia.gov.co"
+   ],
+   "canal_oficial": "app oficial o https://www.policia.gov.co",
+   "tipo": "estado",
+   "fuente_url": "https://www.policia.gov.co/"
+  },
+  {
+   "marca": "Fiscalía",
+   "dominios": [
+    "fiscalia.gov.co"
+   ],
+   "canal_oficial": "app oficial o https://www.fiscalia.gov.co; línea 018000919748",
+   "tipo": "estado",
+   "fuente_url": "https://www.fiscalia.gov.co/"
+  },
+  {
+   "marca": "Registraduría",
+   "dominios": [
+    "registraduria.gov.co"
+   ],
+   "canal_oficial": "app oficial o https://www.registraduria.gov.co",
+   "tipo": "estado",
+   "fuente_url": "https://www.registraduria.gov.co/"
+  },
+  {
+   "marca": "Superintendencia Financiera",
+   "dominios": [
+    "superfinanciera.gov.co"
+   ],
+   "canal_oficial": "app oficial o https://www.superfinanciera.gov.co",
+   "tipo": "estado",
+   "fuente_url": "https://www.superfinanciera.gov.co/"
+  },
+  {
+   "marca": "Migración Colombia",
+   "dominios": [
+    "migracioncolombia.gov.co"
+   ],
+   "canal_oficial": "app oficial o https://www.migracioncolombia.gov.co",
+   "tipo": "estado",
+   "fuente_url": "https://www.migracioncolombia.gov.co/"
+  },
+  {
+   "marca": "ICETEX",
+   "dominios": [
+    "icetex.gov.co"
+   ],
+   "canal_oficial": "app oficial o https://web.icetex.gov.co",
+   "tipo": "estado",
+   "fuente_url": "https://web.icetex.gov.co/portal"
+  },
+  {
+   "marca": "Prosperidad Social",
+   "dominios": [
+    "prosperidadsocial.gov.co"
+   ],
+   "canal_oficial": "app oficial o https://prosperidadsocial.gov.co; línea 018000951100",
+   "tipo": "estado",
+   "fuente_url": "https://prosperidadsocial.gov.co/"
+  },
+  {
+   "marca": "Servientrega",
+   "dominios": [
+    "servientrega.com"
+   ],
+   "canal_oficial": "app oficial o https://www.servientrega.com",
+   "tipo": "transportadora",
+   "fuente_url": "https://www.servientrega.com/"
+  },
+  {
+   "marca": "Interrapidísimo",
+   "dominios": [
+    "interrapidisimo.com"
+   ],
+   "canal_oficial": "app oficial o https://www.interrapidisimo.com",
+   "tipo": "transportadora",
+   "fuente_url": "https://www.interrapidisimo.com/"
+  },
+  {
+   "marca": "Coordinadora",
+   "dominios": [
+    "coordinadora.com"
+   ],
+   "canal_oficial": "app oficial o https://www.coordinadora.com",
+   "tipo": "transportadora",
+   "fuente_url": "https://coordinadora.com/"
+  },
+  {
+   "marca": "Envía",
+   "dominios": [
+    "envia.co"
+   ],
+   "canal_oficial": "app oficial o https://envia.co",
+   "tipo": "transportadora",
+   "fuente_url": "https://envia.co/"
+  },
+  {
+   "marca": "TCC",
+   "dominios": [
+    "tcc.com.co"
+   ],
+   "canal_oficial": "app oficial o https://www.tcc.com.co",
+   "tipo": "transportadora",
+   "fuente_url": "https://tcc.com.co/"
+  },
+  {
+   "marca": "Deprisa",
+   "dominios": [
+    "deprisa.com"
+   ],
+   "canal_oficial": "app oficial o https://www.deprisa.com",
+   "tipo": "transportadora",
+   "fuente_url": "https://www.deprisa.com/es"
+  },
+  {
+   "marca": "4-72",
+   "dominios": [
+    "4-72.com.co"
+   ],
+   "canal_oficial": "app oficial o https://www.4-72.com.co; línea 018000111210",
+   "tipo": "transportadora",
+   "fuente_url": "https://www.4-72.com.co/"
+  },
+  {
+   "marca": "Claro",
+   "dominios": [
+    "claro.com.co"
+   ],
+   "canal_oficial": "app oficial o https://www.claro.com.co",
+   "tipo": "telco",
+   "fuente_url": "https://www.claro.com.co/personas/"
+  },
+  {
+   "marca": "Movistar",
+   "dominios": [
+    "movistar.co",
+    "movistar.com.co"
+   ],
+   "canal_oficial": "app oficial o https://www.movistar.co; línea 018000911008",
+   "tipo": "telco",
+   "fuente_url": "https://www.movistar.com.co/"
+  },
+  {
+   "marca": "Tigo",
+   "dominios": [
+    "tigo.com.co"
+   ],
+   "canal_oficial": "app oficial o https://www.tigo.com.co",
+   "tipo": "telco",
+   "fuente_url": "https://www.tigo.com.co/"
+  },
+  {
+   "marca": "ETB",
+   "dominios": [
+    "etb.com"
+   ],
+   "canal_oficial": "app oficial o https://etb.com",
+   "tipo": "telco",
+   "fuente_url": "https://etb.com/"
+  },
+  {
+   "marca": "Mercado Libre",
+   "dominios": [
+    "mercadolibre.com.co"
+   ],
+   "canal_oficial": "app oficial o https://www.mercadolibre.com.co",
+   "tipo": "comercio",
+   "fuente_url": "https://www.mercadolibre.com.co/"
+  },
+  {
+   "marca": "Éxito",
+   "dominios": [
+    "exito.com"
+   ],
+   "canal_oficial": "app oficial o https://www.exito.com",
+   "tipo": "comercio",
+   "fuente_url": "https://www.exito.com/"
+  },
+  {
+   "marca": "Falabella",
+   "dominios": [
+    "falabella.com.co"
+   ],
+   "canal_oficial": "app oficial o https://www.falabella.com.co",
+   "tipo": "comercio",
+   "fuente_url": "https://www.falabella.com.co/falabella-co"
+  },
+  {
+   "marca": "Rappi",
+   "dominios": [
+    "rappi.com.co"
+   ],
+   "canal_oficial": "app oficial o https://www.rappi.com.co",
+   "tipo": "comercio",
+   "fuente_url": "https://www.rappi.com.co/"
+  },
+  {
+   "marca": "Avianca",
+   "dominios": [
+    "avianca.com"
+   ],
+   "canal_oficial": "app oficial o https://www.avianca.com",
+   "tipo": "comercio",
+   "fuente_url": "https://www.avianca.com/"
+  }
+ ],
+ "patrones": {
+  "urgencia": [
+   "será bloqueada",
+   "sera bloqueada",
+   "últim[oa] aviso",
+   "ultim[oa] aviso",
+   "en las próximas 24",
+   "en 24 horas",
+   "hoy mismo"
+  ],
+  "pide_credenciales": [
+   "clave",
+   "contraseña",
+   "contrasena",
+   "código de verificación",
+   "codigo de verificacion",
+   "OTP",
+   "CVV"
+  ],
+  "autoridad": [
+   "DIAN",
+   "SIMIT",
+   "comparendo",
+   "Fiscalía",
+   "Fiscalia",
+   "embargo"
+  ],
+  "premio": [
+   "ganaste",
+   "subsidio",
+   "bono",
+   "giro pendiente"
+  ],
+  "pago_personal": [
+   "Nequi",
+   "Daviplata",
+   "consign[ae]"
+  ],
+  "familiar": [
+   "tuvo un accidente",
+   "cambié de número",
+   "cambie de numero",
+   "numero nuevo",
+   "número nuevo"
+  ]
+ },
+ "reportar_a": [
+  {
+   "nombre": "CAI Virtual, Policía Nacional",
+   "url": "https://caivirtual.policia.gov.co/"
+  },
+  {
+   "nombre": "ColCERT",
+   "url": "https://www.colcert.gov.co/"
+  }
+ ]
+}
