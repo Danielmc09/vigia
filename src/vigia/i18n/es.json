@@ -17,7 +17,7 @@
   "enroll.ask": "Hola, soy VIGÍA. Para inscribir tu negocio escribe: hola <nombre del negocio> <país>. Por ejemplo: hola Ferretería El Tornillo CO",
   "enroll.done": "Listo: {business} quedó inscrito y tú eres el dueño. Agrega a tu equipo con: equipo +57 300 000 0000 Nombre. Desde ahora, reenvíame cualquier mensaje sospechoso.",
   "enroll.already": "Ya estás inscrito en VIGÍA. Escribe ayuda para ver los comandos.",
-  "team.added": "{name} quedó en tu equipo. Ya puede reenviarme mensajes sospechosos.",
+  "team.request_received": "Recibí la inscripción de {name}. Si su número está disponible, desde ya puede reenviarme mensajes sospechosos.",
   "contact.taken": "Ese número o correo ya está inscrito en VIGÍA.",
   "email.code_sent": "Envié un código de 6 dígitos a {email}. Quien lo reciba debe responderme desde su WhatsApp: codigo 123456. Vence en 15 minutos.",
   "email.code_body": "Tu código de VIGÍA es {code}. Respóndelo por WhatsApp como: codigo {code}. Vence en 15 minutos.",

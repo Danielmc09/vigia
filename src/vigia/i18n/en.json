@@ -17,7 +17,7 @@
   "enroll.ask": "Hi, I'm VIGIA. To enroll your business send: hello <business name> <country>. For example: hello Corner Hardware US",
   "enroll.done": "Done: {business} is enrolled and you are the owner. Add your team with: team +1 202 555 0100 Name. From now on, forward me anything suspicious.",
   "enroll.already": "You are already enrolled in VIGIA. Send help to see the commands.",
-  "team.added": "{name} is now on your team and can forward me suspicious messages.",
+  "team.request_received": "Got the request for {name}. If their number is available, they can start forwarding me suspicious messages now.",
   "contact.taken": "That number or email is already enrolled in VIGIA.",
   "email.code_sent": "I sent a 6-digit code to {email}. Whoever gets it must reply from their WhatsApp: code 123456. It expires in 15 minutes.",
   "email.code_body": "Your VIGIA code is {code}. Reply on WhatsApp with: code {code}. It expires in 15 minutes.",

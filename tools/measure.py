@@ -3,7 +3,8 @@
 Usage: ``python medir.py [evals/casos.jsonl] [--filtro campo=valor] [--solo-deterministas]
 [--json out.json] [--max-usd 2.0] [--adversarios]``.
 
-Exit codes: 0 ok, 1 gate or regression, 2 over budget, 3 mode not available yet.
+Exit codes: 0 ok, 1 gate or regression (or an adversarial expectation missed), 2 over
+budget, 3 mode not available yet.
 """
 
 import argparse
@@ -24,13 +25,15 @@ from vigia.domain.analyst import Evidence
 from vigia.domain.attachment import Attachment
 from vigia.domain.case import Case, IncomingMessage
 from vigia.domain.eval_case import CHANNEL_KIND, EXPECTED_LABEL, Expected
+from vigia.domain.gate import Judge, mock_judge
 from vigia.domain.member import Business
 from vigia.domain.verdict import Label
+from vigia.jev.gate import screen
 from vigia.services.ingest import normalize
 from vigia.signals.detector import detect
 from vigia.signals.knowledge import seeded_pack
 from vigia.verdict.build import build_verdict
-from vigia.verdict.fusion import DOUBTFUL, DOUBTFUL_CONFIDENCE
+from vigia.verdict.fusion import DOUBTFUL, DOUBTFUL_CONFIDENCE, LEGIT
 
 REPO = Path(__file__).parents[1]
 EVALS = REPO / "evals"
@@ -39,6 +42,7 @@ EVAL_BUSINESS = uuid5(NAMESPACE_URL, "vigia:eval")
 
 GATE_MIN = {"recall_estafa": 0.90}
 GATE_MAX = {"fp_legitimo": 0.10, "dudosos": 0.25}
+FLOOR_MAX = {"manipulacion_legitimo": 0.0}  # D-051: every floor FP is an incident, any mode
 HIGHER_IS_BETTER = ("exactitud", "recall_estafa")
 LOWER_IS_BETTER = ("fp_legitimo", "dudosos")
 MAX_DROP = 0.02  # specs/06: no metric may fall more than 2 points
@@ -59,6 +63,7 @@ class Outcome:
         usd: Model spend for the case.
         tokens: Model tokens for the case.
         degraded: True when the verdict came without the analyst.
+        manipulation: The Jev gate flagged the case.
     """
 
     # ponytail: stands in for the Verdict of specs/05 until fusion exists (T-07).
@@ -69,6 +74,7 @@ class Outcome:
     usd: float = 0.0
     tokens: int = 0
     degraded: bool = False
+    manipulation: bool = False
 
 
 Classifier = Callable[[Case], Outcome]
@@ -76,7 +82,9 @@ Classifier = Callable[[Case], Outcome]
 
 
 def deterministic(case: Case) -> Outcome:
-    """Verdict from code alone: signals of specs/04 fused by specs/05, no model, no network.
+    """Verdict from code alone: gate floor, signals of specs/04 and fusion of specs/05.
+
+    The gate runs with the mock judge, so only its deterministic floor can flag.
 
     Args:
         case: The case to classify.
@@ -87,12 +95,15 @@ def deterministic(case: Case) -> Outcome:
     pack = seeded_pack(case.country, KNOWLEDGE)
     if pack is None:
         return Outcome(label=DOUBTFUL, confidence=DOUBTFUL_CONFIDENCE, signals=[], degraded=True)
-    verdict = build_verdict(case, Evidence(signals=detect(case, pack)), pack)
+    flagged = screen(case.text or "", [], pack, mock_judge).manipulation_detected
+    evidence = Evidence(signals=detect(case, pack), manipulation_detected=flagged)
+    verdict = build_verdict(case, evidence, pack)
     return Outcome(
         label=verdict.label,
         confidence=verdict.confidence,
         signals=[s.type for s in verdict.signals],
         degraded=verdict.degraded,
+        manipulation=flagged,
     )
 
 
@@ -175,6 +186,7 @@ def grade(raw: dict[str, Any], classify: Classifier, root: Path = REPO) -> dict[
         "senales": outcome.signals if outcome else [],
         "herramientas_usadas": outcome.tools_used if outcome else [],
         "degradado": outcome.degraded if outcome else False,
+        "manipulacion": outcome.manipulation if outcome else False,
         "ms": round((time.perf_counter() - start) * 1000, 1),
         "usd": outcome.usd if outcome else 0.0,
         "tokens": outcome.tokens if outcome else 0,
@@ -211,6 +223,7 @@ def summarize(records: list[dict[str, Any]]) -> dict[str, Any]:
         "recall_estafa": _ratio(sum(r["obtenido"] == "estafa" for r in scams), len(scams)),
         "fp_legitimo": _ratio(sum(r["obtenido"] == "estafa" for r in legits), len(legits)),
         "dudosos": _ratio(sum(r["obtenido"] == "dudoso" for r in records), len(records)),
+        "manipulacion_legitimo": _ratio(sum(r["manipulacion"] for r in legits), len(legits)),
         "por_categoria": _accuracy_by(records, "categoria"),
         "por_tipo": _accuracy_by(records, "tipo"),
         "por_pais": _accuracy_by(records, "pais"),
@@ -222,10 +235,11 @@ def summarize(records: list[dict[str, Any]]) -> dict[str, Any]:
     }
 
 
-def gate_failures(metrics: dict[str, Any]) -> list[str]:
-    """Metrics outside the thresholds of specs/06."""
-    low = [k for k, floor in GATE_MIN.items() if (metrics[k] or 0.0) < floor]
-    high = [k for k, ceiling in GATE_MAX.items() if (metrics[k] or 0.0) > ceiling]
+def gate_failures(metrics: dict[str, Any], full: bool = True) -> list[str]:
+    """Metrics outside the thresholds of specs/06; only ``FLOOR_MAX`` when not ``full``."""
+    low = [k for k, floor in GATE_MIN.items() if full and (metrics[k] or 0.0) < floor]
+    ceilings = (GATE_MAX if full else {}) | FLOOR_MAX
+    high = [k for k, ceiling in ceilings.items() if (metrics[k] or 0.0) > ceiling]
     return low + high
 
 
@@ -257,6 +271,82 @@ def run(
     return records, False
 
 
+def grade_adversarial(seq: dict[str, Any], judge: Judge = mock_judge) -> dict[str, Any]:
+    """Replay one chat through the gate turn by turn and grade the last turn (specs/06).
+
+    ``tipo == "sistema"`` entries are attacks on the system covered by a pytest test
+    (``test``): they are listed, not run.
+
+    Args:
+        seq: One line of ``adversarios.jsonl``.
+        judge: Jev; the mock unless a test injects another.
+
+    Returns:
+        The per-sequence record (Spanish keys, as the result file is data).
+    """
+    record: dict[str, Any] = {k: seq.get(k) for k in ("id", "tipo", "esperado", "test")}
+    if seq["tipo"] == "sistema":
+        return record | {"paso": None, "atrapado": False}
+    pack = seeded_pack(seq["pais"], KNOWLEDGE)
+    if pack is None:
+        raise ValueError(f"{seq['id']}: no country pack for {seq['pais']}")
+    history: list[str] = []
+    flags: list[bool] = []
+    for turn in seq["turnos"]:
+        flags.append(screen(turn, history, pack, judge).manipulation_detected)
+        history.append(turn)
+    last = {"id": seq["id"], "tipo": "texto", "texto": history[-1]} | {
+        k: seq[k] for k in ("fecha", "pais")
+    }
+    case = to_case(last)
+    evidence = Evidence(signals=detect(case, pack), manipulation_detected=flags[-1])
+    verdict = build_verdict(case, evidence, pack)
+    obtained = {"manipulacion": flags[-1], "no_legitimo": verdict.label != LEGIT}
+    expected: dict[str, bool] = seq["esperado"]
+    return record | {
+        "marcados": flags,
+        "etiqueta": verdict.label,
+        "obtenido": obtained,
+        "paso": all(obtained[k] == v for k, v in expected.items()),
+        "atrapado": expected.get("manipulacion") is True and flags[-1],
+    }
+
+
+def summarize_adversarial(records: list[dict[str, Any]]) -> dict[str, Any]:
+    """Counts of an adversarial run; ``atrapados`` is over sequences expected to manipulate."""
+    run_ = [r for r in records if r["paso"] is not None]
+    return {
+        "secuencias": len(run_),
+        "pasan": sum(r["paso"] for r in run_),
+        "atrapados": sum(r["atrapado"] for r in run_),
+        "manipulaciones": sum(r["esperado"].get("manipulacion") is True for r in run_),
+        "en_pytest": len(records) - len(run_),
+        "usd_total": 0.0,
+    }
+
+
+def _adversarial(path: Path, json_out: Path | None, out_dir: Path) -> int:
+    """Run the adversarial set, save its dated result apart and report it."""
+    records = [grade_adversarial(seq) for seq in _load(path, None)]
+    metrics = summarize_adversarial(records)
+    code = EXIT_OK if metrics["pasan"] == metrics["secuencias"] else EXIT_GATE
+    result = {"fecha": date.today().isoformat(), "modo": "adversarios", "metricas": metrics}
+    result["casos"] = records
+    if json_out:
+        _write(result, json_out)
+    _write(result, out_dir / f"{result['fecha']}.adversarios.resultado.json")
+    print(f"mode=adversarios sequences={metrics['secuencias']} passed={metrics['pasan']}")
+    print(f"  atrapados={metrics['atrapados']}/{metrics['manipulaciones']} usd_total=0.000")
+    for r in records:
+        if r["paso"] is None:
+            print(f"  PYTEST {r['id']} -> {r['test']}")
+        else:
+            status = "PASS" if r["paso"] else "FAIL"
+            caught = " caught" if r["atrapado"] else ""
+            print(f"  {status} {r['id']} {r['obtenido']} {r['etiqueta']}{caught}")
+    return code
+
+
 def _parse(argv: list[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(prog="medir.py", description=__doc__)
     parser.add_argument("path", nargs="?", type=Path, default=EVALS / "casos.jsonl")
@@ -279,10 +369,7 @@ def _load(path: Path, where: str | None) -> list[dict[str, Any]]:
 def _unavailable(args: argparse.Namespace, out_dir: Path) -> str:
     """Why the requested mode cannot run yet."""
     if args.adversarios:
-        adversarial = out_dir / "adversarios.jsonl"
-        if not adversarial.is_file():
-            return f"{adversarial} not found; the adversarial set arrives with T-08 (D-029)"
-        return "adversarial runner not implemented yet (T-08, D-029)"
+        return f"{out_dir / 'adversarios.jsonl'} not found (D-029)"
     return "full mode needs the app (/caso, T-07); use --solo-deterministas"
 
 
@@ -316,7 +403,7 @@ def _report(result: dict[str, Any]) -> None:
         if not case["paso"]:
             got = case["obtenido"]
             print(f"  FAIL {case['id']} {case['esperado']} -> {got} {case['error'] or ''}")
-    gate = "off" if result["gate"] is None else result["gate"] or "ok"
+    gate = result["gate"] or "ok"
     print(f"gate={gate} regressions={result['regresiones'] or 'none'}")
 
 
@@ -330,17 +417,20 @@ def main(argv: list[str], classify: Classifier | None = None, out_dir: Path = EV
         out_dir: Where result files and baselines live.
 
     Returns:
-        0 ok, 1 gate or regression, 2 over budget, 3 mode not available yet.
+        0 ok, 1 gate, regression or adversarial miss, 2 over budget, 3 mode not available.
     """
     args = _parse(argv)
     mode = "deterministas" if args.solo_deterministas else "completo"
     classify = classify or (deterministic if args.solo_deterministas else None)
+    adversarial = out_dir / "adversarios.jsonl"
+    if args.adversarios and adversarial.is_file():
+        return _adversarial(adversarial, args.json, out_dir)
     if args.adversarios or classify is None:
         print(f"medir: {_unavailable(args, out_dir)}", file=sys.stderr)
         return EXIT_UNAVAILABLE
     records, over_budget = run(_load(args.path, args.filtro), classify, args.max_usd)
     metrics = summarize(records)
-    failures = gate_failures(metrics) if mode == "completo" else None
+    failures = gate_failures(metrics, full=mode == "completo")
     suffix = ".deterministas" if mode == "deterministas" else ""
     baseline = out_dir / f"ultimo{suffix}.resultado.json"
     previous = json.loads(baseline.read_text("utf-8"))["metricas"] if baseline.is_file() else {}

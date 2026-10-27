@@ -4,6 +4,7 @@ import asyncpg
 import pytest
 
 from tests.conftest import Recorder, message
+from tests.conftest import escalation_id as _escalation_id
 from vigia.config import settings
 from vigia.i18n import t
 from vigia.services.commands import parse_command
@@ -171,7 +172,7 @@ async def test_owner_adds_team_member_who_becomes_whitelisted(
 
     reply = await handle(app_conn, recorder.ports, message(OWNER, "equipo +57 300 000 0202 Luis"))
 
-    assert reply == t("es", "team.added", name="Luis")
+    assert reply == t("es", "team.request_received", name="Luis")
     employee = await store.find_member(app_conn, recorder.keyring.hash(EMPLOYEE))
     assert employee is not None and employee.role == "employee"
 
@@ -203,7 +204,7 @@ async def test_team_with_email_sends_a_code_to_that_email(
 
     assert [to for to, _ in recorder.emails] == [EMAIL]
     assert reply == "\n".join(
-        [t("es", "team.added", name="Luis"), t("es", "email.code_sent", email=EMAIL)]
+        [t("es", "team.request_received", name="Luis"), t("es", "email.code_sent", email=EMAIL)]
     )
 
 
@@ -333,7 +334,7 @@ async def test_adv_relay_correo_team_cannot_mail_one_address_without_limit(
 
     assert len(recorder.emails) == settings.email_codes_per_hour
     assert replies[-1] == "\n".join(
-        [t("es", "team.added", name="A"), t("es", "email.code_rate_limited")]
+        [t("es", "team.request_received", name="A"), t("es", "email.code_rate_limited")]
     )
     added = await store.find_member(app_conn, recorder.keyring.hash("+573000000304"))
     assert added is not None
@@ -380,3 +381,88 @@ async def test_code_is_invalidated_after_too_many_wrong_attempts(
 
     assert reply == t("es", "email.code_locked")
     assert await store.find_member(app_conn, recorder.keyring.hash(EMAIL)) is None
+
+
+async def _second_business(conn: asyncpg.Connection, recorder: Recorder) -> None:
+    await handle(conn, recorder.ports, message(STRANGER, "hola Panaderia La Espiga CO"))
+
+
+async def test_adv_enumeracion_contacto_phone_of_another_business_looks_like_a_new_one(
+    app_conn: asyncpg.Connection, recorder: Recorder
+) -> None:
+    """Incident adv-enumeracion-contacto: ``equipo`` must not reveal who is enrolled elsewhere."""
+    await _enroll_owner(app_conn, recorder)
+    await handle(app_conn, recorder.ports, message(OWNER, "equipo +57 300 000 0202 Luis"))
+    await _second_business(app_conn, recorder)
+
+    taken = await handle(
+        app_conn, recorder.ports, message(STRANGER, "equipo +57 300 000 0202 Luis")
+    )
+    free = await handle(app_conn, recorder.ports, message(STRANGER, "equipo +57 300 000 0298 Luis"))
+
+    assert taken == free == t("es", "team.request_received", name="Luis")
+    employee = await store.find_member(app_conn, recorder.keyring.hash(EMPLOYEE))
+    owner = await store.find_member(app_conn, recorder.keyring.hash(OWNER))
+    assert employee is not None and owner is not None
+    assert employee.business_id == owner.business_id
+
+
+async def test_adv_enumeracion_contacto_email_of_another_business_looks_like_a_new_one(
+    app_conn: asyncpg.Connection, recorder: Recorder
+) -> None:
+    """Incident adv-enumeracion-contacto: a verified email elsewhere gets no tell either."""
+    await _enroll_owner(app_conn, recorder)
+    await handle(app_conn, recorder.ports, message(OWNER, f"mi correo {EMAIL}"))
+    await handle(app_conn, recorder.ports, message(OWNER, f"codigo {_code(recorder)}"))
+    await _second_business(app_conn, recorder)
+    sent_before = len(recorder.emails)
+
+    taken = await handle(app_conn, recorder.ports, message(STRANGER, f"mi correo {EMAIL}"))
+    free = await handle(
+        app_conn, recorder.ports, message(STRANGER, "mi correo libre@correo.example")
+    )
+
+    assert taken == t("es", "email.code_sent", email=EMAIL)
+    assert free == t("es", "email.code_sent", email="libre@correo.example")
+    assert [to for to, _ in recorder.emails[sent_before:]] == ["libre@correo.example"]
+
+
+async def test_adv_enumeracion_reintento_second_team_command_does_not_reveal_another_business(
+    app_conn: asyncpg.Connection, recorder: Recorder
+) -> None:
+    """Incident adv-enumeracion-reintento: sending ``equipo`` twice tells free from taken."""
+    await _enroll_owner(app_conn, recorder)
+    await handle(app_conn, recorder.ports, message(OWNER, "equipo +57 300 000 0202 Luis"))
+    await _second_business(app_conn, recorder)
+    replies = []
+    for phone in ("+57 300 000 0202", "+57 300 000 0298"):  # elsewhere, then free
+        for _ in range(2):
+            text = f"equipo {phone} Luis"
+            replies.append(await handle(app_conn, recorder.ports, message(STRANGER, text)))
+
+    assert set(replies) == {t("es", "team.request_received", name="Luis")}
+    free = await store.find_member(app_conn, recorder.keyring.hash("+573000000298"))
+    assert free is not None and free.role == "employee"
+
+
+async def test_adv_enumeracion_transferir_transfer_does_not_reveal_another_business(
+    app_conn: asyncpg.Connection, recorder: Recorder
+) -> None:
+    """Incident adv-enumeracion-transferir: ``equipo`` + ``transferir`` tells free from taken."""
+    await _enroll_owner(app_conn, recorder)
+    await handle(app_conn, recorder.ports, message(OWNER, "equipo +57 300 000 0202 Luis"))
+    await _second_business(app_conn, recorder)
+    asks = {}
+    for phone in (EMPLOYEE, "+573000000298"):  # enrolled in the first business, then free
+        await handle(app_conn, recorder.ports, message(STRANGER, f"equipo {phone} Luis"))
+        asks[phone] = await handle(
+            app_conn, recorder.ports, message(STRANGER, f"transferir {phone}")
+        )
+
+    for phone, ask in asks.items():
+        assert ask == t("es", "escalation.transfer_requested", id=_escalation_id(ask), target=phone)
+    confirm = f"confirmar {_escalation_id(asks[EMPLOYEE])}"
+    reply = await handle(app_conn, recorder.ports, message(STRANGER, confirm, origin="wazenda"))
+    assert reply == t("es", "escalation.unknown")  # nothing was raised for the other business
+    employee = await store.find_member(app_conn, recorder.keyring.hash(EMPLOYEE))
+    assert employee is not None and employee.role == "employee"

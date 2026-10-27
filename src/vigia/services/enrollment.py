@@ -3,6 +3,7 @@
 from collections.abc import Awaitable, Callable, Mapping
 from dataclasses import dataclass
 from datetime import UTC, datetime
+from typing import Literal
 from uuid import UUID, uuid4
 
 import asyncpg
@@ -104,22 +105,35 @@ async def _help(session: Session, _: Fields) -> str:
     return session.reply("help")
 
 
-async def _is_taken(session: Session, contact: str) -> bool:
-    """Whether a phone or email is already enrolled in any business."""
-    return await store.find_member(session.conn, session.vault.hash(contact)) is not None
+async def _taken(session: Session, contact: str) -> Literal["here", "elsewhere"] | None:
+    """Where a phone or email is already enrolled: this business, another one, or nowhere.
+
+    Only ``here`` may be told to the sender; ``elsewhere`` must get the same reply as a
+    free contact, or ``equipo`` becomes an enrollment oracle (adv-enumeracion-contacto).
+    """
+    found = await store.find_member(session.conn, session.vault.hash(contact))
+    if found is None:
+        return None
+    return "here" if found.business_id == session.business.id else "elsewhere"
 
 
-async def _send_code(session: Session, member_id: UUID, email: str) -> str:
+async def _send_code(session: Session, member_id: UUID | None, email: str) -> str:
     """Issue a code for ``email`` and mail it; returns the reply for the sender.
+
+    ``member_id`` is ``None`` when the member was not added because their phone is
+    enrolled in another business: the reply is the same, nothing is issued (D-053).
 
     Capped per address and per business each hour (D-028) so VIGIA cannot be used to mail
     arbitrary addresses (incident adv-relay-correo).
     """
     email = normalize_contact(email)
-    if await _is_taken(session, email):
+    taken = await _taken(session, email)
+    if taken == "here":
         return session.reply("contact.taken")
     if not await store.can_issue_email_code(session.conn, session.vault.hash(email)):
         return session.reply("email.code_rate_limited")
+    if taken == "elsewhere" or member_id is None:  # same reply, nothing sent (D-053)
+        return session.reply("email.code_sent", email=email)
     code = await store.issue_email_code(session.conn, session.vault, member_id, email)
     await session.send_email(email, session.reply("email.code_body", code=code))
     return session.reply("email.code_sent", email=email)
@@ -128,17 +142,19 @@ async def _send_code(session: Session, member_id: UUID, email: str) -> str:
 async def _team(session: Session, fields: Fields) -> str:
     """Whitelist an employee: ``+<phone> <name> [email]`` (owner only).
 
-    The member is added even if the email code cannot go out; the reply says why.
+    The member is added even if the email code cannot go out; the reply says why. A phone
+    already enrolled, here or elsewhere, gets the same reply and is not added again: a
+    retry must not tell a free number from another business's (adv-enumeracion-reintento).
     """
     phone, name, email = normalize_contact(fields["phone"]), fields["name"], fields["email"]
-    if await _is_taken(session, phone):
-        return session.reply("contact.taken")
-    contact = Contact(phone, name)
-    member_id = await store.add_member(session.conn, session.vault, "employee", contact)
-    added = session.reply("team.added", name=name)
+    received = session.reply("team.request_received", name=name)
+    member_id = None  # already enrolled: not added, and no tell of where (D-053)
+    if await _taken(session, phone) is None:
+        contact = Contact(phone, name)
+        member_id = await store.add_member(session.conn, session.vault, "employee", contact)
     if not email:
-        return added
-    return "\n".join([added, await _send_code(session, member_id, email)])
+        return received
+    return "\n".join([received, await _send_code(session, member_id, email)])
 
 
 async def _my_email(session: Session, fields: Fields) -> str:
@@ -187,16 +203,17 @@ async def _history(session: Session, _: Fields) -> str:
 async def _transfer(session: Session, fields: Fields) -> str:
     """Ask to hand the business to a team member: ``transferir +<phone>`` (owner only, B7).
 
-    Nothing changes yet: it raises an escalation the owner must confirm.
+    Nothing changes yet: it raises an escalation the owner must confirm. A phone that is
+    not an employee of this business gets the same reply, but nothing is saved, so
+    ``confirmar`` finds no escalation (D-055, adv-enumeracion-transferir).
     """
     phone = normalize_contact(fields["phone"])
     target = await store.find_member(session.conn, session.vault.hash(phone))
-    if target is None or target.business_id != session.business.id or target.role == "owner":
-        return session.reply("transfer.not_member")
     escalation = policy.new_escalation(
         "transfer_ownership", phone, session.business.id, datetime.now(UTC)
     )
-    await store.save_escalation(session.conn, session.vault, escalation)
+    if target and target.business_id == session.business.id and target.role != "owner":
+        await store.save_escalation(session.conn, session.vault, escalation)
     return session.reply("escalation.transfer_requested", id=escalation.id, target=phone)
 
 

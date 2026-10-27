@@ -10,8 +10,11 @@ from pydantic import BaseModel
 from vigia.config import Settings, settings
 from vigia.domain.analyst import AnalystResult, Evidence
 from vigia.domain.case import Case, IncomingMessage
+from vigia.domain.gate import Judge
 from vigia.domain.member import Business
 from vigia.domain.verdict import Verdict
+from vigia.jev.gate import screen
+from vigia.model.jev import make_judge
 from vigia.services.ingest import normalize
 from vigia.signals.detector import detect
 from vigia.signals.knowledge import seeded_pack
@@ -40,17 +43,22 @@ class CaseRequest(BaseModel):
     text: str
 
 
-def create_app(config: Settings, analyst: AnalystProvider = _no_analyst) -> FastAPI:
+def create_app(
+    config: Settings, analyst: AnalystProvider = _no_analyst, judge: Judge | None = None
+) -> FastAPI:
     """Build the API.
 
     Args:
         config: Settings for this process; ``mode == "prod"`` hides the API docs.
         analyst: Provider of the analyst's read of a case; defaults to none (degraded
             verdicts only), so tests and this endpoint never call a real model.
+        judge: Jev for the manipulation gate; defaults to :func:`make_judge` (mock unless
+            ``JEV_BACKEND=real`` with a key).
 
     Returns:
         The configured FastAPI application.
     """
+    gate_judge = judge or make_judge(config)
     docs = config.mode != "prod"
     api = FastAPI(
         title="VIGIA",
@@ -98,7 +106,14 @@ def create_app(config: Settings, analyst: AnalystProvider = _no_analyst) -> Fast
         if case is None:
             raise HTTPException(status_code=422, detail="unsupported case")
         case = case.model_copy(update={"origin": "eval", "sender": None})
-        evidence = Evidence(signals=detect(case, pack), analyst=analyst(case))
+        # No chat here: one stateless text, so the gate sees no history (D-048).
+        # ponytail: a real Jev call blocks the event loop up to its timeout; async on T-10.
+        gate = screen(request.text, [], pack, gate_judge)
+        evidence = Evidence(
+            signals=detect(case, pack),
+            analyst=analyst(case),
+            manipulation_detected=gate.manipulation_detected,
+        )
         return build_verdict(case, evidence, pack)
 
     return api

@@ -20,6 +20,8 @@ class Settings(BaseSettings):
         email_codes_per_business_hour: Verification emails one business may trigger per hour.
         code_max_attempts: Wrong guesses that invalidate a member's live codes (specs/12 B4).
         knowledge_seed: Known-campaign seed attached to the country packs (D-048).
+        jev_backend: ``real`` asks TypeSafe Jev; ``mock`` (default) never flags (T-08).
+        jev_api_key: TypeSafe key; without it the backend is mock whatever ``jev_backend``.
     """
 
     model_config = SettingsConfigDict(populate_by_name=True)
@@ -37,6 +39,9 @@ class Settings(BaseSettings):
     knowledge_seed: Path = Field(
         Path("conocimiento/semilla.jsonl"), validation_alias="VIGIA_KNOWLEDGE_SEED"
     )
+
+    jev_backend: Literal["mock", "real"] = Field("mock", validation_alias="JEV_BACKEND")
+    jev_api_key: SecretStr | None = Field(None, validation_alias="JEV_API_KEY")
 
     @model_validator(mode="after")
     def _prod_needs_explicit_dsns(self) -> Self:

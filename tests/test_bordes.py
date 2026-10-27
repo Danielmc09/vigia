@@ -6,7 +6,6 @@ lists the T rows that no test names.
 
 import asyncio
 import importlib
-import re
 from collections.abc import AsyncIterator
 from datetime import UTC, datetime, timedelta
 from email.message import EmailMessage
@@ -14,10 +13,12 @@ from pathlib import Path
 from uuid import uuid4
 
 import asyncpg
+import httpx
 import pytest
 from fastapi.testclient import TestClient
 
 from tests.conftest import Recorder, message
+from tests.conftest import escalation_id as _escalation_id
 from vigia.app import create_app
 from vigia.config import Settings
 from vigia.domain.attachment import MAX_ATTACHMENT_BYTES, Attachment, check_image, read_capped
@@ -26,6 +27,8 @@ from vigia.domain.member import Business
 from vigia.domain.rejection import Rejection
 from vigia.domain.urls import extract_urls
 from vigia.i18n import t
+from vigia.jev.gate import screen
+from vigia.model.jev import JevJudge, make_judge
 from vigia.policy.actions import confirm, new_escalation
 from vigia.services.ingest import handle, normalize
 from vigia.signals.country_pack import country_pack
@@ -396,6 +399,7 @@ async def test_b5_employee_cannot_ask_for_apikey_or_panel(
 async def test_b6_number_of_another_business_cannot_join_a_second_one(
     app_conn: asyncpg.Connection, recorder: Recorder
 ) -> None:
+    """Not added, and the reply is the neutral one of any new member (adv-enumeracion-contacto)."""
     await _team(app_conn, recorder)
     first = await store.find_member(app_conn, recorder.keyring.hash(OWNER))
     other = "+573000000599"
@@ -403,7 +407,7 @@ async def test_b6_number_of_another_business_cannot_join_a_second_one(
 
     reply = await handle(app_conn, recorder.ports, message(other, "equipo +57 300 000 0502 Luis"))
 
-    assert reply == t("es", "contact.taken")
+    assert reply == t("es", "team.request_received", name="Luis")
     employee = await store.find_member(app_conn, recorder.keyring.hash(EMPLOYEE))
     assert first is not None and employee is not None
     assert employee.business_id == first.business_id
@@ -419,12 +423,6 @@ async def test_b12_us_business_gets_english_replies_even_to_spanish_commands(
 
     assert enrolled == t("en", "enroll.done", business="Corner Hardware")
     assert reply == t("en", "help")
-
-
-def _escalation_id(reply: str | None) -> str:
-    found = re.search(r"\b[0-9A-F]{8}\b", reply or "")
-    assert found, reply
-    return found.group()
 
 
 async def _role(conn: asyncpg.Connection, recorder: Recorder, phone: str) -> str | None:
@@ -481,11 +479,18 @@ async def test_b7_only_the_owner_transfers_and_confirms(
 async def test_b7_transfer_only_to_a_member_of_the_team(
     app_conn: asyncpg.Connection, recorder: Recorder
 ) -> None:
+    """A non-member gets the reply of a valid request, but nothing to confirm (D-055)."""
     await _team(app_conn, recorder)
 
     reply = await handle(app_conn, recorder.ports, message(OWNER, "transferir +57 300 000 0999"))
+    confirm = message(OWNER, f"confirmar {_escalation_id(reply)}", origin="wazenda")
 
-    assert reply == t("es", "transfer.not_member")
+    target = "+573000000999"
+    assert reply == t(
+        "es", "escalation.transfer_requested", id=_escalation_id(reply), target=target
+    )
+    assert await handle(app_conn, recorder.ports, confirm) == t("es", "escalation.unknown")
+    assert await _role(app_conn, recorder, OWNER) == "owner"
 
 
 @pytest.mark.edge("B7")
@@ -610,6 +615,23 @@ async def test_b11_forward_with_three_eml_gives_three_cases(
 
 
 # --- C. Models and dependencies ------------------------------------------------------
+
+
+@pytest.mark.edge("C10")
+def test_c10_jev_down_or_without_key_falls_back_to_mock_investigate() -> None:
+    def down(request: httpx.Request) -> httpx.Response:
+        raise httpx.ConnectError("down", request=request)
+
+    keyed = JevJudge("k", client=httpx.Client(transport=httpx.MockTransport(down)))
+    keyless = make_judge(Settings(JEV_BACKEND="real", JEV_API_KEY=None))
+    assert CO is not None
+
+    results = [screen("Su paquete esta retenido", [], CO, j) for j in (keyed, keyless)]
+
+    assert all(
+        (r.manipulation_detected, r.triage, r.source) == (False, "investigate", "mock")
+        for r in results
+    )
 
 
 @pytest.mark.edge("C12")
@@ -803,11 +825,6 @@ PENDING = [
         pytest.mark.edge("C9"),
         "T-11: VOICE_DOWN -> doubtful + ask to write",
         "vigia.analyst.tools:transcribe",
-    ),
-    _pending(
-        pytest.mark.edge("C10"),
-        "T-08: Jev down -> mock backend, investigate",
-        "vigia.jev.gate:screen",
     ),
     _pending(
         pytest.mark.edge("C13"),

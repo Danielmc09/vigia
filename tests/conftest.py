@@ -1,6 +1,7 @@
 """Shared fixtures: a real Postgres (docker compose) with migrations applied."""
 
 import os
+import re
 from collections.abc import AsyncIterator
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
@@ -110,3 +111,10 @@ def message(sender: str, text: str | None, **fields: Any) -> IncomingMessage:
         "received_at": datetime(2026, 10, 28, 9, 0, tzinfo=UTC),
     }
     return IncomingMessage(**(values | fields))
+
+
+def escalation_id(reply: str | None) -> str:
+    """The 8-hex escalation id inside a ``transferir`` reply."""
+    found = re.search(r"\b[0-9A-F]{8}\b", reply or "")
+    assert found, reply
+    return found.group()
