@@ -237,3 +237,12 @@ def test_each_expected_value_maps_to_its_own_label() -> None:
     from vigia.domain.eval_case import EXPECTED_LABEL
 
     assert EXPECTED_LABEL == {"estafa": "scam", "legitimo": "legit", "dudoso": "doubtful"}
+
+
+def test_deterministic_path_uses_the_signals() -> None:
+    text = "Su paquete esta retenido. Pague en servientrega-co.xyz/pago para liberarlo"
+    outcome = measure.deterministic(measure.to_case(_case("c-9", "estafa", text)))
+
+    assert outcome.label == "scam"
+    assert "brand_off_domain" in outcome.signals
+    assert outcome.degraded and outcome.usd == 0

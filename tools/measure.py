@@ -25,6 +25,9 @@ from vigia.domain.eval_case import CHANNEL_KIND, EXPECTED_LABEL, Expected
 from vigia.domain.member import Business
 from vigia.domain.verdict import Label
 from vigia.services.ingest import normalize
+from vigia.signals.country_pack import country_pack
+from vigia.signals.detector import detect
+from vigia.verdict.fusion import fuse
 
 REPO = Path(__file__).parents[1]
 EVALS = REPO / "evals"
@@ -69,18 +72,20 @@ Classifier = Callable[[Case], Outcome]
 
 
 def deterministic(case: Case) -> Outcome:
-    """Verdict from code alone, with no model.
-
-    No signals exist yet (T-06 plugs them in here), so specs/05 rule 4 applies: no
-    hard or medium signal and no analyst gives ``doubtful``, degraded.
+    """Verdict from code alone: signals of specs/04 fused by specs/05, no model, no network.
 
     Args:
         case: The case to classify.
 
     Returns:
-        The code-only outcome; it never spends.
+        The code-only outcome; it never spends and is always degraded (no analyst).
     """
-    return Outcome(label="doubtful", degraded=True)
+    pack = country_pack(case.country)
+    signals = detect(case, pack) if pack else []
+    label, confidence = fuse(signals)
+    return Outcome(
+        label=label, confidence=confidence, signals=[s.type for s in signals], degraded=True
+    )
 
 
 def to_case(raw: dict[str, Any], root: Path = REPO) -> Case:

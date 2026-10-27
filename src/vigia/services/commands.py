@@ -1,10 +1,10 @@
 """Enrollment commands recognized in any supported language, with no model (specs/01)."""
 
 import re
-import unicodedata
 from collections.abc import Mapping
 from dataclasses import dataclass, field
 
+from vigia.domain.text import fold
 from vigia.i18n import LANGUAGES, t
 
 # What must follow each keyword for the message to be a command and not a case to analyze.
@@ -42,12 +42,6 @@ class Command:
     fields: Mapping[str, str] = field(default_factory=dict)
 
 
-def _fold(text: str) -> str:
-    """Lowercase and drop accents so "Código" matches "codigo"."""
-    decomposed = unicodedata.normalize("NFD", text)
-    return "".join(c for c in decomposed if not unicodedata.combining(c)).lower()
-
-
 def parse_command(text: str | None) -> Command | None:
     """Recognize a command; anything else is a case to analyze.
 
@@ -68,7 +62,7 @@ def parse_command(text: str | None) -> Command | None:
             keyword = t(lang, f"command.{name}")
             words = keyword.count(" ") + 1
             parts = text.strip().split(maxsplit=words)
-            if _fold(" ".join(parts[:words])) != keyword:
+            if fold(" ".join(parts[:words])).lower() != keyword:
                 continue
             args = parts[words] if len(parts) > words else ""
             if match := grammar.fullmatch(args):

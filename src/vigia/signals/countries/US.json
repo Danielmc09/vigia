@@ -77,7 +77,8 @@
   {
    "marca": "PayPal",
    "dominios": [
-    "paypal.com"
+    "paypal.com",
+    "paypal.me"
    ],
    "canal_oficial": "official app or https://www.paypal.com",
    "tipo": "billetera",
@@ -178,6 +179,18 @@
    "new number",
    "had an accident",
    "in jail"
+  ],
+  "liberar": [
+   "release",
+   "unlock",
+   "on hold",
+   "held"
+  ],
+  "cuenta_bancaria": [
+   "account",
+   "routing",
+   "checking",
+   "savings"
   ]
  },
  "reportar_a": [

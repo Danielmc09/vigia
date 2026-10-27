@@ -544,6 +544,19 @@
    "cambie de numero",
    "numero nuevo",
    "número nuevo"
+  ],
+  "liberar": [
+   "liberar\\w*",
+   "desbloquear\\w*",
+   "retenid[oa]",
+   "embargo"
+  ],
+  "cuenta_bancaria": [
+   "cuenta",
+   "ahorros",
+   "corriente",
+   "Nequi",
+   "Daviplata"
   ]
  },
  "reportar_a": [

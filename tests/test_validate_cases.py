@@ -6,6 +6,7 @@ import pytest
 import validate_cases
 
 from vigia.domain.eval_case import Category, EvalKind, EvalOrigin, Expected
+from vigia.signals.country_pack import COUNTRIES_DIR
 
 REPO = Path(__file__).parents[1]
 SCAM = {
@@ -117,7 +118,7 @@ def test_repository_eval_set_is_valid() -> None:
 
 @pytest.mark.parametrize(("iso", "minimum"), [("CO", 40), ("US", 15)])
 def test_country_pack_lists_sourced_brands(iso: str, minimum: int) -> None:
-    pack = json.loads((validate_cases.COUNTRIES / f"{iso}.json").read_text(encoding="utf-8"))
+    pack = json.loads((COUNTRIES_DIR / f"{iso}.json").read_text(encoding="utf-8"))
 
     assert pack["pais"] == iso
     assert len(pack["marcas"]) >= minimum
@@ -130,3 +131,11 @@ def test_vocabulary_comes_from_the_domain() -> None:
     assert validate_cases.CHOICES["tipo"] == set(get_args(EvalKind))
     assert validate_cases.CHOICES["esperado"] == set(get_args(Expected))
     assert validate_cases.CHOICES["origen"] == set(get_args(EvalOrigin))
+
+
+def test_brands_come_from_the_country_pack_loader() -> None:
+    from vigia.signals.country_pack import country_pack
+
+    pack = country_pack("CO")
+    assert pack is not None
+    assert validate_cases.load_brands()["CO"] == {b.name for b in pack.brands}

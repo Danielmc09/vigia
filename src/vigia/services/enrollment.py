@@ -65,7 +65,7 @@ async def enroll(conn: asyncpg.Connection, keyring: Keyring, phone: str, command
     pack = country_pack(country) if country else None
     if not name or pack is None:
         return t(command.lang, "enroll.ask")
-    business = Business(uuid4(), country, pack["idioma"])
+    business = Business(uuid4(), country, pack.language)
     vault = await store.create_business(conn, keyring, business, name)
     await store.add_member(conn, vault, "owner", Contact(phone))
     return t(business.language, "enroll.done", business=name)

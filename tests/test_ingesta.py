@@ -40,6 +40,8 @@ STRANGER = "+573000000399"
         ),
         ("Refund: amzn-refund.net/claim or amzn-refund.net/claim", ["amzn-refund.net/claim"]),
         ("Saldo 1.500.000 escriba a pagos@aceros.example", []),
+        ("Ingrese a http://192.0.2.45:8080/bogota ya", ["http://192.0.2.45:8080/bogota"]),
+        ("Version 10.2.3.4 instalada", []),  # a bare IP needs a scheme to be a link
     ],
 )
 def test_urls_are_extracted_tolerantly_and_cleaned(text: str, expected: list[str]) -> None:

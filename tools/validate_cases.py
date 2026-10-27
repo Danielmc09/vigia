@@ -11,9 +11,9 @@ from pathlib import Path
 from typing import Any, get_args
 
 from vigia.domain.eval_case import Category, EvalKind, EvalOrigin, Expected
+from vigia.signals.country_pack import COUNTRIES_DIR, country_pack
 
 REPO = Path(__file__).parents[1]
-COUNTRIES = REPO / "src" / "vigia" / "signals" / "countries"
 DEFAULT = REPO / "evals" / "casos.jsonl"
 
 REQUIRED = ("id", "tipo", "pais", "esperado", "categoria", "hipotesis", "autor", "fecha", "origen")
@@ -26,12 +26,10 @@ CHOICES = {
 MIN_LEGIT_SHARE = 0.35  # specs/06: ">= 35% legitimos"
 
 
-def load_brands(countries: Path = COUNTRIES) -> dict[str, set[str]]:
-    """Brand names per country ISO code, read from the country packs."""
-    return {
-        p.stem: {b["marca"] for b in json.loads(p.read_text("utf-8"))["marcas"]}
-        for p in countries.glob("*.json")
-    }
+def load_brands() -> dict[str, set[str]]:
+    """Brand names per country ISO code, read with the same loader the signals use."""
+    packs = {p.stem: country_pack(p.stem) for p in COUNTRIES_DIR.glob("*.json")}
+    return {iso: {b.name for b in pack.brands} for iso, pack in packs.items() if pack}
 
 
 def _field_errors(case: dict[str, Any]) -> list[str]:
@@ -65,9 +63,9 @@ def _consistency_errors(case: dict[str, Any], brands: dict[str, set[str]], root:
     return errors
 
 
-def validate_file(path: Path, root: Path = REPO, countries: Path = COUNTRIES) -> list[str]:
+def validate_file(path: Path, root: Path = REPO) -> list[str]:
     """All problems found in a JSONL eval set; an empty list means it is valid."""
-    brands = load_brands(countries)
+    brands = load_brands()
     errors: list[str] = []
     seen: set[str] = set()
     cases = []
