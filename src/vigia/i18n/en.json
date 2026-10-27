@@ -19,9 +19,10 @@
   "email.code_sent": "I sent a 6-digit code to {email}. Whoever gets it must reply from their WhatsApp: code 123456. It expires in 15 minutes.",
   "email.code_body": "Your VIGIA code is {code}. Reply on WhatsApp with: code {code}. It expires in 15 minutes.",
   "email.verified": "Email verified. You can now forward suspicious emails to VIGIA.",
-  "email.code_invalid": "That code is not valid or has expired. Ask for another with: my email you@email.com",
+  "email.code_invalid": "That code is not valid. Check it or ask for another with: my email you@email.com",
   "email.code_rate_limited": "I did not send the code: that address or your business already got several codes in the last hour. Please wait a while and try again.",
   "email.code_locked": "Too many attempts with a wrong code. That code no longer works; request a new one with: my email you@email.com",
+  "email.code_none": "I have no pending code for you. Ask for one with: my email you@email.com",
   "supplier.added": "Supplier {name} saved to your address book.",
   "history.empty": "Your business has no verdicts yet.",
   "history.header": "Latest verdicts:",
@@ -30,6 +31,7 @@
   "verdict.label.legit": "legitimate",
   "verdict.label.doubtful": "unclear",
   "help": "VIGIA commands: forward me any suspicious message to check it. history: last 5 verdicts. my email you@email.com: link your email. Owner only: team +1 202 555 0100 Name [email] and supplier Name email=... account=...",
+  "case.empty": "Forward me the suspicious message (text, screenshot, voice note, PDF or email) and I will tell you if it is a scam. Write help to see the commands.",
   "case.duplicate": "I already checked this message.",
   "case.unsupported": "I can't check this kind of file yet. Send me text, a screenshot, a voice note, a PDF or an email."
 }

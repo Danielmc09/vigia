@@ -66,8 +66,8 @@ class Supplier:
     account: str | None = None
 
 
-CodeCheck = Literal["linked", "invalid", "locked"]
-"""Outcome of redeeming an email code: linked, wrong or expired, or too many wrong tries."""
+CodeCheck = Literal["linked", "invalid", "locked", "none"]
+"""Outcome of redeeming an email code: linked, wrong, too many wrong tries, or no live code."""
 
 
 def normalize_phone(raw: str) -> str:

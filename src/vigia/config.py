@@ -17,7 +17,7 @@ class Settings(BaseSettings):
         pii_hmac_key: Base64 key for the lookup hashes of phones and emails (specs/16).
         email_codes_per_hour: Verification emails one address may receive per hour (D-028).
         email_codes_per_business_hour: Verification emails one business may trigger per hour.
-        code_max_attempts: Wrong guesses that invalidate a member's live codes (D-028).
+        code_max_attempts: Wrong guesses that invalidate a member's live codes (specs/12 B4).
     """
 
     model_config = SettingsConfigDict(populate_by_name=True)
@@ -31,7 +31,7 @@ class Settings(BaseSettings):
     email_codes_per_business_hour: int = Field(
         10, ge=1, validation_alias="VIGIA_EMAIL_CODES_PER_BUSINESS_HOUR"
     )
-    code_max_attempts: int = Field(5, ge=1, validation_alias="VIGIA_CODE_MAX_ATTEMPTS")
+    code_max_attempts: int = Field(3, ge=1, validation_alias="VIGIA_CODE_MAX_ATTEMPTS")
 
     @model_validator(mode="after")
     def _prod_needs_explicit_dsns(self) -> Self:

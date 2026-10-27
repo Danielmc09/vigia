@@ -1,7 +1,6 @@
 """Text signals of specs/04: country-pack regexes over the case text (rules)."""
 
 import re
-import unicodedata
 from functools import cache
 
 from vigia.domain.country import CountryPack
@@ -10,6 +9,9 @@ from vigia.domain.text import fold
 
 MEDIUM_CATEGORIES = {"urgencia": "urgency", "premio": "prize", "familiar": "family"}
 """Pack categories that are a medium signal on their own, and the signal they produce."""
+
+LONG_TEXT_CHARS = 4000
+"""Above this the analyst gets a truncated text (specs/12 A2); the length is a light signal."""
 
 
 @cache
@@ -41,7 +43,8 @@ def pattern_signals(text: str, pack: CountryPack, unofficial_link: bool) -> list
 
     Credentials requested next to a non-official link, or a personal-wallet payment to
     "release" a parcel, prize or debt, are hard; urgency, prize and family are medium;
-    authority is medium only next to a non-official link.
+    authority is medium only next to a non-official link; a text longer than
+    ``LONG_TEXT_CHARS`` is a light signal.
 
     Args:
         text: Case text (body, caption or transcription).
@@ -51,7 +54,6 @@ def pattern_signals(text: str, pack: CountryPack, unofficial_link: bool) -> list
     Returns:
         The signals that fired, with the matched text as evidence.
     """
-    text = unicodedata.normalize("NFC", text)
     signals: list[Signal] = []
 
     def add(kind: str, weight: Weight, category: str) -> None:
@@ -68,4 +70,9 @@ def pattern_signals(text: str, pack: CountryPack, unofficial_link: bool) -> list
         add(kind, "medium", category)
     if unofficial_link:
         add("authority_with_link", "medium", "autoridad")
+    if len(text) > LONG_TEXT_CHARS:
+        evidence = {"chars": len(text)}
+        signals.append(
+            Signal(type="text_too_long", weight="light", source="patterns", evidence=evidence)
+        )
     return signals

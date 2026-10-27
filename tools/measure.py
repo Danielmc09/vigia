@@ -20,6 +20,7 @@ from statistics import median
 from typing import Any
 from uuid import NAMESPACE_URL, uuid5
 
+from vigia.domain.attachment import Attachment
 from vigia.domain.case import Case, IncomingMessage
 from vigia.domain.eval_case import CHANNEL_KIND, EXPECTED_LABEL, Expected
 from vigia.domain.member import Business
@@ -111,8 +112,9 @@ def to_case(raw: dict[str, Any], root: Path = REPO) -> Case:
         sender="eval",
         kind=CHANNEL_KIND[raw["tipo"]],
         text=raw.get("texto"),
-        attachment_ref=str(source) if source else None,
-        mime=mimetypes.guess_type(source)[0] if source else None,
+        attachments=[Attachment(ref=str(source), mime=mimetypes.guess_type(source)[0])]
+        if source
+        else [],
         eml_bytes=source.read_bytes() if source and source.suffix == ".eml" else None,
         received_at=datetime.fromisoformat(raw["fecha"]).replace(tzinfo=UTC),
     )

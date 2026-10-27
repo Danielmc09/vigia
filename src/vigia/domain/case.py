@@ -6,6 +6,8 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field
 
+from vigia.domain.attachment import Attachment
+
 Origin = Literal["wazenda", "email", "local", "eval"]
 CaseKind = Literal["text", "image", "audio", "pdf", "url", "email"]
 ChannelKind = Literal["text", "image", "audio", "document", "email", "unknown"]
@@ -18,10 +20,9 @@ class IncomingMessage(BaseModel):
         message_id: Channel id of the message; used for dedupe.
         origin: Channel that received it.
         sender: E.164 phone number or email address of the forwarder.
-        kind: Channel-level type; ``document`` is refined by ``mime``.
+        kind: Channel-level type; ``document`` is refined by the attachments' MIME.
         text: Body or caption, if any.
-        attachment_ref: Channel reference to download the attachment.
-        mime: MIME type of the attachment.
+        attachments: Files of the message (several images arrive as one message).
         eml_bytes: Raw ``.eml`` when an email was forwarded as attachment.
         received_at: When the channel received it.
     """
@@ -31,22 +32,9 @@ class IncomingMessage(BaseModel):
     sender: str
     kind: ChannelKind
     text: str | None = None
-    attachment_ref: str | None = None
-    mime: str | None = None
+    attachments: list[Attachment] = Field(default_factory=list)
     eml_bytes: bytes | None = None
     received_at: datetime
-
-
-class Attachment(BaseModel):
-    """A file that came with the case; downloaded and stored by later stages.
-
-    Attributes:
-        ref: Channel reference of the file.
-        mime: Declared MIME type.
-    """
-
-    ref: str
-    mime: str | None = None
 
 
 class EmailMeta(BaseModel):

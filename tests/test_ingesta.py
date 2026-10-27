@@ -6,6 +6,7 @@ import asyncpg
 import pytest
 
 from tests.conftest import Recorder, message
+from vigia.domain.attachment import Attachment
 from vigia.domain.urls import extract_urls
 from vigia.i18n import t
 from vigia.services.ingest import handle
@@ -117,7 +118,7 @@ async def test_attachment_kind_comes_from_the_channel_and_mime(
     await _owner(app_conn, recorder)
     kind, mime = channel
 
-    msg = message(OWNER, None, kind=kind, mime=mime, attachment_ref="ref-1")
+    msg = message(OWNER, None, kind=kind, attachments=[Attachment(ref="ref-1", mime=mime)])
     await handle(app_conn, recorder.ports, msg)
 
     [case] = recorder.analyzed
@@ -130,7 +131,9 @@ async def test_unsupported_document_gets_a_reply_and_no_case(
 ) -> None:
     await _owner(app_conn, recorder)
 
-    msg = message(OWNER, None, kind="document", mime="application/zip", attachment_ref="r")
+    msg = message(
+        OWNER, None, kind="document", attachments=[Attachment(ref="r", mime="application/zip")]
+    )
     reply = await handle(app_conn, recorder.ports, msg)
 
     assert reply == t("es", "case.unsupported")

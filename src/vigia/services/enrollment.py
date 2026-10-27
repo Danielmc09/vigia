@@ -180,6 +180,7 @@ _CODE_REPLY: dict[CodeCheck, str] = {
     "linked": "email.verified",
     "invalid": "email.code_invalid",
     "locked": "email.code_locked",
+    "none": "email.code_none",
 }
 
 _HANDLERS: dict[str, Callable[[Session, Fields], Awaitable[str]]] = {

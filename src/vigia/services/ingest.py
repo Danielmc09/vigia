@@ -14,8 +14,9 @@ from uuid import uuid4
 
 import asyncpg
 
-from vigia.domain.case import Attachment, Case, CaseKind, EmailMeta, IncomingMessage
+from vigia.domain.case import Case, CaseKind, EmailMeta, IncomingMessage
 from vigia.domain.member import Business, normalize_contact
+from vigia.domain.text import clean_text
 from vigia.domain.urls import extract_urls
 from vigia.i18n import t
 from vigia.services import enrollment
@@ -49,7 +50,8 @@ async def handle(conn: asyncpg.Connection, ports: Ports, msg: IncomingMessage) -
 
     Returns:
         Text to reply to the sender, or ``None`` when there is nothing to say now
-        (sender not enrolled, or a new case handed to analysis).
+        (sender not enrolled, or a new case handed to analysis). Text without a letter or
+        digit (empty, emoji, "?") gets a short help and creates no case.
     """
     sender = normalize_contact(msg.sender)
     sender_hash = ports.keyring.hash(sender)
@@ -64,6 +66,8 @@ async def handle(conn: asyncpg.Connection, ports: Ports, msg: IncomingMessage) -
     if _is_command(command):
         session = enrollment.Session(conn, business, vault, member, ports.send_email)
         return await enrollment.run(session, command)
+    if msg.kind == "text" and not any(c.isalnum() for c in msg.text or ""):
+        return t(business.language, "case.empty")  # specs/12 A1: no case, no model
     case = normalize(msg, business)
     if case is None:
         return t(business.language, "case.unsupported")
@@ -92,7 +96,7 @@ def normalize(msg: IncomingMessage, business: Business) -> Case | None:
     if kind is None:
         return None
     text, email = _email(msg) if kind == "email" else (msg.text, None)
-    attachments = [Attachment(ref=msg.attachment_ref, mime=msg.mime)] if msg.attachment_ref else []
+    text = clean_text(text) if text is not None else None
     return Case(
         id=uuid4(),
         business_id=business.id,
@@ -103,7 +107,7 @@ def normalize(msg: IncomingMessage, business: Business) -> Case | None:
         kind=kind,
         text=text,
         urls=extract_urls(text or ""),
-        attachments=attachments,
+        attachments=msg.attachments,
         email=email,
         received_at=msg.received_at,
     )
@@ -116,7 +120,7 @@ def _kind(msg: IncomingMessage) -> CaseKind | None:
         return "url" if len(text.split()) == 1 and extract_urls(text) else "text"
     if msg.kind in ("image", "audio", "email"):
         return msg.kind
-    if msg.kind == "document" and msg.mime == "application/pdf":
+    if msg.kind == "document" and {a.mime for a in msg.attachments} == {"application/pdf"}:
         return "pdf"
     return None
 

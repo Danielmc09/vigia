@@ -55,3 +55,4 @@ max-statements = 40
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["tools"]
+markers = ["edge(*rows): specs/12 edge-case rows this test covers (D-036)"]

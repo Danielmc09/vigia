@@ -19,9 +19,10 @@
   "email.code_sent": "Envié un código de 6 dígitos a {email}. Quien lo reciba debe responderme desde su WhatsApp: codigo 123456. Vence en 15 minutos.",
   "email.code_body": "Tu código de VIGÍA es {code}. Respóndelo por WhatsApp como: codigo {code}. Vence en 15 minutos.",
   "email.verified": "Correo verificado. Ya puedes reenviar correos sospechosos a VIGÍA.",
-  "email.code_invalid": "Ese código no es válido o ya venció. Pide otro con: mi correo tu@correo.com",
+  "email.code_invalid": "Ese código no es válido. Revísalo o pide otro con: mi correo tu@correo.com",
   "email.code_rate_limited": "No envié el código: esa dirección o tu negocio ya recibieron varios códigos en la última hora. Espera un rato y vuelve a intentarlo.",
   "email.code_locked": "Demasiados intentos con un código equivocado. Ese código ya no sirve; pide otro con: mi correo tu@correo.com",
+  "email.code_none": "No tengo un código pendiente para ti. Pide uno con: mi correo tu@correo.com",
   "supplier.added": "Proveedor {name} guardado en tu libreta.",
   "history.empty": "Aún no hay veredictos en tu negocio.",
   "history.header": "Últimos veredictos:",
@@ -30,6 +31,7 @@
   "verdict.label.legit": "legítimo",
   "verdict.label.doubtful": "dudoso",
   "help": "Comandos de VIGÍA: reenvíame cualquier mensaje sospechoso para revisarlo. historial: últimos 5 veredictos. mi correo tu@correo.com: liga tu correo. Solo el dueño: equipo +57 300 000 0000 Nombre [correo] y proveedor Nombre correo=... cuenta=...",
+  "case.empty": "Reenvíame el mensaje sospechoso (texto, captura, nota de voz, PDF o correo) y te digo si es estafa. Escribe ayuda para ver los comandos.",
   "case.duplicate": "Ya revisé este mensaje.",
   "case.unsupported": "Todavía no puedo revisar este tipo de archivo. Envíame texto, captura, nota de voz, PDF o correo."
 }

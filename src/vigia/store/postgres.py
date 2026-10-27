@@ -214,7 +214,8 @@ async def redeem_email_code(
         code: The 6 digits they replied with.
 
     Returns:
-        ``linked``, ``invalid`` (wrong or expired) or ``locked`` (too many wrong guesses).
+        ``linked``, ``invalid`` (wrong), ``locked`` (too many wrong guesses) or ``none``
+        (no live code: expired, already used or never requested).
     """
     max_attempts = settings.code_max_attempts
     row = await conn.fetchrow(
@@ -232,7 +233,9 @@ async def redeem_email_code(
             " SELECT max(attempts) FROM tried",
             member_id,
         )
-        return "locked" if attempts is not None and attempts >= max_attempts else "invalid"
+        if attempts is None:
+            return "none"  # expired, used, or never asked for (specs/12 B3)
+        return "locked" if attempts >= max_attempts else "invalid"
     await conn.execute(
         "UPDATE members SET email_hash = $2, email_enc = $3 WHERE id = $1",
         member_id,

@@ -170,6 +170,7 @@ async def test_owner_adds_team_member_who_becomes_whitelisted(
     assert employee is not None and employee.role == "employee"
 
 
+@pytest.mark.edge("B5")
 async def test_employee_cannot_add_team_members_or_suppliers(
     app_conn: asyncpg.Connection, recorder: Recorder
 ) -> None:
@@ -227,6 +228,7 @@ async def test_wrong_code_does_not_link_the_email(
     assert await store.find_member(app_conn, recorder.keyring.hash(EMAIL)) is None
 
 
+@pytest.mark.edge("B4")
 async def test_expired_code_does_not_link_the_email(
     app_conn: asyncpg.Connection, recorder: Recorder
 ) -> None:
@@ -236,7 +238,7 @@ async def test_expired_code_does_not_link_the_email(
 
     reply = await handle(app_conn, recorder.ports, message(OWNER, f"codigo {_code(recorder)}"))
 
-    assert reply == t("es", "email.code_invalid")
+    assert reply == t("es", "email.code_none")  # an expired code is no pending code (B3/B4)
 
 
 async def test_owner_adds_supplier_to_the_address_book(

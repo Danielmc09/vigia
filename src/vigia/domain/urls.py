@@ -3,10 +3,23 @@
 import re
 from urllib.parse import SplitResult, parse_qsl, urlencode, urlsplit, urlunsplit
 
-# ponytail: any dotted word with a letters-only TLD counts ("dijo.Bueno" too); signals filter
-# false positives later. Swap for a public-suffix list if they hurt precision.
+# A scheme-less host is taken whole and kept only if its last label is a TLD: any two letters
+# (ccTLD) or one of these gTLDs (D-039, revised). Taking it whole matters: cutting at a listed
+# TLD turned chase.com.secure-login.ru into chase.com, an official domain (c-0054..c-0056).
+SCHEMELESS_TLDS = frozenset(
+    {"com", "net", "org", "info", "biz", "gov", "edu", "int", "example"}
+    | {"app", "dev", "page", "xyz", "top", "zip", "mov", "site", "online", "shop", "store"}
+    | {"live", "click", "link", "icu", "cfd", "buzz", "rest", "sbs", "vip", "club", "win"}
+    | {"bid", "lat"}
+)
+_LABEL = r"[a-z0-9\u0370-\u03ff\u0400-\u04ff-]+"
 _URL = re.compile(
-    r"(?<![@\w.-])(?:(?:https?://)?(?:[a-z0-9-]+\.)+[a-z]{2,24}|https?://\d{1,3}(?:\.\d{1,3}){3})"
+    # With scheme: any TLD, any Unicode letter, so accented homographs reach lookalike (A19);
+    # the lookahead forbids stopping before another label (no prefix of a longer host).
+    r"(?<![@\w.-])(?:https?://(?:(?:[^\W_]|-)+\.)+[^\W\d_]{2,24}(?![^\W_]|[.-][^\W_])"
+    r"|https?://\d{1,3}(?:\.\d{1,3}){3}"
+    # Without scheme: ASCII, Greek and Cyrillic labels, as many as there are (greedy).
+    rf"|(?P<host>{_LABEL}(?:\.{_LABEL})+))"
     r"(?::\d+)?(?:/[^\s<>\"']*)?",
     re.IGNORECASE,
 )
@@ -37,6 +50,17 @@ def _clean(raw: str) -> str:
     return url if has_scheme else url.removeprefix("//")
 
 
+def _is_tld(label: str) -> bool:
+    """Whether a scheme-less host's last label, as written, reads as a TLD and not prose.
+
+    Sentence case ("Bancolombia", "Me", "Co") is a word starting a sentence after a period
+    with no space, so it is rejected; all lower or all upper case is a TLD.
+    """
+    if not label.isalpha() or (label[0].isupper() and label[1:].islower()):
+        return False
+    return len(label) == 2 or label.lower() in SCHEMELESS_TLDS
+
+
 def extract_urls(text: str) -> list[str]:
     """Find URLs in a message, with or without scheme, cleaned and deduplicated.
 
@@ -54,4 +78,9 @@ def extract_urls(text: str) -> list[str]:
         >>> extract_urls("Reclama en bit.ly/3xQnq.")
         ['bit.ly/3xQnq']
     """
-    return list(dict.fromkeys(_clean(m.group()) for m in _URL.finditer(text)))
+    found = (
+        m.group()
+        for m in _URL.finditer(text)
+        if not m["host"] or _is_tld(m["host"].rsplit(".", 1)[-1])
+    )
+    return list(dict.fromkeys(_clean(url) for url in found))
