@@ -8,7 +8,9 @@ import json
 import sys
 from datetime import date
 from pathlib import Path
-from typing import Any
+from typing import Any, get_args
+
+from vigia.domain.eval_case import Category, EvalKind, EvalOrigin, Expected
 
 REPO = Path(__file__).parents[1]
 COUNTRIES = REPO / "src" / "vigia" / "signals" / "countries"
@@ -16,14 +18,10 @@ DEFAULT = REPO / "evals" / "casos.jsonl"
 
 REQUIRED = ("id", "tipo", "pais", "esperado", "categoria", "hipotesis", "autor", "fecha", "origen")
 CHOICES = {
-    "tipo": {"texto", "imagen", "audio", "pdf", "correo", "conversacion"},
-    "esperado": {"estafa", "legitimo", "dudoso"},
-    "origen": {"sintetico", "publico_anonimizado", "propio_anonimizado", "incidente", "ciego"},
-    "categoria": {
-        "banco", "billetera", "estado", "transportadora", "telco", "premio", "familiar",
-        "bec_proveedor", "bec_jefe", "compraventa", "comercio", "legitimo_banco",
-        "legitimo_transportadora", "legitimo_proveedor", "legitimo_otro",
-    },
+    "tipo": set(get_args(EvalKind)),
+    "esperado": set(get_args(Expected)),
+    "origen": set(get_args(EvalOrigin)),
+    "categoria": set(get_args(Category)),
 }
 MIN_LEGIT_SHARE = 0.35  # specs/06: ">= 35% legitimos"
 

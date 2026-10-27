@@ -8,6 +8,7 @@ from pydantic import BaseModel, Field
 
 Origin = Literal["wazenda", "email", "local", "eval"]
 CaseKind = Literal["text", "image", "audio", "pdf", "url", "email"]
+ChannelKind = Literal["text", "image", "audio", "document", "email", "unknown"]
 
 
 class IncomingMessage(BaseModel):
@@ -28,7 +29,7 @@ class IncomingMessage(BaseModel):
     message_id: str
     origin: Literal["wazenda", "email", "local"]
     sender: str
-    kind: Literal["text", "image", "audio", "document", "email", "unknown"]
+    kind: ChannelKind
     text: str | None = None
     attachment_ref: str | None = None
     mime: str | None = None
