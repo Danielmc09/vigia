@@ -466,3 +466,28 @@ async def test_adv_enumeracion_transferir_transfer_does_not_reveal_another_busin
     assert reply == t("es", "escalation.unknown")  # nothing was raised for the other business
     employee = await store.find_member(app_conn, recorder.keyring.hash(EMPLOYEE))
     assert employee is not None and employee.role == "employee"
+
+
+@pytest.mark.xfail(strict=True, reason="incident adv-enumeracion-tope-correo, fix follows")
+async def test_adv_enumeracion_tope_correo_cap_does_not_reveal_another_business(
+    app_conn: asyncpg.Connection, recorder: Recorder
+) -> None:
+    """Incident adv-enumeracion-tope-correo: the per-address cap tells free from taken.
+
+    A code is never issued to an email verified elsewhere, so its counter never moves and
+    it never hits ``email.code_rate_limited``, while a free address does (juez T-08).
+    """
+    await _enroll_owner(app_conn, recorder)
+    await handle(app_conn, recorder.ports, message(OWNER, f"mi correo {EMAIL}"))
+    await handle(app_conn, recorder.ports, message(OWNER, f"codigo {_code(recorder)}"))
+    await _second_business(app_conn, recorder)
+    tries = settings.email_codes_per_hour + 1
+    replies = {}
+    for email in (EMAIL, "libre@correo.example"):  # verified elsewhere, then free
+        text = f"mi correo {email}"
+        replies[email] = [
+            await handle(app_conn, recorder.ports, message(STRANGER, text)) for _ in range(tries)
+        ]
+
+    assert replies[EMAIL][-1] == t("es", "email.code_rate_limited")
+    assert replies["libre@correo.example"][-1] == t("es", "email.code_rate_limited")
