@@ -12,6 +12,7 @@ from vigia.domain.analyst import AnalystResult
 from vigia.domain.case import Case
 from vigia.domain.country import CountryPack
 from vigia.domain.signal import Signal
+from vigia.domain.text import fold
 from vigia.domain.verdict import Label
 from vigia.signals.patterns import find_pattern
 
@@ -80,24 +81,47 @@ def _rule4(analyst: AnalystResult | None, has_unofficial_url: bool) -> tuple[Lab
     return analyst.label, analyst.confidence
 
 
-_SENTENCE_END = re.compile(r"[.!?;\n]+(?=\s|$)")
+_CLAUSE_END = re.compile(r"[.!?;:,\n]+(?=\s|$)")
+# Words allowed between a denial verb and the domain: "no entren a diangov.com",
+# "do not click the link diangov.com". ponytail: fixed list, extend per incident.
+_CONNECTORS = re.compile(
+    r"(?:\s+(?:a|al|en|el|la|ese|esa|este|enlace|link|sitio|pagina|to|at|on|the"
+    r"|that|this|site))*\s*",
+    re.IGNORECASE,
+)
+
+
+def _denies(text: str, pack: CountryPack, *, at_start: bool) -> bool:
+    """Whether a ``negacion`` pattern opens (or closes) ``text``, with only connectors around."""
+    match = find_pattern(text, pack, "negacion")
+    if match is None:
+        return False
+    if at_start:
+        return not text[: match.start()].strip()
+    return _CONNECTORS.fullmatch(fold(text[match.end() :])) is not None
 
 
 def _is_citation_as_warning(signal: Signal, case: Case, pack: CountryPack) -> bool:
     """Whether the case denies the quoted known-scam domain instead of inviting a click.
 
-    D-044 (c-0076, c-0077..c-0079): only an explicit denial (the pack's ``negacion``
-    patterns: "es falso", "no entren", "is fake", "do not click"...) in the same sentence
-    as the domain softens the hit. An alert word alone ("ALERTA", "Cuidado", "Warning") is
-    how scams open, so it never does; neither does a text-hash or image match.
+    D-044 (c-0076, c-0077..c-0082): only a denial whose object is the domain softens the
+    hit: a denial verb right before it ("no entren a diangov.com") or a denial predicate
+    right after it ("diangov.com es falso"), within the same clause. An alert word alone
+    ("ALERTA", "Warning") or a denial of something else in the sentence ("no entre en
+    pánico ... diangov.com") never does; neither does a text-hash or image match.
     """
-    domain = signal.evidence.get("domain")
+    domain = str(signal.evidence.get("domain") or "").lower()
     if signal.type != "known_campaign" or not domain or not case.text:
         return False
-    return any(
-        str(domain).lower() in sentence.lower() and find_pattern(sentence, pack, "negacion")
-        for sentence in _SENTENCE_END.split(case.text)
-    )
+    text = case.text
+    start = text.lower().find(domain)
+    while start != -1:
+        before = _CLAUSE_END.split(text[:start])[-1]
+        after = _CLAUSE_END.split(text[start + len(domain) :].lstrip(" ,"))[0]
+        if _denies(before, pack, at_start=False) or _denies(after, pack, at_start=True):
+            return True
+        start = text.lower().find(domain, start + 1)
+    return False
 
 
 def soften_citations(signals: Sequence[Signal], case: Case, pack: CountryPack) -> list[Signal]:

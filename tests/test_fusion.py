@@ -241,6 +241,20 @@ def test_build_verdict_manipulation_is_a_typed_input_not_case_context() -> None:
         ),
         # a denial about something else, in another sentence, does not cover the domain
         ("CO", "No abran correos raros. Pague hoy su deuda en diangov.com", "diangov.com"),
+        # incidents c-0080..c-0082: a denial in the same sentence that targets something else
+        ("CO", "DIAN: no entre en pánico, regularice su deuda hoy en diangov.com", "diangov.com"),
+        (
+            "CO",
+            "DIAN: para no pagar intereses, no pague en bancos: pague hoy en diangov.com",
+            "diangov.com",
+        ),
+        (
+            "US",
+            "Do not pay late fees: settle now at myturnpiketollservices.com",
+            "myturnpiketollservices.com",
+        ),
+        # the scam vouching for itself is not a denial
+        ("CO", "Tranquilo, diangov.com no es falso, pague hoy", "diangov.com"),
     ],
 )
 def test_alert_words_without_a_denial_of_the_domain_still_condemn(
@@ -257,6 +271,9 @@ def test_alert_words_without_a_denial_of_the_domain_still_condemn(
     ("iso", "text"),
     [
         ("CO", "Ojo, NO entren a diangov.com"),
+        ("CO", "No hagan clic en el enlace diangov.com"),
+        ("CO", "No entren a la página diangov.com"),
+        ("CO", "Equipo: diangov.com, es falso"),
         ("US", "Heads up team: myturnpiketollservices.com is fake, do not click it."),
     ],
 )
