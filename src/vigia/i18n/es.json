@@ -1,0 +1,6 @@
+{
+  "verdict.scam.header": "Esto es una estafa.",
+  "verdict.scam.brand": "Esto es una estafa: no viene de {brand}.",
+  "verdict.legit.header": "Es legítimo.",
+  "verdict.doubtful.header": "No es claro: trátalo con cuidado."
+}

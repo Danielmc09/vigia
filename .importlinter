@@ -1,0 +1,54 @@
+[importlinter]
+root_package = vigia
+
+[importlinter:contract:domain-is-pure]
+name = Domain imports nothing from vigia
+type = forbidden
+source_modules =
+    vigia.domain
+forbidden_modules =
+    vigia.channel
+    vigia.analyst
+    vigia.model
+    vigia.store
+    vigia.signals
+    vigia.verdict
+    vigia.policy
+    vigia.jev
+    vigia.services
+    vigia.app
+
+[importlinter:contract:rules-see-only-domain]
+name = Rules only see the domain
+type = forbidden
+source_modules =
+    vigia.signals
+    vigia.verdict
+    vigia.policy
+    vigia.jev
+forbidden_modules =
+    vigia.channel
+    vigia.analyst
+    vigia.model
+    vigia.store
+    vigia.services
+    vigia.app
+
+[importlinter:contract:adapters-are-independent]
+name = Adapters do not import each other
+type = independence
+modules =
+    vigia.channel
+    vigia.analyst
+    vigia.model
+    vigia.store
+
+[importlinter:contract:nobody-imports-app]
+name = Nobody imports app
+type = forbidden
+source_modules =
+    vigia
+forbidden_modules =
+    vigia.app
+ignore_imports =
+    vigia.app -> vigia.*
