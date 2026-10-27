@@ -30,3 +30,16 @@ def t(lang: str, key: str, **params: str) -> str:
     if lang not in LANGUAGES:
         raise ValueError(f"unsupported language: {lang!r}")
     return _catalog(lang)[key].format(**params)
+
+
+def has_key(lang: str, key: str) -> bool:
+    """Whether the catalog of ``lang`` has ``key``.
+
+    Args:
+        lang: Language code of the business.
+        key: Dotted message key.
+
+    Returns:
+        True if :func:`t` can render it.
+    """
+    return key in _catalog(lang)

@@ -98,7 +98,10 @@ def test_keyring_refuses_missing_or_short_keys(kek: str | None) -> None:
 
 
 async def _enroll_everything(conn: asyncpg.Connection, recorder: Recorder) -> None:
-    """Exercise every write path that stores PII: business, members, email, supplier, case."""
+    """Exercise every write path that stores PII.
+
+    Business, members, email, supplier, case and an escalation whose target is a phone.
+    """
     ports = recorder.ports
     await handle(conn, ports, message(OWNER, "hola Ferreteria El Tornillo CO"))
     await handle(conn, ports, message(OWNER, f"equipo +57 300 000 0102 Ana Prueba {EMAIL}"))
@@ -106,6 +109,7 @@ async def _enroll_everything(conn: asyncpg.Connection, recorder: Recorder) -> No
     supplier = "proveedor Aceros Prueba correo=pagos@aceros.example cuenta=0011223344"
     await handle(conn, ports, message(OWNER, supplier))
     await handle(conn, ports, message(EMPLOYEE, SECRET_TEXT))
+    await handle(conn, ports, message(OWNER, "transferir +57 300 000 0102"))
 
 
 def _code(recorder: Recorder) -> str:
@@ -155,6 +159,7 @@ async def test_raw_select_as_superuser_finds_no_pii_in_any_table(
 
     assert await admin_conn.fetchval("SELECT count(*) FROM members") >= 2
     assert await admin_conn.fetchval("SELECT count(*) FROM cases") >= 1
+    assert await admin_conn.fetchval("SELECT count(*) FROM escalations") >= 1
     assert await _plaintext_hits(admin_conn) == []
 
 

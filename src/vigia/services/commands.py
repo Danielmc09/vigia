@@ -21,6 +21,11 @@ _GRAMMAR = {
     "supplier": re.compile(r"(?P<name>[^=]+?)\s+(?P<pairs>\S+=\S+(?:\s+\S+=\S+)*)"),
     "history": re.compile(r""),
     "help": re.compile(r""),
+    # confirmar/cancelar/transferir (specs/05, specs/12 B7, D-047). The id is the 8 hex
+    # digits the policy quotes, so a forwarded "confirmar compra" is still a case.
+    "confirm": re.compile(r"(?P<id>[0-9A-Fa-f]{8})"),
+    "cancel": re.compile(r"(?P<id>[0-9A-Fa-f]{8})"),
+    "transfer": re.compile(r"(?P<phone>\+\d[\d\s-]{6,18}\d)"),
 }
 
 
@@ -30,7 +35,7 @@ class Command:
 
     Attributes:
         name: Command id (``enroll``, ``team``, ``my_email``, ``code``, ``supplier``,
-            ``history``, ``help``).
+            ``history``, ``help``, ``transfer``, ``confirm``, ``cancel``).
         args: Text after the keyword, stripped.
         lang: Language whose keyword matched; used to answer someone not yet enrolled.
         fields: Named groups of the command grammar (``""`` for an absent optional part).

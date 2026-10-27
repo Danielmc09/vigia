@@ -64,7 +64,7 @@ async def handle(conn: asyncpg.Connection, ports: Ports, msg: IncomingMessage) -
         return None
     business, vault = await store.open_business(conn, ports.keyring, member.business_id)
     if _is_command(command):
-        session = enrollment.Session(conn, business, vault, member, ports.send_email)
+        session = enrollment.Session(conn, business, vault, member, ports.send_email, msg.origin)
         return await enrollment.run(session, command)
     if msg.kind == "text" and not any(c.isalnum() for c in msg.text or ""):
         return t(business.language, "case.empty")  # specs/12 A1: no case, no model

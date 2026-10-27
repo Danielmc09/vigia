@@ -63,6 +63,9 @@ def test_command_carries_the_fields_of_its_grammar() -> None:
         "mi correo ana@correo.example",
         "codigo 123456",
         "historial",
+        "transferir +57 300 000 0203",
+        "confirmar 0A1B2C3D",
+        "cancelar 0a1b2c3d",
     ],
 )
 async def test_a_command_the_parser_accepts_never_falls_back_to_help(
@@ -85,6 +88,9 @@ async def test_a_command_the_parser_accepts_never_falls_back_to_help(
         "codigo de verificacion 123",  # malformed code
         "equipo de soporte tecnico",  # team without a phone
         "mi correo es importante",
+        "confirmar compra",  # a forwarded scam asking to confirm, not an escalation id
+        "Cancelar suscripcion",
+        "transferir ya",
         "",
     ],
 )

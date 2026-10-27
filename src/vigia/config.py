@@ -1,5 +1,6 @@
 """Runtime configuration read from the environment (the only place that reads it)."""
 
+from pathlib import Path
 from typing import Literal, Self
 
 from pydantic import Field, SecretStr, model_validator
@@ -18,6 +19,7 @@ class Settings(BaseSettings):
         email_codes_per_hour: Verification emails one address may receive per hour (D-028).
         email_codes_per_business_hour: Verification emails one business may trigger per hour.
         code_max_attempts: Wrong guesses that invalidate a member's live codes (specs/12 B4).
+        knowledge_seed: Known-campaign seed attached to the country packs (D-048).
     """
 
     model_config = SettingsConfigDict(populate_by_name=True)
@@ -32,6 +34,9 @@ class Settings(BaseSettings):
         10, ge=1, validation_alias="VIGIA_EMAIL_CODES_PER_BUSINESS_HOUR"
     )
     code_max_attempts: int = Field(3, ge=1, validation_alias="VIGIA_CODE_MAX_ATTEMPTS")
+    knowledge_seed: Path = Field(
+        Path("conocimiento/semilla.jsonl"), validation_alias="VIGIA_KNOWLEDGE_SEED"
+    )
 
     @model_validator(mode="after")
     def _prod_needs_explicit_dsns(self) -> Self:

@@ -191,6 +191,13 @@
    "routing",
    "checking",
    "savings"
+  ],
+  "negacion": [
+   "do not (click|open|enter|pay)",
+   "don't (click|open|enter|pay)",
+   "is fake",
+   "is not real",
+   "is a scam"
   ]
  },
  "reportar_a": [

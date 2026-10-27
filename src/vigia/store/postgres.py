@@ -12,6 +12,7 @@ import asyncpg
 
 from vigia.config import settings
 from vigia.domain.case import Case
+from vigia.domain.escalation import Escalation
 from vigia.domain.member import Business, CodeCheck, Contact, Member, Role, Supplier
 from vigia.domain.verdict import Label
 from vigia.store.crypto import Encrypted, Hashed, Keyring, Vault
@@ -319,3 +320,69 @@ async def recent_verdicts(conn: asyncpg.Connection, limit: int = 5) -> list[tupl
         "SELECT created_at, label FROM verdicts ORDER BY created_at DESC LIMIT $1", limit
     )
     return [(r["created_at"], r["label"]) for r in rows]
+
+
+async def transfer_ownership(conn: asyncpg.Connection, owner_id: UUID, new_owner_id: UUID) -> None:
+    """Swap roles: the new owner takes the business, the old one stays as employee (B7).
+
+    Args:
+        conn: Connection scoped to the business; RLS keeps both ids inside it.
+        owner_id: Current owner.
+        new_owner_id: Member of the same business who becomes the owner.
+    """
+    await conn.execute(
+        "UPDATE members SET role = CASE WHEN id = $2 THEN 'owner' ELSE 'employee' END"
+        " WHERE id IN ($1, $2)",
+        owner_id,
+        new_owner_id,
+    )
+
+
+async def save_escalation(conn: asyncpg.Connection, vault: Vault, escalation: Escalation) -> None:
+    """Store a new escalation, or its new status if it already exists.
+
+    Args:
+        conn: Connection scoped to the business.
+        vault: Open vault of the business; seals the target.
+        escalation: The escalation as the policy left it.
+    """
+    await conn.execute(
+        "INSERT INTO escalations (id, business_id, action, target_enc, status, created_at)"
+        " VALUES ($1, $2, $3, $4, $5, $6)"
+        " ON CONFLICT (business_id, id) DO UPDATE SET status = EXCLUDED.status",
+        escalation.id,
+        vault.business_id,
+        escalation.action,
+        vault.seal("escalations.target", escalation.target),
+        escalation.status,
+        escalation.created_at,
+    )
+
+
+async def find_escalation(
+    conn: asyncpg.Connection, vault: Vault, escalation_id: str
+) -> Escalation | None:
+    """Escalation of the business in context by its short id.
+
+    Args:
+        conn: Connection scoped to the business.
+        vault: Open vault of the business; opens the target.
+        escalation_id: Id as quoted to the owner.
+
+    Returns:
+        The escalation, or ``None`` if this business has none with that id.
+    """
+    row = await conn.fetchrow(
+        "SELECT action, target_enc, status, created_at FROM escalations WHERE id = $1",
+        escalation_id,
+    )
+    if row is None:
+        return None
+    return Escalation(
+        id=escalation_id,
+        business_id=vault.business_id,
+        action=row["action"],
+        target=vault.open("escalations.target", row["target_enc"]),
+        created_at=row["created_at"],
+        status=row["status"],
+    )

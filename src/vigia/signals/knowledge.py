@@ -2,6 +2,7 @@
 
 import json
 from collections.abc import Iterable, Sequence
+from functools import cache
 from pathlib import Path
 from typing import Any
 
@@ -10,6 +11,7 @@ from vigia.domain.country import CountryPack
 from vigia.domain.knowledge import KnownCampaign, campaign_from_seed, hamming, simhash
 from vigia.domain.signal import Signal
 from vigia.domain.urls import split_url
+from vigia.signals.country_pack import country_pack
 from vigia.signals.urls import SHORTENERS, registrable_domain
 
 MAX_TEXT_DISTANCE = 6  # specs/10 §4
@@ -43,6 +45,23 @@ def with_campaigns(pack: CountryPack, campaigns: Iterable[KnownCampaign]) -> Cou
     """
     own = tuple(c for c in campaigns if c.country == pack.country)
     return pack.model_copy(update={"campaigns": own})
+
+
+@cache
+def seeded_pack(iso: str, seed: Path) -> CountryPack | None:
+    """The country pack with the campaigns of a seed file attached, loaded once.
+
+    The single way the endpoint and ``medir.py`` get a pack, so they never diverge (D-048).
+
+    Args:
+        iso: Country code.
+        seed: Knowledge-base JSONL file.
+
+    Returns:
+        The pack with its campaigns, or ``None`` for an unknown country.
+    """
+    pack = country_pack(iso)
+    return with_campaigns(pack, load_campaigns(seed)) if pack else None
 
 
 def _hosts(case: Case, pack: CountryPack) -> set[str]:

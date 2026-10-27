@@ -1,11 +1,14 @@
-"""Enrollment over WhatsApp: business, team, email verification, suppliers, history."""
+"""Enrollment over WhatsApp: business, team, email, suppliers, history and ownership."""
 
 from collections.abc import Awaitable, Callable, Mapping
 from dataclasses import dataclass
+from datetime import UTC, datetime
 from uuid import UUID, uuid4
 
 import asyncpg
 
+from vigia.domain.case import Origin
+from vigia.domain.escalation import Escalation
 from vigia.domain.member import (
     Business,
     CodeCheck,
@@ -14,7 +17,9 @@ from vigia.domain.member import (
     Supplier,
     normalize_contact,
 )
+from vigia.domain.rejection import Rejection, RejectionCode
 from vigia.i18n import t
+from vigia.policy import actions as policy
 from vigia.services.commands import Command
 from vigia.signals.country_pack import country_pack
 from vigia.store import postgres as store
@@ -23,7 +28,7 @@ from vigia.store.crypto import Keyring, Vault
 SendEmail = Callable[[str, str], Awaitable[None]]
 
 Fields = Mapping[str, str]
-_OWNER_ONLY = {"team", "supplier"}
+_OWNER_ONLY = {"team", "supplier", "transfer", "confirm", "cancel"}
 
 
 @dataclass(frozen=True)
@@ -36,6 +41,8 @@ class Session:
         vault: Open vault of the business.
         member: The sender.
         send_email: Outbound email port ``(to, body)``.
+        origin: Channel the command came through; the policy never runs an irreversible
+            action from ``local`` or ``eval``.
     """
 
     conn: asyncpg.Connection
@@ -43,6 +50,7 @@ class Session:
     vault: Vault
     member: Member
     send_email: SendEmail
+    origin: Origin
 
     def reply(self, key: str, **params: str) -> str:
         """Render a reply in the business language."""
@@ -176,6 +184,77 @@ async def _history(session: Session, _: Fields) -> str:
     return "\n".join([session.reply("history.header"), *lines])
 
 
+async def _transfer(session: Session, fields: Fields) -> str:
+    """Ask to hand the business to a team member: ``transferir +<phone>`` (owner only, B7).
+
+    Nothing changes yet: it raises an escalation the owner must confirm.
+    """
+    phone = normalize_contact(fields["phone"])
+    target = await store.find_member(session.conn, session.vault.hash(phone))
+    if target is None or target.business_id != session.business.id or target.role == "owner":
+        return session.reply("transfer.not_member")
+    escalation = policy.new_escalation(
+        "transfer_ownership", phone, session.business.id, datetime.now(UTC)
+    )
+    await store.save_escalation(session.conn, session.vault, escalation)
+    return session.reply("escalation.transfer_requested", id=escalation.id, target=phone)
+
+
+async def _confirm(session: Session, fields: Fields) -> str:
+    """Run a pending escalation: ``confirmar <id>``; the policy decides if it may."""
+    escalation = await store.find_escalation(session.conn, session.vault, fields["id"].upper())
+    if escalation is None:
+        return session.reply("escalation.unknown")
+    now = datetime.now(UTC)
+    confirmed = policy.confirm(escalation, session.member.role == "owner", now)
+    if isinstance(confirmed, Rejection):
+        return _rejected(session, confirmed)
+    if rejection := policy.may_execute(confirmed.action, session.origin, confirmed, now):
+        return _rejected(session, rejection)
+    executor = _EXECUTORS.get(confirmed.action)
+    if executor is None:  # report, block_sender, delete_case: no executor before T-10
+        return session.reply("escalation.not_allowed")
+    reply = await executor(session, confirmed)
+    await store.save_escalation(session.conn, session.vault, confirmed)
+    return reply
+
+
+async def _cancel(session: Session, fields: Fields) -> str:
+    """Drop a pending escalation: ``cancelar <id>`` (owner only, decided by the policy)."""
+    escalation = await store.find_escalation(session.conn, session.vault, fields["id"].upper())
+    if escalation is None:
+        return session.reply("escalation.unknown")
+    cancelled = policy.cancel(escalation, session.member.role == "owner")
+    if isinstance(cancelled, Rejection):
+        return _rejected(session, cancelled)
+    await store.save_escalation(session.conn, session.vault, cancelled)
+    return session.reply("escalation.cancelled")
+
+
+async def _run_transfer(session: Session, escalation: Escalation) -> str:
+    """Swap owner and target, if the target is still on the team."""
+    target = await store.find_member(session.conn, session.vault.hash(escalation.target))
+    if target is None or target.business_id != session.business.id:
+        return session.reply("transfer.not_member")
+    await store.transfer_ownership(session.conn, session.member.id, target.id)
+    return session.reply("escalation.transfer_confirmed", target=escalation.target)
+
+
+def _rejected(session: Session, rejection: Rejection) -> str:
+    """The member-facing reply for a policy rejection (its ``message`` is only for logs)."""
+    return session.reply(_REJECTION_REPLY.get(rejection.error_code, "escalation.not_allowed"))
+
+
+_REJECTION_REPLY: dict[RejectionCode, str] = {
+    "NOT_OWNER": "command.owner_only",
+    "NOT_PENDING": "escalation.not_pending",
+    "EXPIRED": "escalation.expired",
+}
+
+_EXECUTORS: dict[str, Callable[[Session, Escalation], Awaitable[str]]] = {
+    "transfer_ownership": _run_transfer,
+}
+
 _CODE_REPLY: dict[CodeCheck, str] = {
     "linked": "email.verified",
     "invalid": "email.code_invalid",
@@ -191,4 +270,7 @@ _HANDLERS: dict[str, Callable[[Session, Fields], Awaitable[str]]] = {
     "supplier": _supplier,
     "history": _history,
     "help": _help,
+    "transfer": _transfer,
+    "confirm": _confirm,
+    "cancel": _cancel,
 }

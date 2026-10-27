@@ -15,23 +15,22 @@ from collections import defaultdict
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import UTC, date, datetime
-from functools import cache
 from pathlib import Path
 from statistics import median
 from typing import Any
 from uuid import NAMESPACE_URL, uuid5
 
+from vigia.domain.analyst import Evidence
 from vigia.domain.attachment import Attachment
 from vigia.domain.case import Case, IncomingMessage
-from vigia.domain.country import CountryPack
 from vigia.domain.eval_case import CHANNEL_KIND, EXPECTED_LABEL, Expected
 from vigia.domain.member import Business
 from vigia.domain.verdict import Label
 from vigia.services.ingest import normalize
-from vigia.signals.country_pack import country_pack
 from vigia.signals.detector import detect
-from vigia.signals.knowledge import load_campaigns, with_campaigns
-from vigia.verdict.fusion import fuse
+from vigia.signals.knowledge import seeded_pack
+from vigia.verdict.build import build_verdict
+from vigia.verdict.fusion import DOUBTFUL, DOUBTFUL_CONFIDENCE
 
 REPO = Path(__file__).parents[1]
 EVALS = REPO / "evals"
@@ -76,13 +75,6 @@ Classifier = Callable[[Case], Outcome]
 """Anything that turns a Case into an Outcome: the deterministic path or the app."""
 
 
-@cache
-def _pack(iso: str) -> CountryPack | None:
-    """Country pack with the known campaigns of the seed attached, loaded once per run."""
-    pack = country_pack(iso)
-    return with_campaigns(pack, load_campaigns(KNOWLEDGE)) if pack else None
-
-
 def deterministic(case: Case) -> Outcome:
     """Verdict from code alone: signals of specs/04 fused by specs/05, no model, no network.
 
@@ -92,11 +84,15 @@ def deterministic(case: Case) -> Outcome:
     Returns:
         The code-only outcome; it never spends and is always degraded (no analyst).
     """
-    pack = _pack(case.country)
-    signals = detect(case, pack) if pack else []
-    label, confidence = fuse(signals)
+    pack = seeded_pack(case.country, KNOWLEDGE)
+    if pack is None:
+        return Outcome(label=DOUBTFUL, confidence=DOUBTFUL_CONFIDENCE, signals=[], degraded=True)
+    verdict = build_verdict(case, Evidence(signals=detect(case, pack)), pack)
     return Outcome(
-        label=label, confidence=confidence, signals=[s.type for s in signals], degraded=True
+        label=verdict.label,
+        confidence=verdict.confidence,
+        signals=[s.type for s in verdict.signals],
+        degraded=verdict.degraded,
     )
 
 

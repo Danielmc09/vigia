@@ -4,7 +4,17 @@ from typing import Literal
 
 from pydantic import BaseModel
 
-RejectionCode = Literal["INVALID_ATTACHMENT", "TOO_LARGE"]
+RejectionCode = Literal[
+    "INVALID_ATTACHMENT",
+    "TOO_LARGE",
+    # Policy (specs/05): why an action or a confirmar/cancelar did not go through.
+    "UNKNOWN_ACTION",
+    "NOT_CONFIRMED",
+    "LOCAL_CHANNEL",
+    "EXPIRED",
+    "NOT_OWNER",
+    "NOT_PENDING",
+]
 
 
 class Rejection(BaseModel, frozen=True):

@@ -6,7 +6,9 @@ lists the T rows that no test names.
 
 import asyncio
 import importlib
+import re
 from collections.abc import AsyncIterator
+from datetime import UTC, datetime, timedelta
 from email.message import EmailMessage
 from pathlib import Path
 from uuid import uuid4
@@ -19,10 +21,12 @@ from tests.conftest import Recorder, message
 from vigia.app import create_app
 from vigia.config import Settings
 from vigia.domain.attachment import MAX_ATTACHMENT_BYTES, Attachment, check_image, read_capped
+from vigia.domain.escalation import EXPIRY, Escalation
 from vigia.domain.member import Business
 from vigia.domain.rejection import Rejection
 from vigia.domain.urls import extract_urls
 from vigia.i18n import t
+from vigia.policy.actions import confirm, new_escalation
 from vigia.services.ingest import handle, normalize
 from vigia.signals.country_pack import country_pack
 from vigia.signals.detector import detect
@@ -275,7 +279,7 @@ async def test_a4_several_images_are_attachments_of_one_case(
 
 
 @pytest.mark.edge("A25")
-@_xfail("T-07: dedupe by content fingerprint and cached verdict")
+@_xfail("T-10: dedupe by content fingerprint and cached verdict")
 async def test_a25_same_message_from_three_members_is_analyzed_once(
     app_conn: asyncpg.Connection, recorder: Recorder
 ) -> None:
@@ -417,17 +421,148 @@ async def test_b12_us_business_gets_english_replies_even_to_spanish_commands(
     assert reply == t("en", "help")
 
 
+def _escalation_id(reply: str | None) -> str:
+    found = re.search(r"\b[0-9A-F]{8}\b", reply or "")
+    assert found, reply
+    return found.group()
+
+
+async def _role(conn: asyncpg.Connection, recorder: Recorder, phone: str) -> str | None:
+    member = await store.find_member(conn, recorder.keyring.hash(phone))
+    return member.role if member else None
+
+
 @pytest.mark.edge("B7")
-@_xfail("T-07: transferir command, current owner only")
 async def test_b7_owner_transfers_the_business(
     app_conn: asyncpg.Connection, recorder: Recorder
 ) -> None:
     await _team(app_conn, recorder)
+    ask = await handle(app_conn, recorder.ports, message(OWNER, "transferir +57 300 000 0502"))
 
-    await handle(app_conn, recorder.ports, message(OWNER, "transferir +57 300 000 0502"))
+    assert await _role(app_conn, recorder, EMPLOYEE) == "employee"  # nothing runs unconfirmed
+    confirm = f"confirmar {_escalation_id(ask)}"
+    done = await handle(app_conn, recorder.ports, message(OWNER, confirm, origin="wazenda"))
 
-    employee = await store.find_member(app_conn, recorder.keyring.hash(EMPLOYEE))
-    assert employee is not None and employee.role == "owner"
+    assert done == t("es", "escalation.transfer_confirmed", target=EMPLOYEE)
+    assert await _role(app_conn, recorder, EMPLOYEE) == "owner"
+    assert await _role(app_conn, recorder, OWNER) == "employee"
+
+
+@pytest.mark.edge("B7")
+async def test_b7_confirm_from_the_local_channel_never_transfers(
+    app_conn: asyncpg.Connection, recorder: Recorder
+) -> None:
+    await _team(app_conn, recorder)
+    ask = await handle(app_conn, recorder.ports, message(OWNER, "transferir +57 300 000 0502"))
+
+    await handle(app_conn, recorder.ports, message(OWNER, f"confirmar {_escalation_id(ask)}"))
+
+    assert await _role(app_conn, recorder, EMPLOYEE) == "employee"
+
+
+@pytest.mark.edge("B7")
+async def test_b7_only_the_owner_transfers_and_confirms(
+    app_conn: asyncpg.Connection, recorder: Recorder
+) -> None:
+    await _team(app_conn, recorder)
+    by_employee = await handle(
+        app_conn, recorder.ports, message(EMPLOYEE, "transferir +57 300 000 0501")
+    )
+    ask = await handle(app_conn, recorder.ports, message(OWNER, "transferir +57 300 000 0502"))
+    confirm = f"confirmar {_escalation_id(ask)}"
+    stolen = await handle(app_conn, recorder.ports, message(EMPLOYEE, confirm, origin="wazenda"))
+
+    assert by_employee == t("es", "command.owner_only")
+    assert stolen == t("es", "command.owner_only")
+    assert await _role(app_conn, recorder, EMPLOYEE) == "employee"
+
+
+@pytest.mark.edge("B7")
+async def test_b7_transfer_only_to_a_member_of_the_team(
+    app_conn: asyncpg.Connection, recorder: Recorder
+) -> None:
+    await _team(app_conn, recorder)
+
+    reply = await handle(app_conn, recorder.ports, message(OWNER, "transferir +57 300 000 0999"))
+
+    assert reply == t("es", "transfer.not_member")
+
+
+@pytest.mark.edge("B7")
+async def test_b7_cancelled_or_unknown_escalation_does_nothing(
+    app_conn: asyncpg.Connection, recorder: Recorder
+) -> None:
+    await _team(app_conn, recorder)
+    ask = await handle(app_conn, recorder.ports, message(OWNER, "transferir +57 300 000 0502"))
+    escalation_id = _escalation_id(ask)
+
+    cancelled = await handle(app_conn, recorder.ports, message(OWNER, f"cancelar {escalation_id}"))
+    confirm = message(OWNER, f"confirmar {escalation_id}", origin="wazenda")
+    late = await handle(app_conn, recorder.ports, confirm)
+    unknown = await handle(app_conn, recorder.ports, message(OWNER, "confirmar 0000ABCD"))
+
+    assert cancelled == t("es", "escalation.cancelled")
+    assert late == t("es", "escalation.not_pending")
+    assert unknown == t("es", "escalation.unknown")
+    assert await _role(app_conn, recorder, EMPLOYEE) == "employee"
+
+
+@pytest.mark.edge("B7")
+async def test_b7_an_owner_cannot_confirm_another_business_escalation(
+    app_conn: asyncpg.Connection, recorder: Recorder
+) -> None:
+    await _team(app_conn, recorder)
+    ask = await handle(app_conn, recorder.ports, message(OWNER, "transferir +57 300 000 0502"))
+    other = "+573000000599"
+    await handle(app_conn, recorder.ports, message(other, "hola Panaderia La Espiga CO"))
+
+    confirm = message(other, f"confirmar {_escalation_id(ask)}", origin="wazenda")
+    reply = await handle(app_conn, recorder.ports, confirm)
+
+    assert reply == t("es", "escalation.unknown")
+    assert await _role(app_conn, recorder, EMPLOYEE) == "employee"
+    assert await _role(app_conn, recorder, OWNER) == "owner"
+
+
+@pytest.mark.edge("B7")
+@pytest.mark.parametrize("verb", ["confirmar", "cancelar"])
+async def test_b7_an_employee_cannot_tell_a_real_escalation_id_from_a_made_up_one(
+    app_conn: asyncpg.Connection, recorder: Recorder, verb: str
+) -> None:
+    await _team(app_conn, recorder)
+    ask = await handle(app_conn, recorder.ports, message(OWNER, "transferir +57 300 000 0502"))
+
+    real = await handle(
+        app_conn, recorder.ports, message(EMPLOYEE, f"{verb} {_escalation_id(ask)}")
+    )
+    made_up = await handle(app_conn, recorder.ports, message(EMPLOYEE, f"{verb} 0000ABCD"))
+
+    assert real == made_up == t("es", "command.owner_only")
+
+
+@pytest.mark.edge("D7")
+def test_d7_confirming_twice_does_not_run_it_again() -> None:
+    now = datetime(2026, 10, 28, 9, 0, tzinfo=UTC)
+    once = confirm(new_escalation("report", "fraude@example.com", uuid4(), now), True, now)
+    assert isinstance(once, Escalation)
+
+    twice = confirm(once, True, now)
+
+    assert isinstance(twice, Rejection)
+    assert twice.error_code == "NOT_PENDING"
+
+
+@pytest.mark.edge("D8")
+def test_d8_an_escalation_expires_24_hours_after_it_was_raised() -> None:
+    raised = datetime(2026, 10, 28, 9, 0, tzinfo=UTC)
+    pending = new_escalation("report", "fraude@example.com", uuid4(), raised)
+
+    in_time = confirm(pending, True, raised + EXPIRY - timedelta(seconds=1))
+    late = confirm(pending, True, raised + EXPIRY)
+
+    assert isinstance(in_time, Escalation)
+    assert isinstance(late, Rejection)
+    assert late.error_code == "EXPIRED"
 
 
 @pytest.mark.edge("B8", "B9")
@@ -718,16 +853,6 @@ PENDING = [
         pytest.mark.edge("D6"),
         "T-17c: rotated key valid 60 s more",
         "vigia.services.api_keys:rotate_key",
-    ),
-    _pending(
-        pytest.mark.edge("D7"),
-        "T-18: confirmed twice -> idempotent",
-        "vigia.policy.escalation:confirm_escalation",
-    ),
-    _pending(
-        pytest.mark.edge("D8"),
-        "T-18: expired after 24 h",
-        "vigia.policy.escalation:confirm_escalation",
     ),
     _pending(
         pytest.mark.edge("D9"),

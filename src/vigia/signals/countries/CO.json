@@ -557,6 +557,17 @@
    "corriente",
    "Nequi",
    "Daviplata"
+  ],
+  "negacion": [
+   "no entren?",
+   "no abran?",
+   "no ingresen?",
+   "no hagan? clic",
+   "es falso",
+   "es un sitio falso",
+   "es (una )?estafa",
+   "no paguen?",
+   "no depositen?"
   ]
  },
  "reportar_a": [
