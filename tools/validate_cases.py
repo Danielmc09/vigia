@@ -11,10 +11,13 @@ from pathlib import Path
 from typing import Any, get_args
 
 from vigia.domain.eval_case import Category, EvalKind, EvalOrigin, Expected
+from vigia.domain.knowledge import KnownCampaign, simhash
 from vigia.signals.country_pack import COUNTRIES_DIR, country_pack
+from vigia.signals.knowledge import load_campaigns, text_distance
 
 REPO = Path(__file__).parents[1]
 DEFAULT = REPO / "evals" / "casos.jsonl"
+KNOWLEDGE = REPO / "conocimiento" / "semilla.jsonl"
 
 REQUIRED = ("id", "tipo", "pais", "esperado", "categoria", "hipotesis", "autor", "fecha", "origen")
 CHOICES = {
@@ -60,12 +63,34 @@ def _consistency_errors(case: dict[str, Any], brands: dict[str, set[str]], root:
         errors.append(f"categoria {category} requires esperado=legitimo")
     if case.get("fuente") and not (root / case["fuente"]).is_file():
         errors.append(f"fuente not found: {case['fuente']}")
+    if case.get("kb_test") not in (None, True, False):
+        errors.append(f"invalid kb_test={case['kb_test']!r}")
     return errors
 
 
-def validate_file(path: Path, root: Path = REPO) -> list[str]:
-    """All problems found in a JSONL eval set; an empty list means it is valid."""
+def _knowledge_errors(case: dict[str, Any], campaigns: tuple[KnownCampaign, ...]) -> list[str]:
+    """specs/10 §4 hygiene: an eval that repeats a known campaign measures memory, not skill."""
+    fingerprint = simhash(str(case.get("texto") or ""))
+    if case.get("kb_test") is True or fingerprint is None:
+        return []
+    hits = ((c, text_distance(c, fingerprint)) for c in campaigns)
+    return [
+        f"collides with {c.id} (simhash distance {d}); reword it or mark kb_test: true"
+        for c, d in hits
+        if d is not None
+    ]
+
+
+def validate_file(path: Path, root: Path = REPO, knowledge: Path = KNOWLEDGE) -> list[str]:
+    """All problems found in a JSONL eval set; an empty list means it is valid.
+
+    Args:
+        path: The eval set.
+        root: Directory that ``fuente`` paths are relative to.
+        knowledge: Known-campaign base the cases must not collide with (absent = empty).
+    """
     brands = load_brands()
+    campaigns = load_campaigns(knowledge)
     errors: list[str] = []
     seen: set[str] = set()
     cases = []
@@ -77,6 +102,7 @@ def validate_file(path: Path, root: Path = REPO) -> list[str]:
             continue
         case_id = case.get("id") or f"line {number}"
         problems = _field_errors(case) + _consistency_errors(case, brands, root)
+        problems += _knowledge_errors(case, campaigns)
         if case_id in seen:
             problems.append("duplicate id")
         seen.add(case_id)

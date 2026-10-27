@@ -5,6 +5,8 @@ The JSON files keep the Spanish keys of specs/04; aliases map them to English fi
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from vigia.domain.knowledge import KnownCampaign
+
 
 class Brand(BaseModel):
     """A brand people get impersonated as, with its verified official domains.
@@ -49,6 +51,8 @@ class CountryPack(BaseModel):
         brands: Impersonated brands with their official domains.
         patterns: Regex lists by category (``urgencia``, ``pide_credenciales``...).
         report_to: Official reporting channels.
+        campaigns: Known campaigns of the country; not in the JSON, attached by whoever
+            loads the knowledge base (file in evals, table in the app). D-041.
     """
 
     model_config = ConfigDict(frozen=True)
@@ -58,6 +62,7 @@ class CountryPack(BaseModel):
     brands: tuple[Brand, ...] = Field(alias="marcas")
     patterns: dict[str, tuple[str, ...]] = Field(alias="patrones")
     report_to: tuple[ReportTo, ...] = Field(default=(), alias="reportar_a")
+    campaigns: tuple[KnownCampaign, ...] = ()
 
     def official_domains(self) -> frozenset[str]:
         """Every official registrable domain of every brand in the pack."""
