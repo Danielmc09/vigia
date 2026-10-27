@@ -12,6 +12,7 @@ from vigia.i18n import t
 SRC = Path(__file__).parents[1] / "src" / "vigia"
 I18N = SRC / "i18n"
 _SPANISH_LETTERS = re.compile(r"[áéíóúüñÁÉÍÓÚÜÑ¿¡]")
+_IDENTIFIER = re.compile(r"[a-z][a-z0-9_]*")
 _USER_WORDS = re.compile(
     r"\b(estafa|leg[ií]timo|dudoso|mensaje|hola|gracias|por favor|usted|cuidado"
     r"|scam|legitimate|unclear|suspicious|hello|thanks|please)\b",
@@ -31,9 +32,24 @@ def _docstring_nodes(tree: ast.AST) -> set[int]:
     }
 
 
+def _literal_type_values(tree: ast.AST) -> set[int]:
+    """Identifier-like values of ``Literal[...]`` (``"scam"``), which are not user text."""
+    return {
+        id(const)
+        for node in ast.walk(tree)
+        if isinstance(node, ast.Subscript)
+        and isinstance(node.value, ast.Name)
+        and node.value.id == "Literal"
+        for const in ast.walk(node.slice)
+        if isinstance(const, ast.Constant)
+        and isinstance(const.value, str)
+        and _IDENTIFIER.fullmatch(const.value)
+    }
+
+
 def _user_literals(source: str) -> list[str]:
     tree = ast.parse(source)
-    docs = _docstring_nodes(tree)
+    docs = _docstring_nodes(tree) | _literal_type_values(tree)
     return [
         node.value
         for node in ast.walk(tree)
@@ -48,9 +64,12 @@ def test_detector_flags_user_text_but_not_docstrings() -> None:
     source = (
         '"""Module doc about a scam (estafa)."""\n'
         'x = "Esto es una estafa"\ny = "acción"\nz = "This is a scam"\nw = "status"\n'
+        'Label = Literal["scam", "legit"]\nBad = Literal["Esto es una estafa"]\n'
     )
 
-    assert _user_literals(source) == ["Esto es una estafa", "acción", "This is a scam"]
+    assert sorted(_user_literals(source)) == sorted(
+        ["Esto es una estafa", "acción", "This is a scam", "Esto es una estafa"]
+    )
 
 
 def test_no_user_text_outside_i18n() -> None:

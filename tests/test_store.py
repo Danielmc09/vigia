@@ -1,3 +1,5 @@
+import re
+
 import asyncpg
 import pytest
 
@@ -27,3 +29,19 @@ async def test_app_role_cannot_bypass_row_level_security(app_conn: asyncpg.Conne
     assert role["rolsuper"] is False
     assert role["rolbypassrls"] is False
 
+
+
+async def test_security_definer_functions_pin_search_path_and_qualify_tables(
+    admin_conn: asyncpg.Connection,
+) -> None:
+    rows = await admin_conn.fetch(
+        "SELECT proname, prosecdef, proconfig, prosrc FROM pg_proc"
+        " WHERE proname IN ('vigia_find_member', 'vigia_record_rejection')"
+    )
+
+    assert {r["proname"] for r in rows} == {"vigia_find_member", "vigia_record_rejection"}
+    for row in rows:
+        assert row["prosecdef"] is True
+        assert "search_path=public, pg_temp" in (row["proconfig"] or [])
+        tables = re.findall(r"(?:FROM|INTO)\s+([\w.]+)", row["prosrc"], re.I)
+        assert tables and all(name.startswith("public.") for name in tables), tables

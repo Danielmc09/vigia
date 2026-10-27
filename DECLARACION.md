@@ -19,7 +19,7 @@ Country packs contain only public data (brand names, official domains and servic
 - Railway, Postgres, Redis, Resend (inbound email), Sentry.
 
 ## Open-source libraries
-FastAPI, pydantic, SQLAlchemy, httpx, structlog, prometheus_client, OpenTelemetry, tldextract, pyzbar/OpenCV, imagehash, simhash, pytest, ruff, import-linter, bandit, pip-audit, pdoc, interrogate. Licenses respected; see `pyproject.toml`.
+FastAPI, uvicorn, pydantic, pydantic-settings, asyncpg, cryptography, httpx, structlog, prometheus_client, OpenTelemetry, tldextract, pyzbar/OpenCV, imagehash, simhash, pytest, ruff, mypy, pylint, import-linter, bandit, pip-audit, pdoc, interrogate, git-cliff. Licenses respected; see `pyproject.toml`.
 
 ## Not included
-No code, data, or assets from any prior project of the author. All sample data is synthetic or anonymized.
+No code, data, or assets from any prior project of the author. All sample data is synthetic or anonymized. Test phone numbers (+57 300 000 01xx–03xx, +1 202 555 01xx) are made up and never dialed or messaged: tests send nothing to any number, and outbound email in tests goes to an in-memory recorder.

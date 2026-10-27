@@ -2,7 +2,7 @@
 
 from typing import Literal, Self
 
-from pydantic import Field, model_validator
+from pydantic import Field, SecretStr, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -13,6 +13,11 @@ class Settings(BaseSettings):
         database_url: DSN for the application role (no superuser, no BYPASSRLS).
         migration_database_url: DSN for the schema owner; used only by the migration runner.
         mode: Deployment mode. API docs are disabled in ``prod``.
+        kek: Base64 key-encryption key that wraps each business DEK (specs/16).
+        pii_hmac_key: Base64 key for the lookup hashes of phones and emails (specs/16).
+        email_codes_per_hour: Verification emails one address may receive per hour (D-028).
+        email_codes_per_business_hour: Verification emails one business may trigger per hour.
+        code_max_attempts: Wrong guesses that invalidate a member's live codes (D-028).
     """
 
     model_config = SettingsConfigDict(populate_by_name=True)
@@ -20,6 +25,13 @@ class Settings(BaseSettings):
     database_url: str = "postgresql://vigia_app:vigia_app@localhost:5432/vigia"
     migration_database_url: str = "postgresql://postgres:postgres@localhost:5432/vigia"
     mode: Literal["dev", "eval", "prod"] = Field("dev", validation_alias="VIGIA_MODO")
+    kek: SecretStr | None = Field(None, validation_alias="VIGIA_KEK")
+    pii_hmac_key: SecretStr | None = Field(None, validation_alias="PII_HMAC_KEY")
+    email_codes_per_hour: int = Field(3, ge=1, validation_alias="VIGIA_EMAIL_CODES_PER_HOUR")
+    email_codes_per_business_hour: int = Field(
+        10, ge=1, validation_alias="VIGIA_EMAIL_CODES_PER_BUSINESS_HOUR"
+    )
+    code_max_attempts: int = Field(5, ge=1, validation_alias="VIGIA_CODE_MAX_ATTEMPTS")
 
     @model_validator(mode="after")
     def _prod_needs_explicit_dsns(self) -> Self:

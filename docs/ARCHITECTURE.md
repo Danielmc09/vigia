@@ -13,6 +13,7 @@ dependency, allowed by the import contracts but not written yet.
 graph TD
   subgraph application
     vigia.app
+    vigia.services
   end
   subgraph rules
     vigia.signals
@@ -35,7 +36,13 @@ graph TD
   end
   vigia.app --> vigia.config
   vigia.store.migrate --> vigia.config
+  vigia.store.crypto --> vigia.config
   vigia.app -.-> vigia.store
+  vigia.app -.-> vigia.services
+  vigia.services --> vigia.store
+  vigia.services --> vigia.signals
+  vigia.services --> vigia.domain
+  vigia.services --> vigia.i18n
   vigia.signals -.-> vigia.domain
   vigia.verdict -.-> vigia.domain
   vigia.policy -.-> vigia.domain
@@ -43,8 +50,8 @@ graph TD
   vigia.channel -.-> vigia.domain
   vigia.analyst -.-> vigia.domain
   vigia.model -.-> vigia.domain
-  vigia.store -.-> vigia.domain
-  vigia.store -.-> PG[(Postgres, RLS by app.business_id)]
+  vigia.store --> vigia.domain
+  vigia.store --> PG[(Postgres, RLS by app.business_id)]
 ```
 
 ## Flow of a case (target, built task by task)

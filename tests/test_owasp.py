@@ -21,9 +21,14 @@ SRC = Path(__file__).parents[1] / "src" / "vigia"
 async def _new_business_with_case(conn: asyncpg.Connection) -> tuple:
     business_id, case_id = uuid4(), uuid4()
     await set_business(conn, business_id)
-    await conn.execute("INSERT INTO businesses (id) VALUES ($1)", business_id)
     await conn.execute(
-        "INSERT INTO cases (id, business_id, text_enc) VALUES ($1, $2, $3)",
+        "INSERT INTO businesses (id, dek_enc, name_enc, country, language)"
+        " VALUES ($1, 'k', 'n', 'CO', 'es')",
+        business_id,
+    )
+    await conn.execute(
+        "INSERT INTO cases (id, business_id, kind, origin, text_enc)"
+        " VALUES ($1, $2, 'text', 'local', $3)",
         case_id,
         business_id,
         b"ciphertext",
@@ -64,7 +69,10 @@ async def test_a01_cannot_write_rows_for_another_business(app_conn: asyncpg.Conn
     await set_business(app_conn, business_a)
     with pytest.raises(asyncpg.InsufficientPrivilegeError):
         await app_conn.execute(
-            "INSERT INTO cases (business_id, text_enc) VALUES ($1, $2)", business_b, b"x"
+            "INSERT INTO cases (business_id, kind, origin, text_enc)"
+            " VALUES ($1, 'text', 'local', $2)",
+            business_b,
+            b"x",
         )
 
 
