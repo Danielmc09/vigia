@@ -474,3 +474,16 @@ def test_adv_inyeccion_captura(tmp_path: Path) -> None:
 
     assert outcome.manipulation
     assert outcome.label != "legit"
+
+
+@pytest.mark.xfail(strict=True, reason="incident adv-imagen-truncada: header-only check")
+def test_adv_imagen_truncada() -> None:
+    """A screenshot cut in half keeps a valid header but is refused before Spark bills it."""
+    reader = FakeReader()
+    whole = _screenshot()
+    buf = io.BytesIO()
+    Image.open(io.BytesIO(whole)).convert("RGB").save(buf, format="JPEG")
+    for data in (whole[: len(whole) // 2], buf.getvalue()[: len(buf.getvalue()) // 2]):
+        result = transcription.read_image(data, "es", reader)
+        assert isinstance(result, Rejection) and result.error_code == "INVALID_ATTACHMENT"
+    assert reader.calls == []
