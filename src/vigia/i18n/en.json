@@ -90,5 +90,22 @@
   "audio.unsupported": "I can't listen to this audio format yet. Meanwhile, type what the voice note says or forward the original message.",
   "audio.too_long": "The voice note is too long. Send me the suspicious part or type what it says.",
   "audio.too_large": "The audio file is too large. Send me a shorter voice note or type what it says.",
-  "audio.unavailable": "I couldn't listen to the voice note right now. Please send it again in a few minutes."
+  "audio.unavailable": "I couldn't listen to the voice note right now. Please send it again in a few minutes.",
+  "pdf.invalid": "That file doesn't look like a valid PDF. Send me a screenshot of the document or paste its text.",
+  "pdf.too_large": "The PDF is too large. Send me only the suspicious page or a screenshot.",
+  "pdf.unavailable": "I couldn't read the PDF right now. Please send it again in a few minutes.",
+  "panel.title": "VIGÍA · operator panel",
+  "panel.today": "Today",
+  "panel.metrics": "Latest measurement",
+  "panel.no_metrics": "No full measurement yet.",
+  "panel.empty": "No verdicts yet.",
+  "panel.col.time": "Time",
+  "panel.col.kind": "Kind",
+  "panel.col.brand": "Brand",
+  "panel.col.label": "Verdict",
+  "panel.col.confidence": "Confidence",
+  "panel.col.signals": "Signals",
+  "panel.col.tools": "Tools",
+  "panel.col.usd": "USD",
+  "panel.col.ms": "ms"
 }

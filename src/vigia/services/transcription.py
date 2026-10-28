@@ -1,10 +1,12 @@
-"""Voice note to text, in code and before the signals run (application, D-070).
+"""Voice note or PDF to text, in code and before the signals run (application, D-070, D-071).
 
-Not an analyst tool: the deterministic signals (rule 5) need the words, so the transcript
-becomes ``Case.text`` and the case keeps ``kind="audio"``.
+Not an analyst tool: the deterministic signals (rule 5) need the words, so the text becomes
+``Case.text`` and the case keeps its ``kind`` (``audio`` or ``pdf``).
 """
 
-from vigia.domain.attachment import check_wav
+from collections.abc import Mapping
+
+from vigia.domain.attachment import check_pdf, check_wav
 from vigia.domain.rejection import Rejection, RejectionCode
 from vigia.domain.voice import Transcriber, Transcript
 from vigia.i18n import t
@@ -16,6 +18,13 @@ REPLY_KEY: dict[RejectionCode, str] = {
     "MODEL_UNAVAILABLE": "audio.unavailable",
 }
 """i18n key of the reply for each way a voice note can fail to become text."""
+
+PDF_REPLY_KEY: dict[RejectionCode, str] = {
+    "INVALID_ATTACHMENT": "pdf.invalid",
+    "TOO_LARGE": "pdf.too_large",
+    "MODEL_UNAVAILABLE": "pdf.unavailable",
+}
+"""i18n key of the reply for each way a PDF can fail to become text."""
 
 
 def transcribe(
@@ -38,14 +47,37 @@ def transcribe(
     return transcriber(wav, language)
 
 
-def reply(rejection: Rejection, language: str) -> str:
-    """What the member reads when their voice note could not be transcribed.
+def read_pdf(
+    pdf: bytes, language: str, reader: Transcriber, max_bytes: int
+) -> Transcript | Rejection:
+    """Check the PDF, then spend on Spark only if it passes.
 
     Args:
-        rejection: Output of :func:`transcribe`.
-        language: Language of the business.
+        pdf: Downloaded document.
+        language: Language hint (the country pack's language).
+        reader: ``SparkClient.read_pdf``, or a fake in tests.
+        max_bytes: Largest PDF accepted (``Settings.pdf_max_bytes``).
 
     Returns:
-        The i18n message for that rejection.
+        The text read, or why it could not be read.
     """
-    return t(language, REPLY_KEY.get(rejection.error_code, "audio.unavailable"))
+    checked = check_pdf(pdf, max_bytes)
+    if checked is not None:
+        return checked
+    return reader(pdf, language)
+
+
+def reply(
+    rejection: Rejection, language: str, keys: Mapping[RejectionCode, str] = REPLY_KEY
+) -> str:
+    """What the member reads when their voice note or PDF could not be read.
+
+    Args:
+        rejection: Output of :func:`transcribe` or :func:`read_pdf`.
+        language: Language of the business.
+        keys: :data:`REPLY_KEY` for audio, :data:`PDF_REPLY_KEY` for PDFs.
+
+    Returns:
+        The i18n message for that rejection; unknown codes read as "unavailable".
+    """
+    return t(language, keys.get(rejection.error_code, keys["MODEL_UNAVAILABLE"]))

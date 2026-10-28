@@ -13,7 +13,7 @@ import mimetypes
 import sys
 import time
 from collections import defaultdict
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field, replace
 from datetime import UTC, date, datetime
 from pathlib import Path
@@ -56,6 +56,14 @@ MAX_DROP = 0.02  # specs/06: no metric may fall more than 2 points
 EXIT_OK, EXIT_GATE, EXIT_BUDGET, EXIT_UNAVAILABLE = 0, 1, 2, 3
 
 NO_VOICE = "audio needs Voice: rules-only mode and runs without MODEL_API_KEY never transcribe"
+NO_PDF = "pdf needs Spark: rules-only mode and runs without MODEL_API_KEY never read PDFs"
+NO_READER = {"audio": NO_VOICE, "pdf": NO_PDF}
+"""Why a record of each kind is skipped without its reader (D-070, D-071)."""
+READ_TOOL = {"audio": "transcribe", "pdf": "read_pdf"}
+"""Tool name the reading step is billed under, per eval ``tipo``."""
+
+Readers = Mapping[str, Transcriber]
+"""Voice for ``audio`` and Spark's ``read_pdf`` for ``pdf`` records, by eval ``tipo``."""
 
 EXPECTED_OF: dict[Label, Expected] = {label: expected for expected, label in EXPECTED_LABEL.items()}
 
@@ -142,35 +150,38 @@ def with_analyst(spark: SparkClient, judge: Judge) -> Classifier:
 
 
 class Unheard(Exception):
-    """An audio record that could not be transcribed; the case fails, the run goes on."""
+    """An audio or PDF record that could not be read; the case fails, the run goes on."""
 
 
-def needs_voice(raw: dict[str, Any]) -> bool:
-    """An audio record whose words only exist in its WAV (no ``texto``)."""
-    return raw["tipo"] == "audio" and bool(raw.get("fuente")) and not raw.get("texto")
+def needs_reading(raw: dict[str, Any]) -> bool:
+    """An audio or PDF record whose words only exist in its file (no ``texto``)."""
+    return raw["tipo"] in READ_TOOL and bool(raw.get("fuente")) and not raw.get("texto")
 
 
-def _hear(
-    raw: dict[str, Any], root: Path, transcribe: Transcriber | None
-) -> tuple[Transcript | None, float]:
-    """Transcribe the record's WAV like the channel will (D-070): checked, then Voice.
+def _hear(raw: dict[str, Any], root: Path, readers: Readers) -> tuple[Transcript | None, float]:
+    """Read the record's file like the channel will (D-070, D-071): checked, then the model.
 
     Returns:
-        The transcript (``None`` if the record does not :func:`needs_voice`) and its ms.
+        The text (``None`` if the record does not :func:`needs_reading`) and its ms.
 
     Raises:
-        Unheard: If there is no Voice, no country pack or the audio is refused.
+        Unheard: If there is no reader, no country pack or the file is refused.
     """
-    if not needs_voice(raw):
+    if not needs_reading(raw):
         return None, 0.0
-    pack = country_pack(raw["pais"])
-    if transcribe is None or pack is None:
-        raise Unheard(NO_VOICE if transcribe is None else f"no country pack {raw['pais']}")
+    kind = raw["tipo"]
+    reader, pack = readers.get(kind), country_pack(raw["pais"])
+    if reader is None or pack is None:
+        raise Unheard(NO_READER[kind] if reader is None else f"no country pack {raw['pais']}")
     start = time.perf_counter()
-    wav = (root / raw["fuente"]).read_bytes()
-    heard = transcription.transcribe(wav, pack.language, transcribe, settings.voice_max_seconds)
+    data = (root / raw["fuente"]).read_bytes()
+    heard = (
+        transcription.transcribe(data, pack.language, reader, settings.voice_max_seconds)
+        if kind == "audio"
+        else transcription.read_pdf(data, pack.language, reader, settings.pdf_max_bytes)
+    )
     if isinstance(heard, Rejection):
-        raise Unheard(f"transcription: {heard.error_code} {heard.message}")
+        raise Unheard(f"{READ_TOOL[kind]}: {heard.error_code} {heard.message}")
     return heard, round((time.perf_counter() - start) * 1000, 1)
 
 
@@ -178,13 +189,13 @@ def to_case(raw: dict[str, Any], root: Path = REPO, heard: Transcript | None = N
     """Build the Case the system would receive for one eval record.
 
     The record goes through the same :func:`normalize` as a channel message, so a
-    lone link is a ``url`` case and an email carries its headers. An audio record
+    lone link is a ``url`` case and an email carries its headers. An audio or PDF record
     without ``texto`` takes its words from ``heard`` (see :func:`_hear`).
 
     Args:
         raw: One line of the eval set.
         root: Directory that ``fuente`` paths are relative to.
-        heard: Transcript of a :func:`needs_voice` record; it becomes the case text.
+        heard: Text of a :func:`needs_reading` record; it becomes the case text.
 
     Returns:
         The normalized Case, from the eval origin and a fixed eval business.
@@ -221,16 +232,16 @@ def to_case(raw: dict[str, Any], root: Path = REPO, heard: Transcript | None = N
 
 
 def _ask(
-    raw: dict[str, Any], classify: Classifier, root: Path, transcribe: Transcriber | None
+    raw: dict[str, Any], classify: Classifier, root: Path, readers: Readers
 ) -> tuple[Outcome | None, str | None]:
-    """Classify one record; a missing attachment, a timeout or an unheard audio fails the case.
+    """Classify one record; a missing attachment, a timeout or an unread file fails the case.
 
-    The transcription is billed to the case and listed first among its tools.
+    The reading (transcription or PDF) is billed to the case and listed first among its tools.
     """
     if raw.get("fuente") and not (root / raw["fuente"]).is_file():
         return None, f"attachment not found: {raw['fuente']}"
     try:
-        heard, ms = _hear(raw, root, transcribe)
+        heard, ms = _hear(raw, root, readers)
         outcome = classify(to_case(raw, root, heard))
     except TimeoutError:
         return None, "timeout"
@@ -238,7 +249,7 @@ def _ask(
         return None, str(exc)
     if heard is None:
         return outcome, None
-    tool = {"name": "transcribe", "ms": ms, "usd": heard.usd}
+    tool = {"name": READ_TOOL[raw["tipo"]], "ms": ms, "usd": heard.usd}
     usd = outcome.usd + heard.usd
     return replace(outcome, usd=usd, tools_used=[tool, *outcome.tools_used]), None
 
@@ -247,7 +258,7 @@ def grade(
     raw: dict[str, Any],
     classify: Classifier,
     root: Path = REPO,
-    transcribe: Transcriber | None = None,
+    readers: Readers | None = None,
 ) -> dict[str, Any]:
     """Run one eval record and grade it: pass only when the label matches exactly.
 
@@ -255,13 +266,13 @@ def grade(
         raw: One line of the eval set.
         classify: The system under test.
         root: Directory that ``fuente`` paths are relative to.
-        transcribe: Voice for audio records (see :func:`to_case`).
+        readers: Voice and PDF reader by eval ``tipo`` (see :func:`to_case`).
 
     Returns:
         The per-case record of specs/06 (Spanish keys, as the result file is data).
     """
     start = time.perf_counter()
-    outcome, error = _ask(raw, classify, root, transcribe)
+    outcome, error = _ask(raw, classify, root, readers or {})
     obtained = EXPECTED_OF[outcome.label] if outcome else None
     passed = obtained == raw["esperado"]
     return {
@@ -354,7 +365,7 @@ def run(
     cases: list[dict[str, Any]],
     classify: Classifier,
     max_usd: float,
-    transcribe: Transcriber | None = None,
+    readers: Readers | None = None,
 ) -> tuple[list[dict[str, Any]], bool]:
     """Grade cases in order, stopping as soon as spend passes ``max_usd`` (rule 11).
 
@@ -363,7 +374,7 @@ def run(
     """
     records: list[dict[str, Any]] = []
     for raw in cases:
-        records.append(grade(raw, classify, REPO, transcribe))
+        records.append(grade(raw, classify, REPO, readers))
         if sum(r["usd"] for r in records) > max_usd:
             return records, True
     return records, False
@@ -513,29 +524,39 @@ def _report(result: dict[str, Any]) -> None:
 
 
 def _skip_unheard(
-    cases: list[dict[str, Any]], transcribe: Transcriber | None
+    cases: list[dict[str, Any]], readers: Readers
 ) -> tuple[list[dict[str, Any]], list[dict[str, str]]]:
-    """Without Voice, set aside the audio records that need it (D-070).
+    """Set aside the audio and PDF records whose reader is missing (D-070, D-071).
 
     Returns:
         The records to run and the skipped ones as ``{"id", "motivo"}``.
     """
-    deaf = [] if transcribe else [c for c in cases if needs_voice(c)]
-    skipped = [{"id": c["id"], "motivo": NO_VOICE} for c in deaf]
+    deaf = [c for c in cases if needs_reading(c) and c["tipo"] not in readers]
+    skipped = [{"id": c["id"], "motivo": NO_READER[c["tipo"]]} for c in deaf]
     return [c for c in cases if c not in deaf], skipped
+
+
+def _real_readers() -> dict[str, Transcriber]:
+    """Voice and Spark's PDF reader, whichever has a ``MODEL_API_KEY`` behind it."""
+    voice, spark = make_voice(settings), make_spark(settings)
+    found: dict[str, Transcriber | None] = {
+        "audio": voice,
+        "pdf": spark.read_pdf if spark else None,
+    }
+    return {kind: reader for kind, reader in found.items() if reader is not None}
 
 
 def main(
     argv: list[str],
     classify: Classifier | None = None,
     out_dir: Path = EVALS,
-    transcribe: Transcriber | None = None,
+    readers: Readers | None = None,
 ) -> int:
     """Run the eval set and return the exit code of specs/06.
 
-    Audio records that need Voice are skipped (listed in ``omitidos``) when there is no
-    transcriber: always in ``--solo-deterministas`` (no network, 0 USD), else without
-    ``MODEL_API_KEY`` (D-070).
+    Audio and PDF records that need a model to be read are skipped (listed in
+    ``omitidos``) when there is no reader: always in ``--solo-deterministas`` (no network,
+    0 USD), else without ``MODEL_API_KEY`` (D-070, D-071).
 
     Args:
         argv: Command-line arguments.
@@ -543,7 +564,8 @@ def main(
             ``--solo-deterministas`` and to :func:`with_analyst` (real Spark, needs
             ``MODEL_API_KEY``) without it. Tests inject a fake app here.
         out_dir: Where result files and baselines live.
-        transcribe: Voice; defaults to the real one in full mode. Tests inject a fake.
+        readers: Voice and PDF reader by eval ``tipo``; default to the real ones in full
+            mode. Tests inject fakes.
 
     Returns:
         0 ok, 1 gate, regression or adversarial miss, 2 over budget, 3 mode not available.
@@ -558,10 +580,10 @@ def main(
     if args.adversarios or classify is None:
         print(f"medir: {_unavailable(args, out_dir)}", file=sys.stderr)
         return EXIT_UNAVAILABLE
-    if transcribe is None and not args.solo_deterministas:
-        transcribe = make_voice(settings)
-    runnable, skipped = _skip_unheard(_load(args.path, args.filtro), transcribe)
-    records, over_budget = run(runnable, classify, args.max_usd, transcribe)
+    if readers is None:
+        readers = {} if args.solo_deterministas else _real_readers()
+    runnable, skipped = _skip_unheard(_load(args.path, args.filtro), readers)
+    records, over_budget = run(runnable, classify, args.max_usd, readers)
     metrics = summarize(records)
     failures = gate_failures(metrics, full=mode == "completo")
     suffix = ".deterministas" if mode == "deterministas" else ""

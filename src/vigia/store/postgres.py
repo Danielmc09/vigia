@@ -1,6 +1,7 @@
 """Business-scoped persistence: PII goes in sealed or hashed, never in clear (specs/16).
 
-Every function except ``find_member`` and ``record_rejection`` runs under the business
+Every function except ``find_member``, ``record_rejection`` and the operator panel readers
+(``panel_verdicts``, ``verdicts_today``: non-PII columns only, D-072) runs under the business
 set by ``open_business``/``create_business`` (RLS on ``app.business_id``).
 """
 
@@ -14,7 +15,7 @@ from vigia.config import settings
 from vigia.domain.case import Case
 from vigia.domain.escalation import Escalation
 from vigia.domain.member import Business, CodeCheck, Contact, Member, Role, Supplier
-from vigia.domain.verdict import Label
+from vigia.domain.verdict import Label, Verdict, VerdictRow
 from vigia.store.crypto import Encrypted, Hashed, Keyring, Vault
 from vigia.store.db import set_business
 
@@ -352,6 +353,66 @@ async def recent_verdicts(conn: asyncpg.Connection, limit: int = 5) -> list[tupl
         "SELECT created_at, label FROM verdicts ORDER BY created_at DESC LIMIT $1", limit
     )
     return [(r["created_at"], r["label"]) for r in rows]
+
+
+async def save_verdict(
+    conn: asyncpg.Connection, vault: Vault, case: Case, verdict: Verdict
+) -> None:
+    """Store a verdict: the whole of it sealed, plus the non-PII columns the panel reads.
+
+    Only deterministic signal types go in clear; the analyst's stay sealed (D-060, D-072).
+
+    Args:
+        conn: Connection scoped to the business.
+        vault: Open vault of the business.
+        case: The case the verdict is about (already saved).
+        verdict: The verdict.
+    """
+    signal_types = list(dict.fromkeys(s.type for s in verdict.signals if s.source != "analyst"))
+    tools = list(dict.fromkeys(str(tool.get("name")) for tool in verdict.tools_used))
+    await conn.execute(
+        "INSERT INTO verdicts (business_id, case_id, label, payload_enc, kind, brand, confidence,"
+        " signal_types, tools, usd, latency_ms)"
+        " VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)",
+        vault.business_id,
+        case.id,
+        verdict.label,
+        vault.seal("verdicts.payload", verdict.model_dump_json()),
+        case.kind,
+        verdict.impersonated_brand,
+        verdict.confidence,
+        signal_types,
+        tools,
+        sum(float(tool.get("usd") or 0) for tool in verdict.tools_used),
+        verdict.total_latency_ms,
+    )
+
+
+async def panel_verdicts(conn: asyncpg.Connection, limit: int) -> list[VerdictRow]:
+    """Latest verdicts of every business, without PII, for the operator panel (D-072).
+
+    Args:
+        conn: Any application connection; the definer function crosses businesses.
+        limit: How many to return (the function caps it at 200).
+
+    Returns:
+        Rows newest first.
+    """
+    rows = await conn.fetch("SELECT * FROM vigia_panel_verdicts($1)", limit)
+    return [VerdictRow(**dict(row)) for row in rows]
+
+
+async def verdicts_today(conn: asyncpg.Connection) -> dict[str, int]:
+    """Verdicts of every business since midnight in Colombia, by label (D-072).
+
+    Args:
+        conn: Any application connection.
+
+    Returns:
+        Count per label; labels with no verdict today are absent.
+    """
+    rows = await conn.fetch("SELECT label, total FROM vigia_panel_today()")
+    return {row["label"]: row["total"] for row in rows}
 
 
 async def transfer_ownership(conn: asyncpg.Connection, owner_id: UUID, new_owner_id: UUID) -> None:

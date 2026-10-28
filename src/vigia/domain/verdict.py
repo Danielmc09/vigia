@@ -1,5 +1,6 @@
 """Verdict labels and the full Verdict schema: the only contract fusion outputs (specs/05)."""
 
+from datetime import datetime
 from typing import Any, Literal
 
 from pydantic import BaseModel, Field
@@ -61,3 +62,29 @@ class Verdict(BaseModel, frozen=True):
     tools_used: list[dict[str, Any]] = Field(default_factory=list)
     model: dict[str, Any] = Field(default_factory=dict)
     total_latency_ms: int = 0
+
+
+class VerdictRow(BaseModel, frozen=True):
+    """One verdict as the operator panel sees it: no PII, no business (D-072).
+
+    Attributes:
+        created_at: When the verdict was stored.
+        kind: Case kind (``text``, ``pdf``...), if recorded.
+        brand: Impersonated brand from the country pack, if any.
+        label: ``scam``, ``legit`` or ``doubtful``.
+        confidence: Verdict confidence, if recorded.
+        signal_types: Deterministic signal types only; the analyst's never (D-060).
+        tools: Distinct tool and model names the case used.
+        usd: Spend of the case.
+        latency_ms: End-to-end time of the case.
+    """
+
+    created_at: datetime
+    kind: str | None = None
+    brand: str | None = None
+    label: Label
+    confidence: float | None = None
+    signal_types: list[str] = Field(default_factory=list)
+    tools: list[str] = Field(default_factory=list)
+    usd: float = 0.0
+    latency_ms: int = 0

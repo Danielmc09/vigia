@@ -6,7 +6,9 @@
 internal
 specs
 material
-evals
+# the panel reads the latest full eval result (D-072)
+evals/*
+!evals/ultimo*.resultado.json
 tests
 docs
 **/__pycache__

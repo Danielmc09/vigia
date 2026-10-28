@@ -75,12 +75,16 @@ class ModelRequest(BaseModel, frozen=True):
         tools: Tool specs offered this turn; empty means the model must answer.
         output_schema: JSON schema the final answer must follow (strict).
         timeout_s: Seconds this turn may take.
+        output_name: Name of the output schema sent to the provider.
+        max_tokens: Cap on the completion tokens, if any.
     """
 
     messages: list[dict[str, Any]]
     tools: list[dict[str, Any]] = Field(default_factory=list)
     output_schema: dict[str, Any]
     timeout_s: float = Field(gt=0)
+    output_name: str = "Veredicto"
+    max_tokens: int | None = Field(default=None, gt=0)
 
 
 class ModelTurn(BaseModel, frozen=True):

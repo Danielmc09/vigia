@@ -1,0 +1,421 @@
+{
+ "fecha": "2026-10-27",
+ "modo": "completo",
+ "filtro": "tipo=pdf",
+ "metricas": {
+  "casos": 12,
+  "exactitud": 0.9166666666666666,
+  "recall_estafa": 1.0,
+  "fp_legitimo": 0.0,
+  "dudosos": 0.0,
+  "manipulacion_legitimo": 0.0,
+  "por_categoria": {
+   "bec_proveedor": 1.0,
+   "estado": 1.0,
+   "transportadora": 1.0,
+   "banco": 1.0,
+   "legitimo_proveedor": 1.0,
+   "legitimo_otro": 0.6666666666666666
+  },
+  "por_tipo": {
+   "pdf": 0.9166666666666666
+  },
+  "por_pais": {
+   "CO": 0.875,
+   "US": 1.0
+  },
+  "mediana_ms": 4278.6,
+  "usd_total": 0.06071095,
+  "tokens_total": 17250,
+  "degradados": 5,
+  "hipotesis_confirmadas": 11
+ },
+ "gate": [],
+ "regresiones": [],
+ "omitidos": [],
+ "casos": [
+  {
+   "id": "c-0155",
+   "esperado": "estafa",
+   "tipo": "pdf",
+   "categoria": "bec_proveedor",
+   "pais": "CO",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.92,
+   "senales": [
+    "personal_payment",
+    "new_account_request",
+    "personal_account_payment",
+    "no_call_instruction",
+    "urgency_pressure"
+   ],
+   "herramientas_usadas": [
+    {
+     "name": "read_pdf",
+     "ms": 4683.7,
+     "usd": 0.00424625
+    },
+    {
+     "name": "muse-spark-1.3",
+     "ms": 2254,
+     "usd": 0.00274925
+    },
+    {
+     "name": "check_address_book",
+     "ms": 0,
+     "usd": 0.0
+    },
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1214,
+     "usd": 0.00330475
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 8176.2,
+   "usd": 0.01030025,
+   "tokens": 3960,
+   "error": null
+  },
+  {
+   "id": "c-0156",
+   "esperado": "estafa",
+   "tipo": "pdf",
+   "categoria": "estado",
+   "pais": "CO",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [
+    "brand_off_domain",
+    "urgency",
+    "authority_with_link"
+   ],
+   "herramientas_usadas": [
+    {
+     "name": "read_pdf",
+     "ms": 3385.5,
+     "usd": 0.00416975
+    }
+   ],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 3405.5,
+   "usd": 0.00416975,
+   "tokens": 0,
+   "error": null
+  },
+  {
+   "id": "c-0157",
+   "esperado": "estafa",
+   "tipo": "pdf",
+   "categoria": "transportadora",
+   "pais": "CO",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [
+    "brand_off_domain"
+   ],
+   "herramientas_usadas": [
+    {
+     "name": "read_pdf",
+     "ms": 3650.4,
+     "usd": 0.0011339000000000002
+    }
+   ],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 3656.5,
+   "usd": 0.0011339000000000002,
+   "tokens": 0,
+   "error": null
+  },
+  {
+   "id": "c-0158",
+   "esperado": "estafa",
+   "tipo": "pdf",
+   "categoria": "banco",
+   "pais": "CO",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [
+    "brand_off_domain",
+    "credentials_request"
+   ],
+   "herramientas_usadas": [
+    {
+     "name": "read_pdf",
+     "ms": 2873.5,
+     "usd": 0.003953
+    }
+   ],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 2881.7,
+   "usd": 0.003953,
+   "tokens": 0,
+   "error": null
+  },
+  {
+   "id": "c-0159",
+   "esperado": "estafa",
+   "tipo": "pdf",
+   "categoria": "bec_proveedor",
+   "pais": "US",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.88,
+   "senales": [
+    "personal_payment",
+    "new_account_request",
+    "beneficiary_mismatch",
+    "urgency_pressure",
+    "no_call_instruction"
+   ],
+   "herramientas_usadas": [
+    {
+     "name": "read_pdf",
+     "ms": 2934.8,
+     "usd": 0.00365975
+    },
+    {
+     "name": "muse-spark-1.3",
+     "ms": 890,
+     "usd": 0.0010249
+    },
+    {
+     "name": "check_address_book",
+     "ms": 0,
+     "usd": 0.0
+    },
+    {
+     "name": "muse-spark-1.3",
+     "ms": 2280,
+     "usd": 0.00270575
+    },
+    {
+     "name": "check_address_book",
+     "ms": 0,
+     "usd": 0.0
+    },
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1883,
+     "usd": 0.0015061
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 8004.4,
+   "usd": 0.0088965,
+   "tokens": 5887,
+   "error": null
+  },
+  {
+   "id": "c-0160",
+   "esperado": "estafa",
+   "tipo": "pdf",
+   "categoria": "estado",
+   "pais": "US",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [
+    "brand_off_domain",
+    "urgency",
+    "authority_with_link",
+    "personal_payment"
+   ],
+   "herramientas_usadas": [
+    {
+     "name": "read_pdf",
+     "ms": 4241.7,
+     "usd": 0.003936
+    }
+   ],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 4245.5,
+   "usd": 0.003936,
+   "tokens": 0,
+   "error": null
+  },
+  {
+   "id": "c-0161",
+   "esperado": "legitimo",
+   "tipo": "pdf",
+   "categoria": "legitimo_proveedor",
+   "pais": "CO",
+   "obtenido": "legitimo",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [],
+   "herramientas_usadas": [
+    {
+     "name": "read_pdf",
+     "ms": 4562.5,
+     "usd": 0.0047605
+    },
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1390,
+     "usd": 0.0028435
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 5955.2,
+   "usd": 0.0076040000000000005,
+   "tokens": 1874,
+   "error": null
+  },
+  {
+   "id": "c-0162",
+   "esperado": "legitimo",
+   "tipo": "pdf",
+   "categoria": "legitimo_otro",
+   "pais": "CO",
+   "obtenido": "legitimo",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.85,
+   "senales": [],
+   "herramientas_usadas": [
+    {
+     "name": "read_pdf",
+     "ms": 3615.0,
+     "usd": 0.004072
+    },
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1549,
+     "usd": 0.00290975
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 5166.8,
+   "usd": 0.006981749999999999,
+   "tokens": 1879,
+   "error": null
+  },
+  {
+   "id": "c-0163",
+   "esperado": "legitimo",
+   "tipo": "pdf",
+   "categoria": "legitimo_otro",
+   "pais": "CO",
+   "obtenido": null,
+   "paso": false,
+   "hipotesis_confirmada": false,
+   "confianza": null,
+   "senales": [],
+   "herramientas_usadas": [],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 30008.8,
+   "usd": 0.0,
+   "tokens": 0,
+   "error": "read_pdf: MODEL_UNAVAILABLE ReadTimeout"
+  },
+  {
+   "id": "c-0164",
+   "esperado": "legitimo",
+   "tipo": "pdf",
+   "categoria": "legitimo_proveedor",
+   "pais": "US",
+   "obtenido": "legitimo",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.95,
+   "senales": [],
+   "herramientas_usadas": [
+    {
+     "name": "read_pdf",
+     "ms": 3212.1,
+     "usd": 0.0038765
+    },
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1064,
+     "usd": 0.00107115
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 4278.6,
+   "usd": 0.00494765,
+   "tokens": 1833,
+   "error": null
+  },
+  {
+   "id": "c-0165",
+   "esperado": "legitimo",
+   "tipo": "pdf",
+   "categoria": "legitimo_otro",
+   "pais": "US",
+   "obtenido": "legitimo",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [],
+   "herramientas_usadas": [
+    {
+     "name": "read_pdf",
+     "ms": 3253.4,
+     "usd": 0.00371075
+    },
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1025,
+     "usd": 0.00106915
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 4280.1,
+   "usd": 0.004779900000000002,
+   "tokens": 1817,
+   "error": null
+  },
+  {
+   "id": "c-0166",
+   "esperado": "estafa",
+   "tipo": "pdf",
+   "categoria": "estado",
+   "pais": "CO",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [
+    "brand_off_domain",
+    "authority_with_link"
+   ],
+   "herramientas_usadas": [
+    {
+     "name": "read_pdf",
+     "ms": 4164.4,
+     "usd": 0.00400825
+    }
+   ],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 4173.9,
+   "usd": 0.00400825,
+   "tokens": 0,
+   "error": null
+  }
+ ]
+}

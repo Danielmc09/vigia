@@ -6,6 +6,7 @@ COPY pyproject.toml uv.lock README.md ./
 RUN uv sync --frozen --no-dev --no-install-project
 COPY src ./src
 COPY conocimiento ./conocimiento
+COPY evals ./evals
 RUN uv sync --frozen --no-dev && useradd --system app
 USER app
 EXPOSE 8000

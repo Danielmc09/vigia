@@ -1,4 +1,4 @@
-"""Attachment checks that need no decoder: size cap, image magic bytes, canonical WAV (domain)."""
+"""Attachment checks that need no decoder: size cap, image and PDF magic, canonical WAV (domain)."""
 
 import io
 import wave
@@ -34,6 +34,27 @@ def check_image(data: bytes) -> Rejection | None:
         return None
     detail = "empty file" if not data else "not a JPEG, PNG, GIF or WebP"
     return Rejection(error_code="INVALID_ATTACHMENT", message=detail)
+
+
+def check_pdf(data: bytes, max_bytes: int) -> Rejection | None:
+    """Refuse PDFs over ``max_bytes`` and files that do not start with ``%PDF-``.
+
+    ponytail: magic and size only; the page count inside the cap is unbounded and the
+    reader's output is capped instead (D-071).
+
+    Args:
+        data: Downloaded file.
+        max_bytes: Largest PDF read (``Settings.pdf_max_bytes``).
+
+    Returns:
+        ``None`` if it looks like a PDF, else a ``TOO_LARGE`` or ``INVALID_ATTACHMENT``
+        rejection.
+    """
+    if len(data) > max_bytes:
+        return Rejection(error_code="TOO_LARGE", message=f"pdf over {max_bytes} bytes")
+    if not data.startswith(b"%PDF-"):
+        return Rejection(error_code="INVALID_ATTACHMENT", message="not a PDF file")
+    return None
 
 
 def check_wav(data: bytes, max_seconds: int) -> float | Rejection:

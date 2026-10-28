@@ -193,7 +193,7 @@ def test_to_case_transcribes_audio_into_the_text_and_keeps_the_kind(tmp_path: Pa
     voice = FakeVoice("Bancolombia: verifique en https://bancolombia-seguro.co/x ya")
 
     raw = _audio("a-1", "estafa", tmp_path, pais="US")
-    heard, _ = measure._hear(raw, tmp_path, voice)
+    heard, _ = measure._hear(raw, tmp_path, {"audio": voice})
 
     case = measure.to_case(raw, tmp_path, heard)
 
@@ -210,7 +210,7 @@ def test_transcription_cost_and_time_are_billed_to_the_case(tmp_path: Path) -> N
     def classify(case: object) -> measure.Outcome:
         return measure.Outcome(label="scam", usd=0.01)
 
-    record = measure.grade(raw, classify, tmp_path, voice)
+    record = measure.grade(raw, classify, tmp_path, {"audio": voice})
 
     assert record["paso"] is True
     assert record["usd"] == pytest.approx(0.0101)
@@ -221,7 +221,9 @@ def test_a_rejected_audio_is_a_failed_case_not_a_crash(tmp_path: Path) -> None:
     raw = _audio("a-1", "estafa", tmp_path)
     (tmp_path / "a-1.wav").write_bytes(b"OggS" + b"\x00" * 64)
 
-    record = measure.grade(raw, lambda _: measure.Outcome(label="scam"), tmp_path, FakeVoice())
+    record = measure.grade(
+        raw, lambda _: measure.Outcome(label="scam"), tmp_path, {"audio": FakeVoice()}
+    )
 
     assert record["paso"] is False
     assert "UNSUPPORTED_AUDIO" in record["error"]
@@ -231,7 +233,7 @@ def test_audio_without_a_country_pack_is_unheard_not_guessed_spanish(tmp_path: P
     raw = _audio("a-1", "estafa", tmp_path, pais="ZZ")
     voice = FakeVoice()
 
-    record = measure.grade(raw, lambda _: measure.Outcome(label="scam"), tmp_path, voice)
+    record = measure.grade(raw, lambda _: measure.Outcome(label="scam"), tmp_path, {"audio": voice})
 
     assert record["paso"] is False
     assert "no country pack ZZ" in record["error"]

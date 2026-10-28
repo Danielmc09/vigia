@@ -6,6 +6,8 @@ from typing import Literal, Self
 from pydantic import Field, SecretStr, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+PANEL_TOKEN_MIN = 32
+
 
 class Settings(BaseSettings):
     """Process settings. Defaults match the local docker compose stack.
@@ -24,6 +26,10 @@ class Settings(BaseSettings):
         jev_api_key: TypeSafe key; without it the backend is mock whatever ``jev_backend``.
         model_api_key: Meta Model API key; without it the analyst never runs (degraded).
         voice_max_seconds: Longest voice note transcribed (D-070); longer ones are refused.
+        pdf_max_bytes: Largest PDF read by Spark (D-071); bigger ones are refused.
+        panel_token: Operator token for ``/panel`` (D-073); unset means no panel at all.
+        panel_metrics: Eval result whose metrics the panel shows, if the file exists;
+            relative to the working directory (``/app`` in the image, D-072).
     """
 
     model_config = SettingsConfigDict(populate_by_name=True)
@@ -46,6 +52,11 @@ class Settings(BaseSettings):
     jev_api_key: SecretStr | None = Field(None, validation_alias="JEV_API_KEY")
     model_api_key: SecretStr | None = Field(None, validation_alias="MODEL_API_KEY")
     voice_max_seconds: int = Field(120, ge=1, validation_alias="VIGIA_VOICE_MAX_SECONDS")
+    pdf_max_bytes: int = Field(5 * 1024 * 1024, ge=1, validation_alias="VIGIA_PDF_MAX_BYTES")
+    panel_token: SecretStr | None = Field(None, validation_alias="VIGIA_PANEL_TOKEN")
+    panel_metrics: Path = Field(
+        Path("evals/ultimo.resultado.json"), validation_alias="VIGIA_PANEL_METRICS"
+    )
 
     @model_validator(mode="after")
     def _prod_needs_explicit_dsns(self) -> Self:
@@ -54,6 +65,14 @@ class Settings(BaseSettings):
         if self.mode == "prod" and missing:
             names = ", ".join(sorted(name.upper() for name in missing))
             raise ValueError(f"prod requires explicit {names}")
+        return self
+
+    @model_validator(mode="after")
+    def _panel_token_is_long(self) -> Self:
+        """Refuse a guessable operator token (D-073)."""
+        token = self.panel_token
+        if token is not None and len(token.get_secret_value()) < PANEL_TOKEN_MIN:
+            raise ValueError(f"VIGIA_PANEL_TOKEN needs at least {PANEL_TOKEN_MIN} characters")
         return self
 
 

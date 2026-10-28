@@ -90,5 +90,22 @@
   "audio.unsupported": "Todavía no puedo escuchar este formato de audio. Mientras tanto, escríbeme lo que dice la nota de voz o reenvía el mensaje original.",
   "audio.too_long": "La nota de voz es demasiado larga. Envíame la parte sospechosa o escríbeme lo que dice.",
   "audio.too_large": "El archivo de audio es demasiado grande. Envíame una nota de voz más corta o escríbeme lo que dice.",
-  "audio.unavailable": "No pude escuchar la nota de voz en este momento. Vuelve a enviarla en unos minutos."
+  "audio.unavailable": "No pude escuchar la nota de voz en este momento. Vuelve a enviarla en unos minutos.",
+  "pdf.invalid": "Ese archivo no parece un PDF válido. Envíame una captura del documento o copia el texto.",
+  "pdf.too_large": "El PDF es demasiado grande. Envíame solo la página sospechosa o una captura.",
+  "pdf.unavailable": "No pude leer el PDF en este momento. Vuelve a enviarlo en unos minutos.",
+  "panel.title": "VIGÍA · panel del operador",
+  "panel.today": "Hoy",
+  "panel.metrics": "Última medición",
+  "panel.no_metrics": "Todavía no hay una medición completa.",
+  "panel.empty": "Todavía no hay veredictos.",
+  "panel.col.time": "Hora",
+  "panel.col.kind": "Tipo",
+  "panel.col.brand": "Marca",
+  "panel.col.label": "Veredicto",
+  "panel.col.confidence": "Confianza",
+  "panel.col.signals": "Señales",
+  "panel.col.tools": "Herramientas",
+  "panel.col.usd": "USD",
+  "panel.col.ms": "ms"
 }
