@@ -192,6 +192,30 @@ def test_spark_reads_an_image_as_an_image_url_part_with_a_text_schema() -> None:
     assert "tools" not in sent
 
 
+@pytest.mark.xfail(strict=True, reason="incident adv-imagen-cmyk")
+def test_adv_imagen_cmyk() -> None:
+    """A large CMYK JPEG is shrunk as a JPEG, not crashed into a PNG (revisor MENOR 3)."""
+    body: dict[str, Any] = json.loads((FIXTURES / "chat_image.json").read_text("utf-8"))["response"]
+    body["choices"][0]["message"]["content"] = json.dumps({"text": "x"})
+    seen: list[httpx.Request] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        seen.append(request)
+        return httpx.Response(200, json=body)
+
+    spark = SparkClient("k", httpx.Client(transport=httpx.MockTransport(handler)))
+    buf = io.BytesIO()
+    Image.new("CMYK", (3000, 2000), (0, 0, 0, 0)).save(buf, format="JPEG")
+    assert transcription.check_image(buf.getvalue()) is None
+
+    spark.read_image(buf.getvalue(), "es")
+
+    parts = json.loads(seen[0].content)["messages"][0]["content"]
+    url = next(p for p in parts if p["type"] == "image_url")["image_url"]["url"]
+    sent = Image.open(io.BytesIO(base64.b64decode(url.split(",", 1)[1])))
+    assert url.startswith("data:image/jpeg;base64,") and sent.size == (2048, 1365)
+
+
 def test_image_mime_comes_from_the_magic_bytes() -> None:
     assert image_mime(_screenshot()) == "image/png"
     assert image_mime(b"\xff\xd8\xff\xe0") == "image/jpeg"
