@@ -1,0 +1,133 @@
+{
+  "verified_at": "2026-10-27T18:24:41-0500",
+  "request": {
+    "method": "POST",
+    "url": "https://api.meta.ai/v1/chat/completions",
+    "json": {
+      "model": "muse-spark-1.3",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Classify this forwarded SMS. Use the tool on its URL first: 'Su paquete está retenido, pague 2 USD en https://pagos-ejemplo.test/login'"
+        }
+      ],
+      "max_completion_tokens": 300,
+      "reasoning_effort": "minimal",
+      "tools": [
+        {
+          "type": "function",
+          "function": {
+            "name": "analyze_url",
+            "description": "Return deterministic signals for a URL.",
+            "parameters": {
+              "type": "object",
+              "properties": {
+                "url": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "url"
+              ],
+              "additionalProperties": false
+            }
+          }
+        }
+      ],
+      "response_format": {
+        "type": "json_schema",
+        "json_schema": {
+          "name": "Veredicto",
+          "schema": {
+            "type": "object",
+            "properties": {
+              "label": {
+                "type": "string",
+                "enum": [
+                  "scam",
+                  "legit",
+                  "doubtful"
+                ]
+              },
+              "confidence": {
+                "type": "number"
+              },
+              "signals": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "reasoning": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "label",
+              "confidence",
+              "signals",
+              "reasoning"
+            ],
+            "additionalProperties": false
+          },
+          "strict": true
+        }
+      }
+    }
+  },
+  "status": 200,
+  "latency_ms": 1572,
+  "tokens": {
+    "input": 647,
+    "cached": 0,
+    "output": 98
+  },
+  "usd_estimated": 0.001225,
+  "response_headers": {
+    "content-type": "application/json",
+    "x-ratelimit-limit-requests": "3000",
+    "x-ratelimit-remaining-requests": "3000",
+    "x-ratelimit-limit-tokens": "4000000",
+    "x-ratelimit-remaining-tokens": "4000000",
+    "x-request-id": "40effa91-8e47-4ff4-9c61-171303305e3f"
+  },
+  "response": {
+    "id": "chatcmpl-01a17fae-25d6-7691-933b-2b6db7b5dc3e",
+    "choices": [
+      {
+        "finish_reason": "tool_calls",
+        "index": 0,
+        "message": {
+          "content": "I'll examine the link in that message for scam signals.",
+          "refusal": null,
+          "tool_calls": [
+            {
+              "id": "call_a6306a51-6b8f-49c6-adce-83967feb0ee8",
+              "type": "function",
+              "function": {
+                "name": "analyze_url",
+                "arguments": "{\"url\":\"https://pagos-ejemplo.test/login\"}"
+              }
+            }
+          ],
+          "role": "assistant"
+        },
+        "logprobs": null
+      }
+    ],
+    "created": 1793143481,
+    "model": "muse-spark-1.3",
+    "object": "chat.completion",
+    "usage": {
+      "completion_tokens": 98,
+      "prompt_tokens": 647,
+      "total_tokens": 745,
+      "completion_tokens_details": {
+        "reasoning_tokens": 19
+      },
+      "prompt_tokens_details": {
+        "cached_tokens": 0
+      }
+    }
+  }
+}

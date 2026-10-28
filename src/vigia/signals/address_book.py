@@ -10,7 +10,7 @@ from vigia.domain.case import Case
 from vigia.domain.country import CountryPack
 from vigia.domain.member import Supplier
 from vigia.domain.signal import Signal
-from vigia.domain.text import fold
+from vigia.domain.text import fold, only_digits
 from vigia.signals.patterns import find_pattern
 from vigia.signals.urls import registrable_domain
 
@@ -21,10 +21,6 @@ FREE_MAIL = frozenset(
 MIN_ACCOUNT_DIGITS = 6
 ACCOUNT_CONTEXT_CHARS = 40  # D-032: an account number follows its keyword closely
 _NUMBER = re.compile(r"\d[\d -]{4,}\d")
-
-
-def _digits(raw: str) -> str:
-    return re.sub(r"\D", "", raw)
 
 
 def _same_origin(sender: str, known: str) -> bool:
@@ -41,7 +37,7 @@ def _accounts(text: str, pack: CountryPack) -> set[str]:
     found = set()
     for match in _NUMBER.finditer(text):
         before = text[max(0, match.start() - ACCOUNT_CONTEXT_CHARS) : match.start()]
-        digits = _digits(match.group())
+        digits = only_digits(match.group())
         if len(digits) >= MIN_ACCOUNT_DIGITS and find_pattern(before, pack, "cuenta_bancaria"):
             found.add(digits)
     return found
@@ -77,7 +73,7 @@ def address_book_signals(
                     evidence=evidence | {"sender": sender},
                 )
             )
-        unknown = _accounts(text, pack) - {_digits(supplier.account or "")}
+        unknown = _accounts(text, pack) - {only_digits(supplier.account or "")}
         if supplier.account and unknown:
             signals.append(
                 Signal(

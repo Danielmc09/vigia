@@ -22,6 +22,7 @@ class Settings(BaseSettings):
         knowledge_seed: Known-campaign seed attached to the country packs (D-048).
         jev_backend: ``real`` asks TypeSafe Jev; ``mock`` (default) never flags (T-08).
         jev_api_key: TypeSafe key; without it the backend is mock whatever ``jev_backend``.
+        model_api_key: Meta Model API key; without it the analyst never runs (degraded).
     """
 
     model_config = SettingsConfigDict(populate_by_name=True)
@@ -42,6 +43,7 @@ class Settings(BaseSettings):
 
     jev_backend: Literal["mock", "real"] = Field("mock", validation_alias="JEV_BACKEND")
     jev_api_key: SecretStr | None = Field(None, validation_alias="JEV_API_KEY")
+    model_api_key: SecretStr | None = Field(None, validation_alias="MODEL_API_KEY")
 
     @model_validator(mode="after")
     def _prod_needs_explicit_dsns(self) -> Self:

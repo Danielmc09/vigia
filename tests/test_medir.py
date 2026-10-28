@@ -189,9 +189,11 @@ def test_deterministic_only_reports_without_gate_on_its_own_baseline(tmp_path: P
     assert not (tmp_path / "ultimo.resultado.json").exists()
 
 
-def test_full_mode_without_an_app_is_a_clear_error(
-    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+def test_full_mode_without_a_model_key_is_a_clear_error(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str], monkeypatch: pytest.MonkeyPatch
 ) -> None:
+    monkeypatch.setattr(measure.settings, "model_api_key", None)  # never call Meta from a test
+
     assert _run(tmp_path, None) == 3
     assert "--solo-deterministas" in capsys.readouterr().err
 

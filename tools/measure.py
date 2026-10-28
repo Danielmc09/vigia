@@ -14,14 +14,14 @@ import sys
 import time
 from collections import defaultdict
 from collections.abc import Callable
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from datetime import UTC, date, datetime
 from pathlib import Path
 from statistics import median
 from typing import Any
 from uuid import NAMESPACE_URL, uuid5
 
-from vigia.domain.analyst import Evidence
+from vigia.config import settings
 from vigia.domain.attachment import Attachment
 from vigia.domain.case import Case, IncomingMessage
 from vigia.domain.eval_case import CHANNEL_KIND, EXPECTED_LABEL, Expected
@@ -29,10 +29,11 @@ from vigia.domain.gate import Judge, mock_judge
 from vigia.domain.member import Business
 from vigia.domain.verdict import Label
 from vigia.jev.gate import screen
+from vigia.model.jev import make_judge
+from vigia.model.spark import SparkClient, make_spark
+from vigia.services import process_case
 from vigia.services.ingest import normalize
-from vigia.signals.detector import detect
 from vigia.signals.knowledge import seeded_pack
-from vigia.verdict.build import build_verdict
 from vigia.verdict.fusion import DOUBTFUL, DOUBTFUL_CONFIDENCE, LEGIT
 
 REPO = Path(__file__).parents[1]
@@ -83,6 +84,23 @@ Classifier = Callable[[Case], Outcome]
 """Anything that turns a Case into an Outcome: the deterministic path or the app."""
 
 
+def _outcome(case: Case, judge: Judge, analyst: process_case.Analyst | None) -> Outcome:
+    """Gate, then :func:`vigia.services.process_case.classify`: the path of ``/caso``."""
+    pack = seeded_pack(case.country, KNOWLEDGE)
+    if pack is None:
+        return Outcome(label=DOUBTFUL, confidence=DOUBTFUL_CONFIDENCE, signals=[], degraded=True)
+    gate = screen(case.text or "", [], pack, judge)
+    verdict = process_case.classify(case, pack, gate, analyst)
+    return Outcome(
+        label=verdict.label,
+        confidence=verdict.confidence,
+        signals=[s.type for s in verdict.signals],
+        tools_used=verdict.tools_used,
+        degraded=verdict.degraded,
+        manipulation=gate.manipulation_detected,
+    )
+
+
 def deterministic(case: Case) -> Outcome:
     """Verdict from code alone: gate floor, signals of specs/04 and fusion of specs/05.
 
@@ -94,19 +112,27 @@ def deterministic(case: Case) -> Outcome:
     Returns:
         The code-only outcome; it never spends and is always degraded (no analyst).
     """
-    pack = seeded_pack(case.country, KNOWLEDGE)
-    if pack is None:
-        return Outcome(label=DOUBTFUL, confidence=DOUBTFUL_CONFIDENCE, signals=[], degraded=True)
-    flagged = screen(case.text or "", [], pack, mock_judge).manipulation_detected
-    evidence = Evidence(signals=detect(case, pack), manipulation_detected=flagged)
-    verdict = build_verdict(case, evidence, pack)
-    return Outcome(
-        label=verdict.label,
-        confidence=verdict.confidence,
-        signals=[s.type for s in verdict.signals],
-        degraded=verdict.degraded,
-        manipulation=flagged,
-    )
+    return _outcome(case, mock_judge, None)
+
+
+def with_analyst(spark: SparkClient, judge: Judge) -> Classifier:
+    """The full system: gate with ``judge``, rules and the Spark analyst when they do not decide.
+
+    Args:
+        spark: Spark client; the growth of its ``usd``/``tokens`` bills each case.
+        judge: Jev, or the mock.
+
+    Returns:
+        A :data:`Classifier` that spends real money (rule 11: ``run`` caps it).
+    """
+    analyst = process_case.spark_analyst(spark)
+
+    def run_case(case: Case) -> Outcome:
+        usd, tokens = spark.usd, spark.tokens
+        outcome = _outcome(case, judge, analyst)
+        return replace(outcome, usd=spark.usd - usd, tokens=spark.tokens - tokens)
+
+    return run_case
 
 
 def to_case(raw: dict[str, Any], root: Path = REPO) -> Case:
@@ -302,16 +328,15 @@ def grade_adversarial(seq: dict[str, Any], judge: Judge = mock_judge) -> dict[st
     if pack is None:
         raise ValueError(f"{seq['id']}: no country pack for {seq['pais']}")
     history: list[str] = []
-    flags: list[bool] = []
+    gates = []
     for turn in seq["turnos"]:
-        flags.append(screen(turn, history, pack, judge).manipulation_detected)
+        gates.append(screen(turn, history, pack, judge))
         history.append(turn)
+    flags = [g.manipulation_detected for g in gates]
     last = {"id": seq["id"], "tipo": "texto", "texto": history[-1]} | {
         k: seq[k] for k in ("fecha", "pais")
     }
-    case = to_case(last)
-    evidence = Evidence(signals=detect(case, pack), manipulation_detected=flags[-1])
-    verdict = build_verdict(case, evidence, pack)
+    verdict = process_case.classify(to_case(last), pack, gates[-1], None)
     obtained = {"manipulacion": flags[-1], "no_legitimo": verdict.label != LEGIT}
     expected: dict[str, bool] = seq["esperado"]
     return record | {
@@ -381,7 +406,13 @@ def _unavailable(args: argparse.Namespace, out_dir: Path) -> str:
     """Why the requested mode cannot run yet."""
     if args.adversarios:
         return f"{out_dir / 'adversarios.jsonl'} not found (D-029)"
-    return "full mode needs the app (/caso, T-07); use --solo-deterministas"
+    return "full mode needs MODEL_API_KEY (run with --env-file .env); or use --solo-deterministas"
+
+
+def _full() -> Classifier | None:
+    """The full system, or ``None`` without a model key."""
+    spark = make_spark(settings)
+    return with_analyst(spark, make_judge(settings)) if spark else None
 
 
 def _write(result: dict[str, Any], path: Path) -> None:
@@ -424,7 +455,8 @@ def main(argv: list[str], classify: Classifier | None = None, out_dir: Path = EV
     Args:
         argv: Command-line arguments.
         classify: System under test; defaults to :func:`deterministic` with
-            ``--solo-deterministas``. Tests inject a fake app here.
+            ``--solo-deterministas`` and to :func:`with_analyst` (real Spark, needs
+            ``MODEL_API_KEY``) without it. Tests inject a fake app here.
         out_dir: Where result files and baselines live.
 
     Returns:
@@ -432,10 +464,11 @@ def main(argv: list[str], classify: Classifier | None = None, out_dir: Path = EV
     """
     args = _parse(argv)
     mode = "deterministas" if args.solo_deterministas else "completo"
-    classify = classify or (deterministic if args.solo_deterministas else None)
     adversarial = out_dir / "adversarios.jsonl"
     if args.adversarios and adversarial.is_file():
         return _adversarial(adversarial, args.json, out_dir)
+    if classify is None and not args.adversarios:
+        classify = deterministic if args.solo_deterministas else _full()
     if args.adversarios or classify is None:
         print(f"medir: {_unavailable(args, out_dir)}", file=sys.stderr)
         return EXIT_UNAVAILABLE

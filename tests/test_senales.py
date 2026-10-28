@@ -403,3 +403,25 @@ def test_incident_legit_links_are_not_scam(text: str, iso: str) -> None:
     assert pack is not None
     label, _ = fuse(detect(_case(text, iso), pack))
     assert label != "scam"
+
+
+@pytest.mark.parametrize(
+    ("raw", "expected"),
+    [("+57 300-000", "57300000"), ("cta 12 34", "1234"), ("٣٠٠ 12", "12"), ("sin", "")],
+)
+def test_only_digits_keeps_ascii_digits(raw: str, expected: str) -> None:
+    """Non-ASCII digits (Arabic-Indic) are dropped: phones and accounts are ASCII only."""
+    from vigia.domain.text import only_digits
+
+    assert only_digits(raw) == expected
+
+
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [("Banco de Bogotá", "bancodebogota"), ("Nequi-Pagos.co", "nequipagosco"), ("ÑU", "nu")],
+)
+def test_squash_folds_and_keeps_alnum(text: str, expected: str) -> None:
+    """Names compare to hosts after folding accents and dropping everything but a-z0-9."""
+    from vigia.domain.text import squash
+
+    assert squash(text) == expected

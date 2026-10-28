@@ -14,6 +14,12 @@ RejectionCode = Literal[
     "EXPIRED",
     "NOT_OWNER",
     "NOT_PENDING",
+    # Analyst tools and model (specs/03): the model gets these back as data.
+    "POLICY_ONLY",
+    "UNKNOWN_TOOL",
+    "BAD_ARGUMENTS",
+    "LIMIT_REACHED",
+    "MODEL_UNAVAILABLE",
 ]
 
 

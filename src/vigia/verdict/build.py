@@ -77,7 +77,9 @@ def _action(label: Label, signals: Sequence[Signal]) -> Action:
 def _explanation(lang: str, label: Label, signals: Sequence[Signal], brand: str | None) -> str:
     """specs/05 rule 6: the user-facing text, always code-built from i18n (regla 14).
 
-    The analyst's own free text never reaches this (see :class:`AnalystResult`).
+    The analyst's own free text never reaches this (see :class:`AnalystResult`), and
+    neither do its signals: callers pass only deterministic evidence, so the model never
+    picks which facts the code asserts (D-065).
     """
     header = (
         t(lang, f"verdict.{SCAM}.brand", brand=brand)
@@ -120,7 +122,7 @@ def build_verdict(case: Case, evidence: Evidence, pack: CountryPack) -> Verdict:
         signals=all_signals,
         impersonated_brand=brand.name if brand else None,
         user_explanation=_explanation(
-            pack.language, label, all_signals, brand.name if brand else None
+            pack.language, label, softened, brand.name if brand else None
         ),
         action=_action(label, all_signals),
         official_channel=brand.official_channel if brand else None,

@@ -338,7 +338,7 @@ def test_settings_default_to_the_mock_backend() -> None:
 # --- Wiring: POST /caso ---------------------------------------------------------------
 
 
-def _legit_analyst(_: Case) -> AnalystResult:
+def _legit_analyst(_: Case, *__: object) -> AnalystResult:
     return AnalystResult(label="legit", confidence=0.95)
 
 

@@ -10,6 +10,7 @@ from dataclasses import dataclass
 from email import policy
 from email.parser import BytesParser
 from email.utils import parseaddr
+from typing import TypeGuard
 from uuid import uuid4
 
 import asyncpg
@@ -77,7 +78,7 @@ async def handle(conn: asyncpg.Connection, ports: Ports, msg: IncomingMessage) -
     return None
 
 
-def _is_command(command: Command | None) -> bool:
+def _is_command(command: Command | None) -> TypeGuard[Command]:
     """A member's ``hola <text>`` is a forwarded message ("Hola mami..."), not a command."""
     return command is not None and not (command.name == "enroll" and command.args)
 

@@ -1,9 +1,10 @@
 """Businesses, their members and suppliers, and how contacts are normalized (domain)."""
 
-import re
 from dataclasses import dataclass
 from typing import Literal
 from uuid import UUID
+
+from vigia.domain.text import only_digits
 
 Role = Literal["owner", "employee"]
 
@@ -79,7 +80,7 @@ def normalize_phone(raw: str) -> str:
     Returns:
         The number as ``+<digits>``.
     """
-    return "+" + re.sub(r"\D", "", raw)
+    return "+" + only_digits(raw)
 
 
 def normalize_contact(raw: str) -> str:

@@ -8,7 +8,7 @@ from urllib.parse import SplitResult
 
 from vigia.domain.country import Brand, CountryPack
 from vigia.domain.signal import Signal, Weight
-from vigia.domain.text import fold
+from vigia.domain.text import fold, squash
 from vigia.domain.urls import split_url
 
 Resolver = Callable[[str], str]
@@ -93,15 +93,22 @@ def _lookalike(domain: str, pack: CountryPack) -> str | None:
     return None
 
 
-def _aliases(brand: Brand) -> set[str]:
-    """How a brand shows up in a URL: its name and its official domain names, squashed."""
+def aliases(brand: Brand) -> set[str]:
+    """How a brand shows up in a URL or a query: its name and official domain names, squashed.
+
+    Args:
+        brand: A brand of the country pack.
+
+    Returns:
+        Folded lowercase names with anything but ``a-z0-9`` removed.
+    """
     names = [brand.name] + [d.split(".")[0] for d in brand.domains]
-    return {re.sub(r"[^a-z0-9]", "", fold(n).lower()) for n in names}
+    return {squash(n) for n in names}
 
 
 def _brand_in(tokens: set[str], pack: CountryPack) -> Brand | None:
     """First pack brand whose name or official domain name is one of ``tokens``."""
-    return next((b for b in pack.brands if _aliases(b) & tokens), None)
+    return next((b for b in pack.brands if aliases(b) & tokens), None)
 
 
 def _host_tokens(host: str) -> set[str]:

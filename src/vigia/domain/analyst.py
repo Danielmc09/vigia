@@ -51,3 +51,51 @@ class Evidence(BaseModel, frozen=True):
     signals: list[Signal] = Field(default_factory=list)
     analyst: AnalystResult | None = None
     manipulation_detected: bool = False
+
+
+class ToolCall(BaseModel, frozen=True):
+    """One tool the model asked to run.
+
+    Attributes:
+        id: The model's id for the call; the tool reply must quote it.
+        name: Tool name, as offered in :class:`ModelRequest` ``tools``.
+        arguments: The raw JSON arguments, unparsed: parsing is the tool runner's job.
+    """
+
+    id: str
+    name: str
+    arguments: str
+
+
+class ModelRequest(BaseModel, frozen=True):
+    """One turn asked of the model: the conversation so far, the tools and the output schema.
+
+    Attributes:
+        messages: Chat messages (``role``/``content``...), system prompt first.
+        tools: Tool specs offered this turn; empty means the model must answer.
+        output_schema: JSON schema the final answer must follow (strict).
+        timeout_s: Seconds this turn may take.
+    """
+
+    messages: list[dict[str, Any]]
+    tools: list[dict[str, Any]] = Field(default_factory=list)
+    output_schema: dict[str, Any]
+    timeout_s: float = Field(gt=0)
+
+
+class ModelTurn(BaseModel, frozen=True):
+    """What the model answered to a :class:`ModelRequest`.
+
+    Attributes:
+        content: Its text; only ever parsed as the schema answer, never shown (regla 14).
+        tool_calls: Tools it asked to run, if any.
+        usd: Cost of this turn.
+        tokens: Total tokens of this turn.
+        model: Model id that answered.
+    """
+
+    content: str | None = None
+    tool_calls: list[ToolCall] = Field(default_factory=list)
+    usd: float = 0.0
+    tokens: int = 0
+    model: str

@@ -46,12 +46,12 @@ def fuse(
     Returns:
         The label and its confidence.
     """
-    if any(s.weight == "hard" for s in signals):
+    if _has_hard(signals):
         label, confidence = SCAM, HARD_CONFIDENCE
         if analyst and analyst.label == SCAM:
             confidence = max(confidence, analyst.confidence)
     else:
-        mediums = {s.type for s in signals if s.weight == "medium"}
+        mediums = _medium_types(signals)
         if len(mediums) >= MEDIUMS_FOR_SCAM:
             label, confidence = SCAM, MEDIUMS_CONFIDENCE
         elif len(mediums) == 1:
@@ -61,6 +61,29 @@ def fuse(
     if manipulation_detected and label == LEGIT:
         label, confidence = DOUBTFUL, DOUBTFUL_CONFIDENCE
     return label, confidence
+
+
+def _has_hard(signals: Sequence[Signal]) -> bool:
+    return any(s.weight == "hard" for s in signals)
+
+
+def _medium_types(signals: Sequence[Signal]) -> set[str]:
+    return {s.type for s in signals if s.weight == "medium"}
+
+
+def decided_by_rules(signals: Sequence[Signal]) -> bool:
+    """True when rules 1-2 already make it a scam whatever the analyst says.
+
+    The analyst could only raise the confidence of a hard hit, so the caller may skip it
+    (D-061).
+
+    Args:
+        signals: Signals of the case, already softened by :func:`soften_citations`.
+
+    Returns:
+        True with a hard signal or ``MEDIUMS_FOR_SCAM`` distinct medium types.
+    """
+    return _has_hard(signals) or len(_medium_types(signals)) >= MEDIUMS_FOR_SCAM
 
 
 def _rule3(analyst: AnalystResult | None) -> tuple[Label, float]:

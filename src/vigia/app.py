@@ -8,28 +8,17 @@ from fastapi import FastAPI, HTTPException, Request, Response
 from pydantic import BaseModel
 
 from vigia.config import Settings, settings
-from vigia.domain.analyst import AnalystResult, Evidence
-from vigia.domain.case import Case, IncomingMessage
+from vigia.domain.case import IncomingMessage
 from vigia.domain.gate import Judge
 from vigia.domain.member import Business
 from vigia.domain.verdict import Verdict
 from vigia.jev.gate import screen
 from vigia.model.jev import make_judge
 from vigia.services.ingest import normalize
-from vigia.signals.detector import detect
+from vigia.services.process_case import Analyst, classify
 from vigia.signals.knowledge import seeded_pack
-from vigia.verdict.build import build_verdict
 
 _SECURITY_HEADERS = {"X-Content-Type-Options": "nosniff", "X-Frame-Options": "DENY"}
-
-AnalystProvider = Callable[[Case], AnalystResult | None]
-"""Port the endpoint calls for the analyst's read of a case; T-09 wires the real one."""
-
-
-def _no_analyst(_: Case) -> AnalystResult | None:
-    """Default analyst: none runs, the verdict stays degraded (no T-09 yet)."""
-    return None
-
 
 class CaseRequest(BaseModel):
     """Minimal body to analyze one text case outside any real channel (D-048).
@@ -44,7 +33,7 @@ class CaseRequest(BaseModel):
 
 
 def create_app(
-    config: Settings, analyst: AnalystProvider = _no_analyst, judge: Judge | None = None
+    config: Settings, analyst: Analyst | None = None, judge: Judge | None = None
 ) -> FastAPI:
     """Build the API.
 
@@ -109,12 +98,7 @@ def create_app(
         # No chat here: one stateless text, so the gate sees no history (D-048).
         # ponytail: a real Jev call blocks the event loop up to its timeout; async on T-10.
         gate = screen(request.text, [], pack, gate_judge)
-        evidence = Evidence(
-            signals=detect(case, pack),
-            analyst=analyst(case),
-            manipulation_detected=gate.manipulation_detected,
-        )
-        return build_verdict(case, evidence, pack)
+        return classify(case, pack, gate, analyst)
 
     return api
 

@@ -23,7 +23,7 @@ def test_post_case_returns_a_degraded_verdict_without_an_analyst() -> None:
 
 
 def test_post_case_uses_the_injected_analyst() -> None:
-    def mock_analyst(case: Case) -> AnalystResult | None:
+    def mock_analyst(case: Case, *_: object) -> AnalystResult | None:
         return AnalystResult(label="legit", confidence=0.95)
 
     client = TestClient(create_app(Settings(), analyst=mock_analyst))
