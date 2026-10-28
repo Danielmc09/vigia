@@ -1,6 +1,7 @@
 import json
 from datetime import date
 from pathlib import Path
+from types import SimpleNamespace
 
 import measure
 import pytest
@@ -400,3 +401,18 @@ def test_with_analyst_offers_crop_on_images(monkeypatch: pytest.MonkeyPatch) -> 
     load = seen["load"]
     assert seen["segment"] is sam
     assert callable(load) and load("evals/muestras/c-0189.png")[:4] == b"\x89PNG"
+
+
+def test_with_analyst_bills_sam_crops(monkeypatch: pytest.MonkeyPatch) -> None:
+    """A ``crop`` paid to SAM counts in the case's USD, so ``--max-usd`` sees it (juez T-12)."""
+    spark, sam = SimpleNamespace(usd=1.0, tokens=5), SimpleNamespace(usd=0.5)
+
+    def spend(case: Case, judge: object, analyst: object) -> measure.Outcome:
+        spark.usd, spark.tokens, sam.usd = 1.25, 9, 0.5025
+        return measure.Outcome(label="estafa")
+
+    monkeypatch.setattr(measure, "make_sam", lambda _: sam)
+    monkeypatch.setattr(measure, "_outcome", spend)
+    run_case = measure.with_analyst(spark, measure.mock_judge)  # type: ignore[arg-type]
+    outcome = run_case(Case.model_construct())
+    assert outcome.usd == pytest.approx(0.2525) and outcome.tokens == 4

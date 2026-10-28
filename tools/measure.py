@@ -135,20 +135,24 @@ def with_analyst(spark: SparkClient, judge: Judge) -> Classifier:
     """The full system: gate with ``judge``, rules and the Spark analyst when they do not decide.
 
     Args:
-        spark: Spark client; the growth of its ``usd``/``tokens`` bills each case.
+        spark: Spark client; its growth in ``usd``/``tokens``, plus SAM's, bills each case.
         judge: Jev, or the mock.
 
     Returns:
         A :data:`Classifier` that spends real money (rule 11: ``run`` caps it).
     """
+    sam = make_sam(settings)
     analyst = process_case.spark_analyst(
-        spark, segment=make_sam(settings), load=lambda ref: (REPO / ref).read_bytes()
+        spark, segment=sam, load=lambda ref: (REPO / ref).read_bytes()
     )
 
+    def spent() -> float:
+        return spark.usd + (sam.usd if sam else 0.0)  # SAM ``crop`` bills apart from Spark
+
     def run_case(case: Case) -> Outcome:
-        usd, tokens = spark.usd, spark.tokens
+        usd, tokens = spent(), spark.tokens
         outcome = _outcome(case, judge, analyst)
-        return replace(outcome, usd=spark.usd - usd, tokens=spark.tokens - tokens)
+        return replace(outcome, usd=spent() - usd, tokens=spark.tokens - tokens)
 
     return run_case
 
