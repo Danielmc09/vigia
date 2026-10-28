@@ -75,5 +75,16 @@
   "escalation.not_pending": "That action is no longer pending.",
   "escalation.expired": "That action expired: request it again.",
   "escalation.not_allowed": "That action cannot run from this channel.",
-  "transfer.not_member": "That number is not on your team. Add it first with *team*."
+  "transfer.not_member": "That number is not on your team. Add it first with *team*.",
+  "signal.advance_before_seeing": "asks for a deposit before you see the item",
+  "signal.staggered_charges": "a new charge shows up after you paid",
+  "signal.pressure_after_payment": "pressures you with losing what you already paid",
+  "signal.personal_account_only": "only takes payment to a personal account",
+  "signal.price_below_market": "the price is far below market",
+  "signal.verification_evasion": "avoids letting you verify (video call, visit or address)",
+  "signal.identity_mismatch": "the account is in someone else's name",
+  "signal.extortion": "threatens or extorts",
+  "action.dont_pay_sale": "What to do: don't pay. If you want the item, ask for a live video call and pay on delivery. Report the profile where you saw the listing.",
+  "action.stop_paying": "What to do: stop paying, every new charge is part of the scam. Keep screenshots, block the number, report the account to your bank or payment app and file a police report. The report helps stop them.",
+  "action.block_and_report": "What to do: this is extortion. Don't reply, block the number and report it."
 }

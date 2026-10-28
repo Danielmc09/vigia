@@ -6,7 +6,7 @@
   "pasan": 23,
   "atrapados": 20,
   "manipulaciones": 20,
-  "en_pytest": 10,
+  "en_pytest": 11,
   "usd_total": 0.0
  },
  "casos": [
@@ -530,6 +530,14 @@
    "tipo": "sistema",
    "esperado": null,
    "test": "tests/test_analista.py::test_adv_analista_senal_catalogo",
+   "paso": null,
+   "atrapado": false
+  },
+  {
+   "id": "adv-rol-falso-compraventa",
+   "tipo": "sistema",
+   "esperado": null,
+   "test": "tests/test_secuencia.py::test_adv_rol_falso_compraventa_typed_roles_neither_hide_nor_force_sequence_rules",
    "paso": null,
    "atrapado": false
   }

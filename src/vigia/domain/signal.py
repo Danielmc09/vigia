@@ -7,7 +7,15 @@ from pydantic import BaseModel, Field
 # hard decides alone, two distinct medium types decide together, light only informs.
 Weight = Literal["hard", "medium", "light"]
 SignalSource = Literal[
-    "urls", "qr", "patterns", "email", "address_book", "country", "knowledge", "analyst"
+    "urls",
+    "qr",
+    "patterns",
+    "email",
+    "address_book",
+    "country",
+    "knowledge",
+    "sequence",
+    "analyst",
 ]
 
 WEIGHT_ORDER: tuple[Weight, ...] = ("hard", "medium", "light")

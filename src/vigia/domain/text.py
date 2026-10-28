@@ -69,3 +69,33 @@ def mail_domain(address: str | None) -> str:
         ``"aceros.co"``, lowercase; empty when there is no address.
     """
     return parseaddr(address or "")[1].rpartition("@")[2].lower()
+
+
+# Money as people write it: "$1.200.000", "$3,000", "300 mil", "1,5 millones". A bare number
+# ("2023", "256 GB") is not money. ponytail: es/en multipliers only; add per country pack.
+_MONEY = re.compile(
+    r"(?P<dollar>\$\s?)?(?P<number>\d{1,3}(?:[.,]\d{3})+(?!\d)|\d+(?:[.,]\d{1,2})?)"
+    r"(?:\s?(?P<scale>mil(?:lones|lon)?|k)\b)?",
+    re.IGNORECASE,
+)
+_SCALES = {"mil": 1_000, "k": 1_000, "millon": 1_000_000, "millones": 1_000_000}
+
+
+def amounts(text: str) -> list[float]:
+    """Money amounts in ``text``, in order: with ``$``, thousand separators or a multiplier.
+
+    Args:
+        text: A message or a chat line.
+
+    Returns:
+        ``"$1.200.000 y 300 mil, luego $3,000"`` as ``[1200000, 300000, 3000]``.
+    """
+    found = []
+    for match in _MONEY.finditer(fold(text)):
+        number, scale = match["number"], (match["scale"] or "").lower()
+        grouped = re.fullmatch(r"\d{1,3}(?:[.,]\d{3})+", number) is not None
+        if not (match["dollar"] or grouped or scale):
+            continue
+        value = float(re.sub(r"[.,]", "", number) if grouped else number.replace(",", "."))
+        found.append(value * _SCALES.get(scale, 1))
+    return found

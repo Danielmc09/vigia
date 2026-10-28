@@ -10,18 +10,22 @@ from dataclasses import dataclass
 from email import policy
 from email.parser import BytesParser
 from email.utils import parseaddr
+from functools import partial
 from typing import TypeGuard
 from uuid import uuid4
 
 import asyncpg
 
 from vigia.domain.case import Case, CaseKind, EmailMeta, IncomingMessage
+from vigia.domain.conversation import never, parse_chat, render_chat
 from vigia.domain.member import Business, normalize_contact
 from vigia.domain.text import clean_text
 from vigia.domain.urls import extract_urls
 from vigia.i18n import t
 from vigia.services import enrollment
 from vigia.services.commands import Command, parse_command
+from vigia.signals.country_pack import country_pack
+from vigia.signals.sequence import asks_payment, is_trade_word
 from vigia.store import postgres as store
 from vigia.store.crypto import Keyring
 
@@ -98,6 +102,12 @@ def normalize(msg: IncomingMessage, business: Business) -> Case | None:
         return None
     text, email = _email(msg) if kind == "email" else (msg.text, None)
     text = clean_text(text) if text is not None else None
+    if kind == "text" and (chat := parse_chat(text or "")):
+        # specs/15: pasted or exported chat; the pack says who asks for the money
+        pack = country_pack(business.country)
+        asks = partial(asks_payment, pack=pack) if pack else never
+        keep = partial(is_trade_word, pack=pack) if pack else never
+        kind, text = "conversation", render_chat(chat, asks, keep)
     return Case(
         id=uuid4(),
         business_id=business.id,

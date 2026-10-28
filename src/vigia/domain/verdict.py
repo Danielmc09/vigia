@@ -7,7 +7,17 @@ from pydantic import BaseModel, Field
 from vigia.domain.signal import Signal
 
 Label = Literal["scam", "legit", "doubtful"]
-Action = Literal["ignore", "verify_official_channel", "dont_open_link", "dont_pay", "report"]
+Action = Literal[
+    "ignore",
+    "verify_official_channel",
+    "dont_open_link",
+    "dont_pay",
+    "report",
+    "dont_pay_sale",
+    "stop_paying",
+    "block_and_report",
+]
+"""What the member should do; the last three are the marketplace variants of specs/15."""
 
 
 class Verdict(BaseModel, frozen=True):

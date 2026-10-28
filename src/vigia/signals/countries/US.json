@@ -224,8 +224,143 @@
    "(you are (now )?in|enable|activate|enter|switch to|turn on) (the )?(developer|god|unrestricted|dan) mode(?! (on|in|of|for)\\b)",
    "jailbreak(?! ((del|de|al|a|el|la|mi|tu|su|un|una|of|on|for|the|my|your|our|an?) )*(\\w+ )?(iphone|ipad|celular|telefono|movil|phone|tablet|android|consola|console|kindle)\\b)",
    "system prompt"
+  ],
+  "compraventa_contexto": [
+   "pupp(y|ies)",
+   "kittens?",
+   "dogs?",
+   "kennel",
+   "bulldog",
+   "frenchie",
+   "yorkie",
+   "golden retriever",
+   "for sale",
+   "selling",
+   "cars?",
+   "truck",
+   "honda",
+   "toyota",
+   "iphone",
+   "phone",
+   "apartment",
+   "for rent",
+   "listing",
+   "marketplace"
+  ],
+  "compraventa_anticipo": [
+   "deposit",
+   "hold (it|her|him|them)",
+   "reserve",
+   "down payment"
+  ],
+  "compraventa_verificable": [
+   "pay on (delivery|pickup)",
+   "cash on (delivery|pickup)",
+   "(come|you can) (see|check|pick|meet)\\w*",
+   "at (our|the) store",
+   "local pickup",
+   "test drive",
+   "in person"
+  ],
+  "compraventa_rechaza": [
+   "(no|not|don['’]t|do not|can['’]t) (do )?(cash on delivery|pay on delivery|pickup|local pickup|meet in person)",
+   "(only|just) (take|accept)s? (zelle|venmo|cash app|gift cards?|wire)"
+  ],
+  "compraventa_evasion": [
+   "(can['’]t|cannot|can not|won['’]t|don['’]t) (do )?(a )?video ?calls?",
+   "no video ?calls?",
+   "(i['’]m|i am) (deployed|overseas|out of (state|town|the country))",
+   "we are out of state",
+   "can['’]t show (it|you)",
+   "(can['’]t|won['’]t) give (you )?the address",
+   "(stopped|not) (answering|responding)",
+   "blocked me",
+   "(won['’]t|doesn['’]t) (answer|respond)",
+   "(never|hasn['’]t|has not|didn['’]t|did not) (delivered|deliver|shipped|ship|sent|send) (it|her|him|them|the)"
+  ],
+  "compraventa_identidad": [
+   "(my|his|her) (wife|husband|brother|sister|cousin|mom|dad|partner|friend)['’]?s? (account|name|zelle|cash app)",
+   "under (my|his|her) \\w+['’]?s name",
+   "(this is|text) my other number"
+  ],
+  "compraventa_pagado": [
+   "i (already )?(paid|sent)",
+   "already paid",
+   "got your payment",
+   "(received|got) the (payment|money|deposit)",
+   "what you (already )?paid"
+  ],
+  "compraventa_cobro": [
+   "insurance",
+   "crate",
+   "shipping",
+   "vaccines?",
+   "customs",
+   "tax(es)?",
+   "fees?"
+  ],
+  "compraventa_presion": [
+   "lose (your|the) (deposit|money|payment)",
+   "last chance",
+   "already shipped",
+   "give (it|her|him) to (someone|another)"
+  ],
+  "compraventa_amenaza": [
+   "we know where you live",
+   "(we|i) will (sue|report) you",
+   "post your (info|information|photos|address)",
+   "(you['’]ll|you will) regret"
+  ],
+  "compraventa_trazable": [
+   "(by|with) (a )?credit card",
+   "financing"
+  ],
+  "compraventa_condiciona": [
+   "before (she|he|it) can (travel|ship|leave)",
+   "(won['’]t|can['’]t|cannot) (ship|release|deliver|send) (it|her|him|them)",
+   "until you pay"
+  ],
+  "compraventa_narra": [
+   "i(['’]ll| will) (pay|transfer|wire)",
+   "i (told|asked|wrote) (him|her|them|the seller)"
+  ],
+  "conectores_clausula": [
+   "and\\b",
+   "but\\b"
   ]
  },
+ "referencias_precio": [
+  {
+   "item": "French bulldog",
+   "patron": "french bulldog|frenchie",
+   "precio": 2500,
+   "fuente": "estimación de Claude Code, 27 oct 2026, sin verificar (Pendiente de Angel)"
+  },
+  {
+   "item": "golden retriever",
+   "patron": "golden retriever",
+   "precio": 1500,
+   "fuente": "estimación de Claude Code, 27 oct 2026, sin verificar (Pendiente de Angel)"
+  },
+  {
+   "item": "Yorkshire terrier",
+   "patron": "yorkie|yorkshire",
+   "precio": 1200,
+   "fuente": "estimación de Claude Code, 27 oct 2026, sin verificar (Pendiente de Angel)"
+  },
+  {
+   "item": "iPhone 15/16 Pro",
+   "patron": "iphone 1[56] pro",
+   "precio": 700,
+   "fuente": "estimación de Claude Code, 27 oct 2026, sin verificar (Pendiente de Angel)"
+  },
+  {
+   "item": "iPhone 13–16",
+   "patron": "iphone 1[3-6]",
+   "precio": 350,
+   "fuente": "estimación de Claude Code, 27 oct 2026, sin verificar (Pendiente de Angel)"
+  }
+ ],
  "reportar_a": [
   {
    "nombre": "FTC",

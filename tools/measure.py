@@ -152,14 +152,16 @@ def to_case(raw: dict[str, Any], root: Path = REPO) -> Case:
         ValueError: If ingestion does not support the record's type.
     """
     source = root / raw["fuente"] if raw.get("fuente") else None
+    # an exported chat (.txt) arrives as the member's pasted text (specs/15)
+    chat = source.read_text("utf-8") if source and source.suffix == ".txt" else None
     msg = IncomingMessage(
         message_id=raw["id"],
         origin="local",
         sender="eval",
         kind=CHANNEL_KIND[raw["tipo"]],
-        text=raw.get("texto"),
+        text=raw.get("texto") or chat,
         attachments=[Attachment(ref=str(source), mime=mimetypes.guess_type(source)[0])]
-        if source
+        if source and chat is None
         else [],
         eml_bytes=source.read_bytes() if source and source.suffix == ".eml" else None,
         received_at=datetime.fromisoformat(raw["fecha"]).replace(tzinfo=UTC),

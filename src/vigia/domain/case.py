@@ -9,7 +9,7 @@ from pydantic import BaseModel, Field
 from vigia.domain.attachment import Attachment
 
 Origin = Literal["wazenda", "email", "local", "eval"]
-CaseKind = Literal["text", "image", "audio", "pdf", "url", "email"]
+CaseKind = Literal["text", "image", "audio", "pdf", "url", "email", "conversation"]
 ChannelKind = Literal["text", "image", "audio", "document", "email", "unknown"]
 
 

@@ -42,6 +42,24 @@ class ReportTo(BaseModel):
     url: str
 
 
+class PriceReference(BaseModel):
+    """Usual market price of an item often sold in marketplace scams (specs/15).
+
+    Attributes:
+        item: What it is, as people write it.
+        pattern: Regex (pack style) that recognizes the item in a message.
+        price: Usual price in the country's currency.
+        source: Where the figure comes from.
+    """
+
+    model_config = ConfigDict(frozen=True)
+
+    item: str
+    pattern: str = Field(alias="patron")
+    price: float = Field(alias="precio")
+    source: str = Field(alias="fuente")
+
+
 class CountryPack(BaseModel):
     """Everything country-specific the signals need (specs/04).
 
@@ -50,6 +68,7 @@ class CountryPack(BaseModel):
         language: Language of replies for businesses of this country.
         brands: Impersonated brands with their official domains.
         patterns: Regex lists by category (``urgencia``, ``pide_credenciales``...).
+        price_references: Market prices for ``price_below_market`` (specs/15).
         report_to: Official reporting channels.
         campaigns: Known campaigns of the country; not in the JSON, attached by whoever
             loads the knowledge base (file in evals, table in the app). D-041.
@@ -61,6 +80,7 @@ class CountryPack(BaseModel):
     language: str = Field(alias="idioma")
     brands: tuple[Brand, ...] = Field(alias="marcas")
     patterns: dict[str, tuple[str, ...]] = Field(alias="patrones")
+    price_references: tuple[PriceReference, ...] = Field(default=(), alias="referencias_precio")
     report_to: tuple[ReportTo, ...] = Field(default=(), alias="reportar_a")
     campaigns: tuple[KnownCampaign, ...] = ()
 

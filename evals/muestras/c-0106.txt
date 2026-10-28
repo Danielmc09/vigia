@@ -1,5 +1,5 @@
 [22/10/26, 16:02:11] Sofía: Buenas tardes, me interesa un cachorro golden retriever
-[22/10/26, 16:10:40] Criadero El Roble: Buenas tardes. Tenemos una camada de 8 semanas, cada uno en $2.400.000 con carné de vacunas y registro
+[22/10/26, 16:10:40] Criadero Ficticio Demo: Buenas tardes. Tenemos una camada de 8 semanas, cada uno en $2.400.000 con carné de vacunas y registro
 [22/10/26, 16:11:25] Sofía: ¿Puedo conocerlos antes?
-[22/10/26, 16:13:02] Criadero El Roble: Claro. Puede venir a visitarlos al criadero el sábado de 9 a 1 y conocer a los padres. Si le gusta uno, lo separa ese día en el criadero y paga con tarjeta o en efectivo, le damos factura
+[22/10/26, 16:13:02] Criadero Ficticio Demo: Claro. Puede venir a visitarlos al criadero el sábado de 9 a 1 y conocer a los padres. Si le gusta uno, lo separa ese día en el criadero y paga con tarjeta o en efectivo, le damos factura
 [22/10/26, 16:14:30] Sofía: Perfecto, el sábado voy

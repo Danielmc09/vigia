@@ -594,8 +594,174 @@
    "(you are (now )?in|enable|activate|enter|switch to|turn on) (the )?(developer|god|unrestricted|dan) mode(?! (on|in|of|for)\\b)",
    "jailbreak(?! ((del|de|al|a|el|la|mi|tu|su|un|una|of|on|for|the|my|your|our|an?) )*(\\w+ )?(iphone|ipad|celular|telefono|movil|phone|tablet|android|consola|console|kindle)\\b)",
    "system prompt"
+  ],
+  "compraventa_contexto": [
+   "cachorr\\w*",
+   "perrit\\w*",
+   "gatit\\w*",
+   "mascota",
+   "criadero",
+   "bulldog",
+   "pug",
+   "husky",
+   "moto",
+   "carro",
+   "vehiculo",
+   "camioneta",
+   "iphone",
+   "celular",
+   "arriendo",
+   "apartaestudio",
+   "apartamento",
+   "vendo",
+   "anuncio",
+   "marketplace",
+   "golden retriever"
+  ],
+  "compraventa_anticipo": [
+   "separa\\w*",
+   "apart(a|ar|o|amos)(lo|la|los|las|selo|sela)?",
+   "aparte(lo|la|melo|mela)",
+   "anticipo",
+   "abono",
+   "reserva\\w*"
+  ],
+  "compraventa_verificable": [
+   "contra ?entrega",
+   "puede (venir|visitar\\w*|conocer\\w*|verlo|verla)",
+   "venga a",
+   "paga cuando lo (revise|reciba)",
+   "pag[ao] al recibir",
+   "en la sede",
+   "en el local",
+   "prueba de manejo"
+  ],
+  "compraventa_rechaza": [
+   "no (hago|manejo|acepto|trabajo|recibo) contra ?entrega",
+   "sin contra ?entrega",
+   "no (hago|hacemos) (visitas|entregas en persona)",
+   "solo (recibo|acepto|manejo) (pagos? )?(por )?(nequi|daviplata|transferencia|consignacion)"
+  ],
+  "compraventa_evasion": [
+   "no (puedo|hago|hacemos|tengo como) (hacer )?videollamadas?",
+   "sin videollamada",
+   "no (lo|la|los|las) puedo mostrar",
+   "no (hago|hacemos) visitas",
+   "no (le )?puedo dar la direccion",
+   "estoy (en la finca|fuera de la ciudad|de viaje)",
+   "no (me )?(contesta|responde)\\w*",
+   "me bloque\\w*",
+   "no (me )?(lo |la )?(ha )?entrega\\w*"
+  ],
+  "compraventa_identidad": [
+   "a nombre de (mi|su) \\w+",
+   "cuenta (de|del) (mi|su) (esposa|esposo|hermana|hermano|mama|papa|primo|prima|cunado|cunada|socio|tio|tia)",
+   "(este|ese) es mi otro numero"
+  ],
+  "compraventa_pagado": [
+   "ya (le )?(pague|pago|transferi|consigne|deposite|envie)",
+   "lo que ya pag\\w*",
+   "recibi (el|su) (pago|dinero|transferencia)"
+  ],
+  "compraventa_cobro": [
+   "seguro",
+   "guacal",
+   "jaula",
+   "vacunas?",
+   "transporte",
+   "flete",
+   "aduana",
+   "impuestos?",
+   "caja",
+   "certificado",
+   "microchip",
+   "nacionalizacion"
+  ],
+  "compraventa_presion": [
+   "pierd[eo] lo (que )?(ya )?pag\\w*",
+   "perder\\w* (lo (que )?(ya )?pag\\w*|el anticipo|lo pagado|su (dinero|plata))",
+   "pierde (el anticipo|lo pagado|su (dinero|plata))",
+   "ultima oportunidad",
+   "ya salio el envio",
+   "se lo (doy|damos|vendo) a otr[oa]"
+  ],
+  "compraventa_amenaza": [
+   "sabemos donde (vive|vives|trabaja)",
+   "(vamos a|voy a) publicar (sus|tus) (datos|fotos)",
+   "le va a pasar algo",
+   "(lo|la) vamos a buscar",
+   "(la|lo|te|los) (vamos a |voy a )?denunci(amos|o|aremos|are|ar)"
+  ],
+  "compraventa_trazable": [
+   "(con|por) tarjeta( de credito)?",
+   "datafono"
+  ],
+  "compraventa_condiciona": [
+   "sin (eso|esto|ese pago) no (lo |la )?(despach|envi|entreg|sale|suelt)\\w*",
+   "no (lo |la )?(despach|envi|entreg|suelt)\\w* (hasta|sin)",
+   "para (despachar|enviar|entregar|soltar|liberar)\\w*",
+   "no (lo |la )?(despachan|envian|entregan|sale)"
+  ],
+  "compraventa_narra": [
+   "le (consigno|transfiero|deposito|pago)",
+   "le (dije|escribi|respondi|conteste|reclame)"
+  ],
+  "conectores_clausula": [
+   "y\\b",
+   "pero\\b",
+   "¿"
   ]
  },
+ "referencias_precio": [
+  {
+   "item": "bulldog francés",
+   "patron": "bulldog frances",
+   "precio": 3500000,
+   "fuente": "estimación de Claude Code, 27 oct 2026, sin verificar (Pendiente de Angel)"
+  },
+  {
+   "item": "golden retriever",
+   "patron": "golden retriever",
+   "precio": 2000000,
+   "fuente": "estimación de Claude Code, 27 oct 2026, sin verificar (Pendiente de Angel)"
+  },
+  {
+   "item": "pug",
+   "patron": "pug",
+   "precio": 2000000,
+   "fuente": "estimación de Claude Code, 27 oct 2026, sin verificar (Pendiente de Angel)"
+  },
+  {
+   "item": "husky",
+   "patron": "husky( siberiano)?",
+   "precio": 1800000,
+   "fuente": "estimación de Claude Code, 27 oct 2026, sin verificar (Pendiente de Angel)"
+  },
+  {
+   "item": "iPhone 15/16 Pro",
+   "patron": "iphone 1[56] pro",
+   "precio": 4000000,
+   "fuente": "estimación de Claude Code, 27 oct 2026, sin verificar (Pendiente de Angel)"
+  },
+  {
+   "item": "iPhone 13–16",
+   "patron": "iphone 1[3-6]",
+   "precio": 2000000,
+   "fuente": "estimación de Claude Code, 27 oct 2026, sin verificar (Pendiente de Angel)"
+  },
+  {
+   "item": "Yamaha NMax",
+   "patron": "nmax",
+   "precio": 13000000,
+   "fuente": "estimación de Claude Code, 27 oct 2026, sin verificar (Pendiente de Angel)"
+  },
+  {
+   "item": "Bajaj Pulsar",
+   "patron": "pulsar",
+   "precio": 9000000,
+   "fuente": "estimación de Claude Code, 27 oct 2026, sin verificar (Pendiente de Angel)"
+  }
+ ],
  "reportar_a": [
   {
    "nombre": "CAI Virtual, Policía Nacional",

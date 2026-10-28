@@ -75,5 +75,16 @@
   "escalation.not_pending": "Esa acción ya no está pendiente.",
   "escalation.expired": "Esa acción venció: pídela de nuevo.",
   "escalation.not_allowed": "Esa acción no se puede ejecutar desde este canal.",
-  "transfer.not_member": "Ese número no está en tu equipo. Agrégalo primero con *equipo*."
+  "transfer.not_member": "Ese número no está en tu equipo. Agrégalo primero con *equipo*.",
+  "signal.advance_before_seeing": "pide un anticipo antes de que veas el producto",
+  "signal.staggered_charges": "aparece un cobro nuevo después de que pagaste",
+  "signal.pressure_after_payment": "presiona con que pierdes lo que ya pagaste",
+  "signal.personal_account_only": "solo acepta pago a una cuenta personal",
+  "signal.price_below_market": "el precio está muy por debajo del mercado",
+  "signal.verification_evasion": "evita que verifiques (videollamada, visita o dirección)",
+  "signal.identity_mismatch": "la cuenta está a nombre de otra persona",
+  "signal.extortion": "amenaza o extorsiona",
+  "action.dont_pay_sale": "Qué hacer: no pagues. Si quieres el producto, pide videollamada en vivo y pago contra entrega. Reporta el perfil donde viste el anuncio.",
+  "action.stop_paying": "Qué hacer: deja de pagar, cada cobro nuevo es parte de la estafa. Guarda capturas, bloquea el número, reporta la cuenta a tu banco o billetera y denuncia. La denuncia sirve para que no sigan.",
+  "action.block_and_report": "Qué hacer: esto es extorsión. No respondas, bloquea el número y denuncia."
 }

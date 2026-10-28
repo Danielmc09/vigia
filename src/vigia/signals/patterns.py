@@ -1,6 +1,7 @@
 """Text signals of specs/04: country-pack regexes over the case text (rules)."""
 
 import re
+from collections.abc import Iterator
 from functools import cache
 
 from vigia.domain.country import CountryPack
@@ -15,7 +16,7 @@ LONG_TEXT_CHARS = 4000
 
 
 @cache
-def _compile(pattern: str) -> re.Pattern[str]:
+def compile_pattern(pattern: str) -> re.Pattern[str]:
     """Whole-word, case- and accent-insensitive regex for one pack pattern."""
     return re.compile(rf"\b(?:{fold(pattern)})\b", re.IGNORECASE)
 
@@ -31,11 +32,24 @@ def find_pattern(text: str, pack: CountryPack, category: str) -> re.Match[str] |
     Returns:
         The match; its offsets are valid in ``text`` (see :func:`vigia.domain.text.fold`).
     """
+    return next(pattern_matches(text, pack, category), None)
+
+
+def pattern_matches(text: str, pack: CountryPack, category: str) -> Iterator[re.Match[str]]:
+    """First match of each pattern of a pack category that occurs, in pack order.
+
+    Args:
+        text: Text to search.
+        pack: Country pack with the regex lists.
+        category: Pack category; missing means none.
+
+    Yields:
+        One match per matching pattern; offsets are valid in ``text``.
+    """
     folded = fold(text)
     for pattern in pack.patterns.get(category, ()):
-        if match := _compile(pattern).search(folded):
-            return match
-    return None
+        if match := compile_pattern(pattern).search(folded):
+            yield match
 
 
 def pattern_signals(text: str, pack: CountryPack, unofficial_link: bool) -> list[Signal]:

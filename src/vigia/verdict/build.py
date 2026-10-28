@@ -16,6 +16,9 @@ from vigia.i18n import has_key, t
 from vigia.signals.urls import registrable_domain
 from vigia.verdict.fusion import LEGIT, SCAM, fuse, soften_citations
 
+_SALE_ACTIONS: dict[str, Action] = {"extortion": "block_and_report", "already_paid": "stop_paying"}
+"""specs/15 reply variants, first match wins: threats, then a victim who already paid."""
+
 MAX_EXPLANATION_SIGNALS = 3  # specs/05 template: "Señales: {hasta 3}"
 
 # specs/05 rule 7: a hard signal about money asks the member not to pay; any other hard
@@ -67,6 +70,13 @@ def _action(label: Label, signals: Sequence[Signal]) -> Action:
     if label != SCAM:
         return "verify_official_channel"
     hard = [s for s in signals if s.weight == "hard"]
+    sale = {s.type for s in signals if s.source == "sequence"}
+    # specs/15: the marketplace reply only when a sale signal (not just "already paid")
+    # carries the verdict and no other source's hard signal (link, brand, KB) does.
+    if any(s.source == "sequence" and s.weight != "light" for s in signals) and all(
+        s.source == "sequence" for s in hard
+    ):
+        return next((a for k, a in _SALE_ACTIONS.items() if k in sale), "dont_pay_sale")
     if any(s.type in _PAY_HARD_TYPES for s in hard):
         return "dont_pay"
     if hard:
