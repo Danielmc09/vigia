@@ -85,6 +85,9 @@ URL_FIRES = [
     ("https://servientrega.co", "CO", "lookalike_domain", "hard"),
     ("https://xn--bncolombia-zqi.com", "CO", "lookalike_domain", "hard"),  # Cyrillic a
     ("https://paypa1.com/signin", "US", "lookalike_domain", "hard"),
+    # Incident c-0187: same homograph under another suffix (c-0172 passed only via the analyst).
+    ("https://bancolornbia.com.co/personas", "CO", "lookalike_domain", "hard"),
+    ("https://bancolornbia.example/login", "CO", "lookalike_domain", "hard"),
     ("https://bancolombia-seguro.co/verificar", "CO", "brand_off_domain", "hard"),
     ("servientrega-co.xyz/pago", "CO", "brand_off_domain", "hard"),
     ("https://interrapidisimo.co-envios.com/pago", "CO", "brand_off_domain", "hard"),
@@ -139,6 +142,9 @@ URL_SILENT = [
     ("https://www.tienda-moda.example/promo/dale-click", "CO", "brand_off_domain"),
     ("https://www.tienda-moda.example/movil/claro", "CO", "brand_off_domain"),
     ("https://paypal.me/juan", "US", "brand_off_domain"),
+    # D-031 revised: the name without suffix matches at <= 2 edits; 3 edits stays silent.
+    ("https://bancolombianos.example", "CO", "lookalike_domain"),
+    ("https://davivendita.example", "CO", "lookalike_domain"),
 ]
 
 

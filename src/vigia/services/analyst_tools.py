@@ -16,7 +16,13 @@ from vigia.domain.rejection import Rejection
 from vigia.domain.signal import Signal
 from vigia.domain.text import fold, mail_domain, only_digits, squash
 from vigia.domain.urls import split_url
-from vigia.signals.urls import aliases, is_official, registrable_domain, url_signals
+from vigia.signals.urls import (
+    aliases,
+    domain_name,
+    is_official,
+    registrable_domain,
+    url_signals,
+)
 
 MAX_SEARCHES = 2  # specs/03: web searches per case
 MAX_MATCHES = 5  # D-064
@@ -54,7 +60,7 @@ def _needle(query: str) -> str:
     text = fold(query).strip().lower()
     if "." in text and " " not in text:
         try:
-            text = registrable_domain(split_url(text).netloc).split(".")[0]
+            text = domain_name(registrable_domain(split_url(text).netloc))
         except ValueError:
             pass
     return squash(text)

@@ -50,6 +50,18 @@ def registrable_domain(host: str) -> str:
     return ".".join(labels[-size:])
 
 
+def domain_name(domain: str) -> str:
+    """A domain's first label, its name without suffix: ``claro.com.co`` → ``claro``.
+
+    Args:
+        domain: Registrable domain or host.
+
+    Returns:
+        The text before the first dot.
+    """
+    return domain.split(".")[0]
+
+
 def _is_ip(host: str) -> bool:
     try:
         ipaddress.ip_address(host)
@@ -85,9 +97,11 @@ def _lookalike(domain: str, pack: CountryPack) -> str | None:
     """The official domain this one imitates, if any."""
     seen = _skeleton(domain)
     for official in sorted(pack.official_domains()):
-        edits = _edits(seen, _skeleton(official))
+        target = _skeleton(official)
+        # Incident c-0187: also the name without its suffix (bancolornbia.com.co).
+        edits = min(_edits(seen, target), _edits(domain_name(seen), domain_name(target)))
         if edits == 0 or (
-            edits <= LOOKALIKE_MAX_EDITS and len(official.split(".")[0]) >= LOOKALIKE_MIN_LABEL
+            edits <= LOOKALIKE_MAX_EDITS and len(domain_name(official)) >= LOOKALIKE_MIN_LABEL
         ):
             return official
     return None
@@ -102,7 +116,7 @@ def aliases(brand: Brand) -> set[str]:
     Returns:
         Folded lowercase names with anything but ``a-z0-9`` removed.
     """
-    names = [brand.name] + [d.split(".")[0] for d in brand.domains]
+    names = [brand.name] + [domain_name(d) for d in brand.domains]
     return {squash(n) for n in names}
 
 
