@@ -92,6 +92,7 @@
   "audio.too_large": "El archivo de audio es demasiado grande. Envíame una nota de voz más corta o escríbeme lo que dice.",
   "audio.unavailable": "No pude escuchar la nota de voz en este momento. Vuelve a enviarla en unos minutos.",
   "image.invalid": "Esa imagen no se pudo abrir. Envíame una captura en PNG o JPG, o copia el texto.",
+  "image.too_large": "Esa imagen es demasiado grande. Envíame una captura de pantalla normal o copia el texto.",
   "image.unavailable": "No pude leer la imagen en este momento. Vuelve a enviarla en unos minutos.",
   "pdf.invalid": "Ese archivo no parece un PDF válido. Envíame una captura del documento o copia el texto.",
   "pdf.too_large": "El PDF es demasiado grande. Envíame solo la página sospechosa o una captura.",

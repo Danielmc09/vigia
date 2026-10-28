@@ -31,9 +31,11 @@ PDF_REPLY_KEY: dict[RejectionCode, str] = {
 
 IMAGE_REPLY_KEY: dict[RejectionCode, str] = {
     "INVALID_ATTACHMENT": "image.invalid",
+    "TOO_LARGE": "image.too_large",
     "MODEL_UNAVAILABLE": "image.unavailable",
 }
 """i18n key of the reply for each way an image can fail to become text."""
+
 
 def transcribe(
     wav: bytes, language: str, transcriber: Transcriber, max_seconds: int

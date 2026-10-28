@@ -11,7 +11,7 @@ from typing import Any, Protocol
 from vigia.analyst.tools import ACTION_TOOLS, Tool, refuse_action, reject
 from vigia.domain.analyst import ModelTurn
 from vigia.domain.country import CountryPack
-from vigia.domain.image import QR_PROMPT, Segmenter
+from vigia.domain.image import QR_PROMPT, Segmenter, largest
 from vigia.domain.member import Supplier
 from vigia.domain.rejection import Rejection
 from vigia.domain.signal import Signal
@@ -141,7 +141,7 @@ def crop_tool(image: bytes, segment: Segmenter) -> Tool:
         found = segment(image, prompt)
         if isinstance(found, Rejection):
             return found.model_dump()
-        boxes = found.boxes[:MAX_MATCHES]
+        boxes = largest(found.boxes, MAX_MATCHES)
         links = qr_urls(image, boxes) if prompt == QR_PROMPT and boxes else []
         dumped = [b.model_dump() for b in boxes]
         return {"prompt": prompt, "boxes": dumped, "qr_urls": links, "usd": found.usd}

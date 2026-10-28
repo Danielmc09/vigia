@@ -5,7 +5,7 @@ from collections.abc import Sequence
 import zxingcpp
 
 from vigia.domain.country import CountryPack
-from vigia.domain.image import Box, crop, open_image
+from vigia.domain.image import Box, crop, largest, open_image
 from vigia.domain.signal import Signal
 from vigia.domain.urls import extract_urls
 from vigia.signals.urls import Resolver, is_official, url_signals
@@ -35,12 +35,13 @@ def qr_urls(image: bytes, boxes: Sequence[Box] = ()) -> list[str]:
 
     Args:
         image: Image bytes.
-        boxes: SAM boxes to crop and decode; empty means the whole image.
+        boxes: SAM boxes to crop and decode, only the ``MAX_BOXES`` largest; empty means
+            the whole image.
 
     Returns:
         URLs in the order found; QR texts that hold no link (Wi-Fi, vCard) are dropped.
     """
-    pieces = [crop(image, box) for box in boxes] if boxes else [image]
+    pieces = [crop(image, box) for box in largest(boxes)] if boxes else [image]
     texts = [text for piece in pieces for text in decode_qr(piece)]
     return list(dict.fromkeys(url for text in texts for url in extract_urls(text)))
 

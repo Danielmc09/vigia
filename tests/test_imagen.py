@@ -265,7 +265,7 @@ def test_image_reader_without_sam_still_reads_the_text() -> None:
     assert isinstance(result, Transcript) and result.qr_urls == ()
 
 
-@pytest.mark.parametrize("code", ["INVALID_ATTACHMENT", "MODEL_UNAVAILABLE"])
+@pytest.mark.parametrize("code", ["INVALID_ATTACHMENT", "TOO_LARGE", "MODEL_UNAVAILABLE"])
 @pytest.mark.parametrize("lang", LANGUAGES)
 def test_every_image_rejection_has_a_user_message(code: str, lang: str) -> None:
     key = transcription.IMAGE_REPLY_KEY[code]  # type: ignore[index]
@@ -424,25 +424,24 @@ def _declared(width: int, height: int) -> bytes:
     return bytes(png)
 
 
-@pytest.mark.xfail(strict=True, reason="incident, fixed next")
 def test_adv_imagen_pixeles(monkeypatch: pytest.MonkeyPatch) -> None:
     """A small file declaring a huge canvas is refused from its header, never decoded."""
     reader = FakeReader()
+    bombs = (_declared(13000, 13000), _declared(5001, 5000))
+    huge = _screenshot() + b"\0" * (10 * 1024 * 1024)
     decoded: list[object] = []
     monkeypatch.setattr(Image.Image, "load", lambda self: decoded.append(self))
 
-    for data in (_declared(13000, 13000), _declared(5001, 5000)):
+    for data in bombs:
         result = transcription.read_image(data, "es", reader)
         assert isinstance(result, Rejection) and result.error_code == "TOO_LARGE"
         assert decode_qr(data) == []
-    huge = _screenshot() + b"\0" * (10 * 1024 * 1024)
     result = transcription.read_image(huge, "es", reader)
     assert isinstance(result, Rejection) and result.error_code == "TOO_LARGE"
     assert reader.calls == [] and decoded == []
     assert Image.MAX_IMAGE_PIXELS == 25_000_000
 
 
-@pytest.mark.xfail(strict=True, reason="incident, fixed next")
 def test_adv_sam_cajas(monkeypatch: pytest.MonkeyPatch) -> None:
     """SAM returning dozens of boxes crops at most 8, the largest by area."""
     crops: list[Box] = []

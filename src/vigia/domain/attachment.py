@@ -1,4 +1,4 @@
-"""Attachment checks that need no decoder: size cap, image and PDF magic, canonical WAV (domain)."""
+"""Attachment checks that decode nothing: size cap, image and PDF magic, canonical WAV (domain)."""
 
 import io
 import wave
@@ -6,6 +6,7 @@ from collections.abc import AsyncIterable
 
 from pydantic import BaseModel
 
+from vigia.domain.image import check_canvas
 from vigia.domain.rejection import Rejection
 
 MAX_ATTACHMENT_BYTES = 10 * 1024 * 1024
@@ -37,21 +38,26 @@ def image_mime(data: bytes) -> str | None:
 
 
 def check_image(data: bytes) -> Rejection | None:
-    """Refuse empty files and files that do not start like a JPEG, PNG, GIF or WebP.
+    """Refuse an image by size, magic bytes and header, before anything decodes it.
 
-    ponytail: magic bytes only; a truncated image with a valid header passes here and
-    decodes to nothing later (no QR, no text).
+    Over 10 MB or a header declaring more than 25 Mpx is ``TOO_LARGE`` (D-077); not a
+    JPEG, PNG, GIF or WebP, or a header PIL cannot read, is ``INVALID_ATTACHMENT``.
+
+    ponytail: the header is checked, the pixels are not; a truncated image with a valid
+    header passes here and decodes to nothing later (no QR, no text).
 
     Args:
         data: Downloaded file.
 
     Returns:
-        ``None`` if it looks like an image, else an ``INVALID_ATTACHMENT`` rejection.
+        ``None`` if it looks like a sane image, else ``TOO_LARGE`` or ``INVALID_ATTACHMENT``.
     """
-    if image_mime(data):
-        return None
-    detail = "empty file" if not data else "not a JPEG, PNG, GIF or WebP"
-    return Rejection(error_code="INVALID_ATTACHMENT", message=detail)
+    if len(data) > MAX_ATTACHMENT_BYTES:
+        return Rejection(error_code="TOO_LARGE", message=f"over {MAX_ATTACHMENT_BYTES} bytes")
+    if not image_mime(data):
+        detail = "empty file" if not data else "not a JPEG, PNG, GIF or WebP"
+        return Rejection(error_code="INVALID_ATTACHMENT", message=detail)
+    return check_canvas(data)
 
 
 def check_pdf(data: bytes, max_bytes: int) -> Rejection | None:

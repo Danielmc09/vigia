@@ -6,6 +6,7 @@ lists the T rows that no test names.
 
 import asyncio
 import importlib
+import io
 from collections.abc import AsyncIterator
 from datetime import UTC, datetime, timedelta
 from email.message import EmailMessage
@@ -16,6 +17,7 @@ import asyncpg
 import httpx
 import pytest
 from fastapi.testclient import TestClient
+from PIL import Image
 
 from tests.conftest import Recorder, message
 from tests.conftest import escalation_id as _escalation_id
@@ -40,7 +42,6 @@ from vigia.store.migrate import MIGRATIONS_DIR, apply_migrations
 OWNER = "+573000000501"
 EMPLOYEE = "+573000000502"
 CO = country_pack("CO")
-PNG = b"\x89PNG\r\n\x1a\n" + b"\x00" * 32
 pytestmark = pytest.mark.anyio
 
 
@@ -87,9 +88,11 @@ def test_a5_empty_or_corrupt_image_is_a_rejection(data: bytes) -> None:
 
 
 @pytest.mark.edge("A5")
-@pytest.mark.parametrize("data", [PNG, b"\xff\xd8\xff\xe0" + b"\x00" * 16, b"RIFF\0\0\0\0WEBPVP8 "])
-def test_a5_readable_image_formats_pass(data: bytes) -> None:
-    assert check_image(data) is None
+@pytest.mark.parametrize("fmt", ["PNG", "JPEG", "GIF", "WEBP"])
+def test_a5_readable_image_formats_pass(fmt: str) -> None:
+    out = io.BytesIO()
+    Image.new("RGB", (8, 8)).save(out, fmt)
+    assert check_image(out.getvalue()) is None
 
 
 async def _chunks(count: int, size: int, pulled: list[int]) -> AsyncIterator[bytes]:
