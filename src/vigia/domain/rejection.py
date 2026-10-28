@@ -7,6 +7,9 @@ from pydantic import BaseModel
 RejectionCode = Literal[
     "INVALID_ATTACHMENT",
     "TOO_LARGE",
+    # Audio (T-11): only canonical WAV, up to Settings.voice_max_seconds.
+    "UNSUPPORTED_AUDIO",
+    "AUDIO_TOO_LONG",
     # Policy (specs/05): why an action or a confirmar/cancelar did not go through.
     "UNKNOWN_ACTION",
     "NOT_CONFIRMED",

@@ -12,6 +12,7 @@ Building period: Oct 27 – Nov 4, 2026. First commit of this repository: Oct 27
 Country packs contain only public data (brand names, official domains and service lines) taken from each brand's official site; every brand records its `fuente_url`. Eval cases are synthetic, except the ones marked `kb_test: true`, which quote a known-campaign seed entry to test the knowledge base.
 
 ## Third-party content (public, quoted with source)
+- `evals/muestras/c-0145.wav` … `c-0154.wav`: synthetic voice notes generated with the macOS text-to-speech voices (Apple: Paulina, Mónica, Eddy, Samantha) reading scripts we wrote. The voices are Apple's; the scripts are ours. No real recordings.
 - `conocimiento/semilla.jsonl`: known scam campaigns. Message texts and malicious domains are quoted or summarized from public alerts and press reports (official agencies, banks, news outlets); every entry records its `source_url`, and `conocimiento/fuentes.json` lists them all. The fingerprints computed from them are ours. No personal data.
 
 ## Third-party services used as-is (not built by us)

@@ -86,5 +86,9 @@
   "signal.extortion": "threatens or extorts",
   "action.dont_pay_sale": "What to do: don't pay. If you want the item, ask for a live video call and pay on delivery. Report the profile where you saw the listing.",
   "action.stop_paying": "What to do: stop paying, every new charge is part of the scam. Keep screenshots, block the number, report the account to your bank or payment app and file a police report. The report helps stop them.",
-  "action.block_and_report": "What to do: this is extortion. Don't reply, block the number and report it."
+  "action.block_and_report": "What to do: this is extortion. Don't reply, block the number and report it.",
+  "audio.unsupported": "I can't listen to this audio format yet. Meanwhile, type what the voice note says or forward the original message.",
+  "audio.too_long": "The voice note is too long. Send me the suspicious part or type what it says.",
+  "audio.too_large": "The audio file is too large. Send me a shorter voice note or type what it says.",
+  "audio.unavailable": "I couldn't listen to the voice note right now. Please send it again in a few minutes."
 }

@@ -297,7 +297,8 @@ def test_repository_eval_set_runs_deterministic_end_to_end(tmp_path: Path) -> No
 
     result = _result(tmp_path, "ultimo.deterministas.resultado.json")
     assert code == 0
-    assert len(result["casos"]) == len((REPO / "evals" / "casos.jsonl").read_text().splitlines())
+    lines = (REPO / "evals" / "casos.jsonl").read_text().splitlines()
+    assert len(result["casos"]) + len(result["omitidos"]) == len(lines)  # audio skipped, D-070
 
 
 def test_eval_record_goes_through_the_same_normalization_as_a_channel_message() -> None:

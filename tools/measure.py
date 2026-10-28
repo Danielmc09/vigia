@@ -27,12 +27,16 @@ from vigia.domain.case import Case, IncomingMessage
 from vigia.domain.eval_case import CHANNEL_KIND, EXPECTED_LABEL, Expected
 from vigia.domain.gate import Judge, mock_judge
 from vigia.domain.member import Business
+from vigia.domain.rejection import Rejection
 from vigia.domain.verdict import Label
+from vigia.domain.voice import Transcriber, Transcript
 from vigia.jev.gate import screen
 from vigia.model.jev import make_judge
 from vigia.model.spark import SparkClient, make_spark
-from vigia.services import process_case
+from vigia.model.voice import make_voice
+from vigia.services import process_case, transcription
 from vigia.services.ingest import normalize
+from vigia.signals.country_pack import country_pack
 from vigia.signals.knowledge import seeded_pack
 from vigia.verdict.fusion import DOUBTFUL, DOUBTFUL_CONFIDENCE, LEGIT
 
@@ -50,6 +54,8 @@ RULES_CEILING = ("exactitud", "dudosos")
 """Skipped by :func:`regressions` without the analyst: they track the legit count (D-057)."""
 MAX_DROP = 0.02  # specs/06: no metric may fall more than 2 points
 EXIT_OK, EXIT_GATE, EXIT_BUDGET, EXIT_UNAVAILABLE = 0, 1, 2, 3
+
+NO_VOICE = "audio needs Voice: rules-only mode and runs without MODEL_API_KEY never transcribe"
 
 EXPECTED_OF: dict[Label, Expected] = {label: expected for expected, label in EXPECTED_LABEL.items()}
 
@@ -135,15 +141,50 @@ def with_analyst(spark: SparkClient, judge: Judge) -> Classifier:
     return run_case
 
 
-def to_case(raw: dict[str, Any], root: Path = REPO) -> Case:
+class Unheard(Exception):
+    """An audio record that could not be transcribed; the case fails, the run goes on."""
+
+
+def needs_voice(raw: dict[str, Any]) -> bool:
+    """An audio record whose words only exist in its WAV (no ``texto``)."""
+    return raw["tipo"] == "audio" and bool(raw.get("fuente")) and not raw.get("texto")
+
+
+def _hear(
+    raw: dict[str, Any], root: Path, transcribe: Transcriber | None
+) -> tuple[Transcript | None, float]:
+    """Transcribe the record's WAV like the channel will (D-070): checked, then Voice.
+
+    Returns:
+        The transcript (``None`` if the record does not :func:`needs_voice`) and its ms.
+
+    Raises:
+        Unheard: If there is no Voice, no country pack or the audio is refused.
+    """
+    if not needs_voice(raw):
+        return None, 0.0
+    pack = country_pack(raw["pais"])
+    if transcribe is None or pack is None:
+        raise Unheard(NO_VOICE if transcribe is None else f"no country pack {raw['pais']}")
+    start = time.perf_counter()
+    wav = (root / raw["fuente"]).read_bytes()
+    heard = transcription.transcribe(wav, pack.language, transcribe, settings.voice_max_seconds)
+    if isinstance(heard, Rejection):
+        raise Unheard(f"transcription: {heard.error_code} {heard.message}")
+    return heard, round((time.perf_counter() - start) * 1000, 1)
+
+
+def to_case(raw: dict[str, Any], root: Path = REPO, heard: Transcript | None = None) -> Case:
     """Build the Case the system would receive for one eval record.
 
     The record goes through the same :func:`normalize` as a channel message, so a
-    lone link is a ``url`` case and an email carries its headers.
+    lone link is a ``url`` case and an email carries its headers. An audio record
+    without ``texto`` takes its words from ``heard`` (see :func:`_hear`).
 
     Args:
         raw: One line of the eval set.
         root: Directory that ``fuente`` paths are relative to.
+        heard: Transcript of a :func:`needs_voice` record; it becomes the case text.
 
     Returns:
         The normalized Case, from the eval origin and a fixed eval business.
@@ -159,7 +200,7 @@ def to_case(raw: dict[str, Any], root: Path = REPO) -> Case:
         origin="local",
         sender="eval",
         kind=CHANNEL_KIND[raw["tipo"]],
-        text=raw.get("texto") or chat,
+        text=raw.get("texto") or chat or (heard.text if heard else None),
         attachments=[Attachment(ref=str(source), mime=mimetypes.guess_type(source)[0])]
         if source and chat is None
         else [],
@@ -180,30 +221,47 @@ def to_case(raw: dict[str, Any], root: Path = REPO) -> Case:
 
 
 def _ask(
-    raw: dict[str, Any], classify: Classifier, root: Path
+    raw: dict[str, Any], classify: Classifier, root: Path, transcribe: Transcriber | None
 ) -> tuple[Outcome | None, str | None]:
-    """Classify one record; a missing attachment or a timeout is a failed case, not a crash."""
+    """Classify one record; a missing attachment, a timeout or an unheard audio fails the case.
+
+    The transcription is billed to the case and listed first among its tools.
+    """
     if raw.get("fuente") and not (root / raw["fuente"]).is_file():
         return None, f"attachment not found: {raw['fuente']}"
     try:
-        return classify(to_case(raw, root)), None
+        heard, ms = _hear(raw, root, transcribe)
+        outcome = classify(to_case(raw, root, heard))
     except TimeoutError:
         return None, "timeout"
+    except Unheard as exc:
+        return None, str(exc)
+    if heard is None:
+        return outcome, None
+    tool = {"name": "transcribe", "ms": ms, "usd": heard.usd}
+    usd = outcome.usd + heard.usd
+    return replace(outcome, usd=usd, tools_used=[tool, *outcome.tools_used]), None
 
 
-def grade(raw: dict[str, Any], classify: Classifier, root: Path = REPO) -> dict[str, Any]:
+def grade(
+    raw: dict[str, Any],
+    classify: Classifier,
+    root: Path = REPO,
+    transcribe: Transcriber | None = None,
+) -> dict[str, Any]:
     """Run one eval record and grade it: pass only when the label matches exactly.
 
     Args:
         raw: One line of the eval set.
         classify: The system under test.
         root: Directory that ``fuente`` paths are relative to.
+        transcribe: Voice for audio records (see :func:`to_case`).
 
     Returns:
         The per-case record of specs/06 (Spanish keys, as the result file is data).
     """
     start = time.perf_counter()
-    outcome, error = _ask(raw, classify, root)
+    outcome, error = _ask(raw, classify, root, transcribe)
     obtained = EXPECTED_OF[outcome.label] if outcome else None
     passed = obtained == raw["esperado"]
     return {
@@ -273,9 +331,7 @@ def gate_failures(metrics: dict[str, Any], full: bool = True) -> list[str]:
     return low + high
 
 
-def regressions(
-    metrics: dict[str, Any], baseline: dict[str, Any], full: bool = True
-) -> list[str]:
+def regressions(metrics: dict[str, Any], baseline: dict[str, Any], full: bool = True) -> list[str]:
     """Metrics that got more than :data:`MAX_DROP` worse than the baseline run.
 
     Without ``full`` (rules only) accuracy and doubtful are skipped: rules never answer
@@ -295,7 +351,10 @@ def regressions(
 
 
 def run(
-    cases: list[dict[str, Any]], classify: Classifier, max_usd: float
+    cases: list[dict[str, Any]],
+    classify: Classifier,
+    max_usd: float,
+    transcribe: Transcriber | None = None,
 ) -> tuple[list[dict[str, Any]], bool]:
     """Grade cases in order, stopping as soon as spend passes ``max_usd`` (rule 11).
 
@@ -304,7 +363,7 @@ def run(
     """
     records: list[dict[str, Any]] = []
     for raw in cases:
-        records.append(grade(raw, classify))
+        records.append(grade(raw, classify, REPO, transcribe))
         if sum(r["usd"] for r in records) > max_usd:
             return records, True
     return records, False
@@ -447,12 +506,36 @@ def _report(result: dict[str, Any]) -> None:
         if not case["paso"]:
             got = case["obtenido"]
             print(f"  FAIL {case['id']} {case['esperado']} -> {got} {case['error'] or ''}")
+    for case in result["omitidos"]:
+        print(f"  SKIP {case['id']} {case['motivo']}")
     gate = result["gate"] or "ok"
     print(f"gate={gate} regressions={result['regresiones'] or 'none'}")
 
 
-def main(argv: list[str], classify: Classifier | None = None, out_dir: Path = EVALS) -> int:
+def _skip_unheard(
+    cases: list[dict[str, Any]], transcribe: Transcriber | None
+) -> tuple[list[dict[str, Any]], list[dict[str, str]]]:
+    """Without Voice, set aside the audio records that need it (D-070).
+
+    Returns:
+        The records to run and the skipped ones as ``{"id", "motivo"}``.
+    """
+    deaf = [] if transcribe else [c for c in cases if needs_voice(c)]
+    skipped = [{"id": c["id"], "motivo": NO_VOICE} for c in deaf]
+    return [c for c in cases if c not in deaf], skipped
+
+
+def main(
+    argv: list[str],
+    classify: Classifier | None = None,
+    out_dir: Path = EVALS,
+    transcribe: Transcriber | None = None,
+) -> int:
     """Run the eval set and return the exit code of specs/06.
+
+    Audio records that need Voice are skipped (listed in ``omitidos``) when there is no
+    transcriber: always in ``--solo-deterministas`` (no network, 0 USD), else without
+    ``MODEL_API_KEY`` (D-070).
 
     Args:
         argv: Command-line arguments.
@@ -460,6 +543,7 @@ def main(argv: list[str], classify: Classifier | None = None, out_dir: Path = EV
             ``--solo-deterministas`` and to :func:`with_analyst` (real Spark, needs
             ``MODEL_API_KEY``) without it. Tests inject a fake app here.
         out_dir: Where result files and baselines live.
+        transcribe: Voice; defaults to the real one in full mode. Tests inject a fake.
 
     Returns:
         0 ok, 1 gate, regression or adversarial miss, 2 over budget, 3 mode not available.
@@ -474,7 +558,10 @@ def main(argv: list[str], classify: Classifier | None = None, out_dir: Path = EV
     if args.adversarios or classify is None:
         print(f"medir: {_unavailable(args, out_dir)}", file=sys.stderr)
         return EXIT_UNAVAILABLE
-    records, over_budget = run(_load(args.path, args.filtro), classify, args.max_usd)
+    if transcribe is None and not args.solo_deterministas:
+        transcribe = make_voice(settings)
+    runnable, skipped = _skip_unheard(_load(args.path, args.filtro), transcribe)
+    records, over_budget = run(runnable, classify, args.max_usd, transcribe)
     metrics = summarize(records)
     failures = gate_failures(metrics, full=mode == "completo")
     suffix = ".deterministas" if mode == "deterministas" else ""
@@ -489,6 +576,7 @@ def main(argv: list[str], classify: Classifier | None = None, out_dir: Path = EV
         "metricas": metrics,
         "gate": failures,
         "regresiones": regressed,
+        "omitidos": skipped,
         "casos": records,
     }
     _save(result, code, args.json, out_dir)

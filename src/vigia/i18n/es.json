@@ -86,5 +86,9 @@
   "signal.extortion": "amenaza o extorsiona",
   "action.dont_pay_sale": "Qué hacer: no pagues. Si quieres el producto, pide videollamada en vivo y pago contra entrega. Reporta el perfil donde viste el anuncio.",
   "action.stop_paying": "Qué hacer: deja de pagar, cada cobro nuevo es parte de la estafa. Guarda capturas, bloquea el número, reporta la cuenta a tu banco o billetera y denuncia. La denuncia sirve para que no sigan.",
-  "action.block_and_report": "Qué hacer: esto es extorsión. No respondas, bloquea el número y denuncia."
+  "action.block_and_report": "Qué hacer: esto es extorsión. No respondas, bloquea el número y denuncia.",
+  "audio.unsupported": "Todavía no puedo escuchar este formato de audio. Mientras tanto, escríbeme lo que dice la nota de voz o reenvía el mensaje original.",
+  "audio.too_long": "La nota de voz es demasiado larga. Envíame la parte sospechosa o escríbeme lo que dice.",
+  "audio.too_large": "El archivo de audio es demasiado grande. Envíame una nota de voz más corta o escríbeme lo que dice.",
+  "audio.unavailable": "No pude escuchar la nota de voz en este momento. Vuelve a enviarla en unos minutos."
 }
