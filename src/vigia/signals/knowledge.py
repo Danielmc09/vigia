@@ -65,10 +65,10 @@ def seeded_pack(iso: str, seed: Path) -> CountryPack | None:
 
 
 def _hosts(case: Case, pack: CountryPack) -> set[str]:
-    """Hosts and registrable domains the case links to, minus official ones and shorteners."""
+    """Hosts and registrable domains the case links to (text or QR), minus official and short."""
     hosts = set()
     ignored = pack.official_domains() | SHORTENERS
-    for url in case.urls:
+    for url in case.urls + case.qr_urls:
         try:
             host = (split_url(url).hostname or "").lower()
         except ValueError:

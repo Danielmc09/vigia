@@ -13,7 +13,7 @@ from vigia.signals.address_book import address_book_signals
 from vigia.signals.country_pack import country_pack
 from vigia.signals.detector import detect
 from vigia.signals.patterns import pattern_signals
-from vigia.signals.qr import decode_qr, qr_signals
+from vigia.signals.qr import qr_signals
 from vigia.signals.urls import registrable_domain, url_signals
 
 CO = country_pack("CO")
@@ -339,7 +339,7 @@ def test_every_pack_pattern_compiles() -> None:
 
 
 def test_qr_urls_go_through_url_signals_with_qr_origin() -> None:
-    signals = qr_signals(b"png", CO, decode=lambda image: ["https://bancolombia-seguro.co"])
+    signals = qr_signals(["https://bancolombia-seguro.co"], CO)
     found = _found(signals)
     assert ("brand_off_domain", "hard") in found
     assert ("qr_to_unofficial_domain", "medium") in found
@@ -347,16 +347,8 @@ def test_qr_urls_go_through_url_signals_with_qr_origin() -> None:
 
 
 def test_qr_to_official_domain_is_not_suspicious() -> None:
-    signals = qr_signals(b"png", CO, decode=lambda image: ["https://www.bancolombia.com"])
+    signals = qr_signals(["https://www.bancolombia.com"], CO)
     assert _found(signals) == {("official_domain", "light")}
-
-
-@pytest.mark.xfail(
-    strict=True,
-    reason="No QR decoder is installed and adding one was denied (D-033); arrives with T-12.",
-)
-def test_decode_qr_reads_an_image() -> None:
-    assert decode_qr(b"\x89PNG qr of https://example.com") == ["https://example.com"]
 
 
 # --- detector ----------------------------------------------------------------------------------

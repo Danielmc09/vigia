@@ -11,8 +11,10 @@ from hashlib import blake2b
 from statistics import median
 from typing import Any, Literal
 
+from PIL import ImageOps
 from pydantic import BaseModel, ConfigDict
 
+from vigia.domain.image import open_image
 from vigia.domain.text import clean_text, fold
 from vigia.domain.urls import extract_urls
 
@@ -95,7 +97,7 @@ def simhash(text: str) -> int | None:
 def phash(gray: Sequence[Sequence[float]]) -> int:
     """64-bit perceptual hash of a 32x32 grayscale grid (DCT, 8x8 low frequencies vs median).
 
-    Decoding and resizing an image into the grid needs an image library (T-12, D-033).
+    :func:`image_phash` builds the grid from image bytes.
 
     Args:
         gray: 32 rows of 32 luminance values.
@@ -120,6 +122,23 @@ def phash(gray: Sequence[Sequence[float]]) -> int:
     ]
     middle = median(coeffs[1:])  # the DC term only measures brightness
     return sum(1 << i for i, c in enumerate(coeffs[1:], 1) if c > middle)
+
+
+def image_phash(data: bytes) -> int:
+    """:func:`phash` of an image file: grayscale, resized to the 32x32 grid.
+
+    Args:
+        data: Image bytes (a screenshot or a SAM crop).
+
+    Returns:
+        The 64-bit fingerprint.
+
+    Raises:
+        ValueError: If the bytes are not a decodable image.
+    """
+    small = ImageOps.grayscale(open_image(data)).resize((PHASH_SIDE, PHASH_SIDE))
+    pixels = list(small.tobytes())
+    return phash([pixels[i : i + PHASH_SIDE] for i in range(0, len(pixels), PHASH_SIDE)])
 
 
 def hamming(a: int, b: int) -> int:

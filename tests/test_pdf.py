@@ -11,8 +11,8 @@ import pytest
 
 from vigia.config import Settings
 from vigia.domain.attachment import check_pdf
+from vigia.domain.reading import Transcript
 from vigia.domain.rejection import Rejection
-from vigia.domain.voice import Transcript
 from vigia.i18n import LANGUAGES, has_key
 from vigia.model.spark import PDF_MAX_TOKENS, SparkClient, usage_usd
 from vigia.services import transcription

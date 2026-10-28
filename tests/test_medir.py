@@ -383,3 +383,20 @@ def test_full_mode_still_fails_on_accuracy_and_doubtful_regressions(tmp_path: Pa
     assert code == 1
     assert _result(tmp_path)["gate"] == []
     assert _result(tmp_path)["regresiones"] == ["exactitud", "dudosos"]
+
+
+def test_with_analyst_offers_crop_on_images(monkeypatch: pytest.MonkeyPatch) -> None:
+    """D-076: the eval analyst gets SAM and reads the image from its ``ref`` (revisor T-12)."""
+    seen: dict[str, object] = {}
+
+    def spy(spark: object, **kwargs: object) -> object:
+        seen.update(kwargs)
+        return None
+
+    sam = object()
+    monkeypatch.setattr(measure.process_case, "spark_analyst", spy)
+    monkeypatch.setattr(measure, "make_sam", lambda _: sam)
+    measure.with_analyst(object(), measure.mock_judge)  # type: ignore[arg-type]
+    load = seen["load"]
+    assert seen["segment"] is sam
+    assert callable(load) and load("evals/muestras/c-0189.png")[:4] == b"\x89PNG"

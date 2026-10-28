@@ -65,6 +65,12 @@ TOOL_SPECS: dict[str, dict[str, Any]] = {
         "query",
         "A short search query.",
     ),
+    "crop": _spec(
+        "crop",
+        "Find regions of the forwarded image with SAM; QR codes found are decoded to links.",
+        "prompt",
+        "One of: logo, qr code, button.",
+    ),
     "alert_team": _spec(
         "alert_team",
         "Ask for the team to be alerted. The policy decides; you get a refusal.",

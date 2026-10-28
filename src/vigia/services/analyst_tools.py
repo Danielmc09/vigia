@@ -1,4 +1,4 @@
-"""The analyst's tools bound to one case: country pack, address book, web search (application).
+"""The analyst's tools bound to one case: pack, address book, web search, crop (application).
 
 Each tool is a closure over the case's data; :mod:`vigia.analyst.tools` only knows names,
 arguments and refusals. What a tool returns goes to the model provider, so it carries the
@@ -11,11 +11,13 @@ from typing import Any, Protocol
 from vigia.analyst.tools import ACTION_TOOLS, Tool, refuse_action, reject
 from vigia.domain.analyst import ModelTurn
 from vigia.domain.country import CountryPack
+from vigia.domain.image import QR_PROMPT, Segmenter
 from vigia.domain.member import Supplier
 from vigia.domain.rejection import Rejection
 from vigia.domain.signal import Signal
 from vigia.domain.text import fold, mail_domain, only_digits, squash
 from vigia.domain.urls import split_url
+from vigia.signals.qr import qr_urls
 from vigia.signals.urls import (
     aliases,
     domain_name,
@@ -28,6 +30,8 @@ MAX_SEARCHES = 2  # specs/03: web searches per case
 MAX_MATCHES = 5  # D-064
 MIN_PARTIAL = 4  # D-064: shorter queries only match a whole name
 ACCOUNT_END = 4  # D-064
+CROP_PROMPTS = ("logo", QR_PROMPT, "button")
+"""What ``crop`` may ask SAM for (specs/03): a closed list, never the model's free text."""
 
 
 class Searcher(Protocol):
@@ -117,8 +121,39 @@ def _web_search(search: Searcher) -> Tool:
     return web_search
 
 
+def crop_tool(image: bytes, segment: Segmenter) -> Tool:
+    """``crop`` (specs/03 ``recortar``): SAM boxes of a prompt in the case image.
+
+    A ``qr code`` crop is also decoded, so a QR too small for the reading step reaches the
+    model as links it can pass to ``analyze_url``.
+
+    Args:
+        image: The case's image (already checked).
+        segment: SAM.
+
+    Returns:
+        The bound tool.
+    """
+
+    def crop(prompt: str, _: float) -> dict[str, Any]:
+        if prompt not in CROP_PROMPTS:
+            return reject("BAD_ARGUMENTS", f"prompt must be one of {', '.join(CROP_PROMPTS)}")
+        found = segment(image, prompt)
+        if isinstance(found, Rejection):
+            return found.model_dump()
+        boxes = found.boxes[:MAX_MATCHES]
+        links = qr_urls(image, boxes) if prompt == QR_PROMPT and boxes else []
+        dumped = [b.model_dump() for b in boxes]
+        return {"prompt": prompt, "boxes": dumped, "qr_urls": links, "usd": found.usd}
+
+    return crop
+
+
 def toolbox(
-    pack: CountryPack, suppliers: Sequence[Supplier], search: Searcher | None
+    pack: CountryPack,
+    suppliers: Sequence[Supplier],
+    search: Searcher | None,
+    crop: Tool | None = None,
 ) -> dict[str, Tool]:
     """The analyst's tools bound to one case's country pack and address book (specs/03).
 
@@ -127,6 +162,7 @@ def toolbox(
         suppliers: Its decrypted address book.
         search: Web search, only when the gate said ``investigate``; ``None`` leaves the
             tool out. Capped at ``MAX_SEARCHES`` per toolbox (one toolbox per case).
+        crop: :func:`crop_tool` over the case image; ``None`` (no image, no SAM) leaves it out.
 
     Returns:
         Tool name to function; action tools are bound to a refusal.
@@ -138,4 +174,6 @@ def toolbox(
     }
     if search is not None:
         tools["web_search"] = _web_search(search)
+    if crop is not None:
+        tools["crop"] = crop
     return tools | dict.fromkeys(ACTION_TOOLS, refuse_action)

@@ -5,6 +5,7 @@ import re
 import time
 from datetime import UTC, datetime
 from pathlib import Path
+from types import SimpleNamespace
 from typing import Any
 from uuid import uuid4
 
@@ -14,6 +15,7 @@ import pytest
 from vigia.analyst import loop
 from vigia.analyst.tools import ACTION_TOOLS, TOOL_SPECS, run_tool
 from vigia.domain.analyst import AnalystResult, Evidence, ModelRequest, ModelTurn, ToolCall
+from vigia.domain.attachment import Attachment
 from vigia.domain.case import Case, EmailMeta
 from vigia.domain.gate import GateResult
 from vigia.domain.member import Supplier
@@ -336,7 +338,28 @@ def test_loop_offers_exactly_the_bound_tools() -> None:
     loop.investigate(_case("x"), Evidence(), _tools(), spark)
 
     offered = {t["function"]["name"] for t in spark.requests[0].tools}
-    assert offered == set(_tools()) == set(TOOL_SPECS) - {"web_search"}
+    assert offered == set(_tools()) == set(TOOL_SPECS) - {"web_search", "crop"}
+
+
+def test_spark_analyst_offers_crop_only_on_image_cases() -> None:
+    """D-076: ``crop`` reaches the model only for an image with an attachment to load."""
+    loaded: list[str] = []
+
+    def offered(case: Case) -> set[str]:
+        spark = Scripted(_turn(_answer()))
+        analyst = process_case.spark_analyst(
+            SimpleNamespace(complete=spark),  # type: ignore[arg-type]
+            segment=lambda *_: Rejection(code="MODEL_UNAVAILABLE", detail="unused"),
+            load=lambda ref: loaded.append(ref) or b"png",
+        )
+        analyst(case, Evidence(), CO, GATE)
+        return {t["function"]["name"] for t in spark.requests[0].tools}
+
+    image = _case("captura").model_copy(
+        update={"kind": "image", "attachments": [Attachment(ref="evals/muestras/x.png")]}
+    )
+    assert "crop" in offered(image) and loaded == ["evals/muestras/x.png"]
+    assert "crop" not in offered(_case("texto"))
 
 
 # --- Prompt contract (diferido de T-07) ---------------------------------------------------
@@ -491,9 +514,7 @@ def test_adv_analista_costo_busqueda_web_search_entry_carries_its_usd() -> None:
     first["choices"][0]["message"]["tool_calls"] = [search_call]
     last = _fixture("chat_json_schema.json")["response"]
     last["choices"][0]["message"]["content"] = _answer()  # fixture predates the schema
-    spark = _spark(
-        [httpx.Response(200, json=r) for r in (first, fixture["response"], last)], []
-    )
+    spark = _spark([httpx.Response(200, json=r) for r in (first, fixture["response"], last)], [])
 
     result = process_case.spark_analyst(spark)(_case("x"), Evidence(), CO, GATE)
 

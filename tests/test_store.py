@@ -30,7 +30,6 @@ async def test_app_role_cannot_bypass_row_level_security(app_conn: asyncpg.Conne
     assert role["rolbypassrls"] is False
 
 
-
 async def test_security_definer_functions_pin_search_path_and_qualify_tables(
     admin_conn: asyncpg.Connection,
 ) -> None:

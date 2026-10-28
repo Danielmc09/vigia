@@ -98,13 +98,6 @@ def test_phash_rejects_a_grid_that_is_not_32_by_32() -> None:
         phash([[0.0] * 8] * 8)
 
 
-@pytest.mark.xfail(strict=True, raises=ImportError, reason="image decoder arrives in T-12 (D-033)")
-def test_phash_of_image_bytes() -> None:
-    from vigia.domain.knowledge import image_phash  # type: ignore[attr-defined]
-
-    assert image_phash(b"\x89PNG\r\n\x1a\n") >= 0
-
-
 # --- loader -------------------------------------------------------------------------------
 
 

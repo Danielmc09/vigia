@@ -11,8 +11,8 @@ import pytest
 
 from vigia.config import Settings
 from vigia.domain.attachment import MAX_ATTACHMENT_BYTES, check_wav
+from vigia.domain.reading import Transcript
 from vigia.domain.rejection import Rejection
-from vigia.domain.voice import Transcript
 from vigia.i18n import LANGUAGES, has_key
 from vigia.model.voice import PRICE_HOUR, VoiceClient, make_voice
 from vigia.services import transcription

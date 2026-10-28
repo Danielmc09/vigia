@@ -11,6 +11,7 @@ from vigia.domain.analyst import AnalystResult, Evidence
 from vigia.domain.case import Case
 from vigia.domain.country import CountryPack
 from vigia.domain.gate import GateResult
+from vigia.domain.image import Segmenter
 from vigia.domain.member import Supplier
 from vigia.domain.verdict import Verdict
 from vigia.model.spark import SparkClient
@@ -22,13 +23,23 @@ from vigia.verdict.fusion import decided_by_rules, soften_citations
 Analyst = Callable[[Case, Evidence, CountryPack, GateResult], AnalystResult | None]
 """The analyst's read of a case, given what the rules and the gate already found."""
 
+Loader = Callable[[str], bytes]
+"""Port: the bytes of an attachment, by its ``ref`` (a path in evals, the channel's media later)."""
 
-def spark_analyst(spark: SparkClient, suppliers: Sequence[Supplier] = ()) -> Analyst:
+
+def spark_analyst(
+    spark: SparkClient,
+    suppliers: Sequence[Supplier] = (),
+    segment: Segmenter | None = None,
+    load: Loader | None = None,
+) -> Analyst:
     """The real analyst: the tool loop over Spark, web search only when triage asks.
 
     Args:
         spark: Spark client (its running ``usd`` bills the cases).
         suppliers: Address book offered to ``check_address_book``.
+        segment: SAM; with ``load`` it offers ``crop`` on image cases (D-076).
+        load: Reads the case image from its attachment ``ref``.
 
     Returns:
         An :data:`Analyst`.
@@ -38,15 +49,16 @@ def spark_analyst(spark: SparkClient, suppliers: Sequence[Supplier] = ()) -> Ana
         case: Case, evidence: Evidence, pack: CountryPack, gate: GateResult
     ) -> AnalystResult | None:
         search = spark if gate.triage == "investigate" else None
-        tools = analyst_tools.toolbox(pack, suppliers, search)
+        crop = None
+        if segment and load and case.kind == "image" and case.attachments:
+            crop = analyst_tools.crop_tool(load(case.attachments[0].ref), segment)
+        tools = analyst_tools.toolbox(pack, suppliers, search, crop)
         return loop.investigate(case, evidence, tools, spark.complete)
 
     return analyst
 
 
-def classify(
-    case: Case, pack: CountryPack, gate: GateResult, analyst: Analyst | None
-) -> Verdict:
+def classify(case: Case, pack: CountryPack, gate: GateResult, analyst: Analyst | None) -> Verdict:
     """Signals, then the analyst only if the rules did not already decide, then fusion.
 
     Args:

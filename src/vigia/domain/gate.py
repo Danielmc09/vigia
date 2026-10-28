@@ -42,6 +42,7 @@ def mock_judge(_: str) -> JudgeAnswer:
     """
     return MOCK_ANSWER
 
+
 Judge = Callable[[str], JudgeAnswer]
 """Port: reads the chat state (history and last message, delimited) and answers."""
 

@@ -74,6 +74,7 @@ def _brief(case: Case, evidence: Evidence) -> str:
         "kind": case.kind,
         "text": case.text,
         "urls": case.urls,
+        "qr_urls": case.qr_urls,
         "email": (
             {
                 "sender_domain": mail_domain(case.email.sender),
@@ -101,9 +102,7 @@ def _parse(content: str | None) -> tuple[_Answer | None, str]:
 def _signals(names: list[str]) -> list[Signal]:
     """The analyst's signal names as light evidence; anything not an id is dropped."""
     valid = [n for n in dict.fromkeys(names) if SIGNAL_NAME.fullmatch(n)]
-    return [
-        Signal(type=n, weight="light", source="analyst") for n in valid[:MAX_ANALYST_SIGNALS]
-    ]
+    return [Signal(type=n, weight="light", source="analyst") for n in valid[:MAX_ANALYST_SIGNALS]]
 
 
 def _run_calls(

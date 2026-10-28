@@ -33,9 +33,9 @@ _PAY_HARD_TYPES = frozenset(
 
 
 def _has_unofficial_url(case: Case, pack: CountryPack) -> bool:
-    """True when any URL of the case resolves to a domain outside the official ones."""
+    """True when any URL of the case (text or QR) is on a domain outside the official ones."""
     official = pack.official_domains()
-    for url in case.urls:
+    for url in case.urls + case.qr_urls:
         try:
             domain = registrable_domain(split_url(url).netloc)
         except ValueError:

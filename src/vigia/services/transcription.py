@@ -1,15 +1,18 @@
-"""Voice note or PDF to text, in code and before the signals run (application, D-070, D-071).
+"""Voice note, PDF or image to text, in code and before the signals run (application).
 
 Not an analyst tool: the deterministic signals (rule 5) need the words, so the text becomes
-``Case.text`` and the case keeps its ``kind`` (``audio`` or ``pdf``).
+``Case.text`` and the case keeps its ``kind`` (``audio``, ``pdf`` or ``image``). An image's QR
+links are decoded here too and travel apart, as ``Case.qr_urls`` (D-070, D-071, D-076).
 """
 
 from collections.abc import Mapping
 
-from vigia.domain.attachment import check_pdf, check_wav
+from vigia.domain.attachment import check_image, check_pdf, check_wav
+from vigia.domain.image import QR_PROMPT, Segmenter
+from vigia.domain.reading import Transcriber, Transcript
 from vigia.domain.rejection import Rejection, RejectionCode
-from vigia.domain.voice import Transcriber, Transcript
 from vigia.i18n import t
+from vigia.signals.qr import qr_urls
 
 REPLY_KEY: dict[RejectionCode, str] = {
     "UNSUPPORTED_AUDIO": "audio.unsupported",
@@ -26,6 +29,11 @@ PDF_REPLY_KEY: dict[RejectionCode, str] = {
 }
 """i18n key of the reply for each way a PDF can fail to become text."""
 
+IMAGE_REPLY_KEY: dict[RejectionCode, str] = {
+    "INVALID_ATTACHMENT": "image.invalid",
+    "MODEL_UNAVAILABLE": "image.unavailable",
+}
+"""i18n key of the reply for each way an image can fail to become text."""
 
 def transcribe(
     wav: bytes, language: str, transcriber: Transcriber, max_seconds: int
@@ -67,15 +75,73 @@ def read_pdf(
     return reader(pdf, language)
 
 
+def read_image(image: bytes, language: str, reader: Transcriber) -> Transcript | Rejection:
+    """Check the image, then spend on the reader only if it passes.
+
+    Args:
+        image: Downloaded screenshot or photo.
+        language: Language hint (the country pack's language).
+        reader: :func:`image_reader`, or a fake in tests.
+
+    Returns:
+        The text and QR links read, or why the image could not be read.
+    """
+    checked = check_image(image)
+    if checked is not None:
+        return checked
+    return reader(image, language)
+
+
+def find_qr(image: bytes, segment: Segmenter | None) -> tuple[tuple[str, ...], float]:
+    """QR links of an image: zxing on the whole image, then on SAM's crops if it found none.
+
+    Args:
+        image: A checked image.
+        segment: SAM, or ``None`` to only try the whole image.
+
+    Returns:
+        The links and what SAM cost (0 when it was not needed or failed).
+    """
+    found = qr_urls(image)
+    if found or segment is None:
+        return tuple(found), 0.0
+    boxes = segment(image, QR_PROMPT)
+    if isinstance(boxes, Rejection):
+        return (), 0.0
+    return tuple(qr_urls(image, boxes.boxes)), boxes.usd
+
+
+def image_reader(read: Transcriber, segment: Segmenter | None) -> Transcriber:
+    """The :data:`Transcriber` of images: QR links in code, visible text by the model.
+
+    Args:
+        read: ``SparkClient.read_image``, or a fake in tests.
+        segment: SAM for small QR codes, or ``None``.
+
+    Returns:
+        A reader whose transcript carries ``qr_urls`` and the cost of both models.
+    """
+
+    def reader(image: bytes, language: str) -> Transcript | Rejection:
+        links, sam_usd = find_qr(image, segment)
+        text = read(image, language)
+        if isinstance(text, Rejection):
+            return text
+        return text.model_copy(update={"qr_urls": links, "usd": text.usd + sam_usd})
+
+    return reader
+
+
 def reply(
     rejection: Rejection, language: str, keys: Mapping[RejectionCode, str] = REPLY_KEY
 ) -> str:
-    """What the member reads when their voice note or PDF could not be read.
+    """What the member reads when their voice note, PDF or image could not be read.
 
     Args:
-        rejection: Output of :func:`transcribe` or :func:`read_pdf`.
+        rejection: Output of :func:`transcribe`, :func:`read_pdf` or :func:`read_image`.
         language: Language of the business.
-        keys: :data:`REPLY_KEY` for audio, :data:`PDF_REPLY_KEY` for PDFs.
+        keys: :data:`REPLY_KEY` for audio, :data:`PDF_REPLY_KEY` for PDFs,
+            :data:`IMAGE_REPLY_KEY` for images.
 
     Returns:
         The i18n message for that rejection; unknown codes read as "unavailable".

@@ -27,11 +27,12 @@ from vigia.domain.case import Case, IncomingMessage
 from vigia.domain.eval_case import CHANNEL_KIND, EXPECTED_LABEL, Expected
 from vigia.domain.gate import Judge, mock_judge
 from vigia.domain.member import Business
+from vigia.domain.reading import Transcriber, Transcript
 from vigia.domain.rejection import Rejection
 from vigia.domain.verdict import Label
-from vigia.domain.voice import Transcriber, Transcript
 from vigia.jev.gate import screen
 from vigia.model.jev import make_judge
+from vigia.model.sam import make_sam
 from vigia.model.spark import SparkClient, make_spark
 from vigia.model.voice import make_voice
 from vigia.services import process_case, transcription
@@ -57,13 +58,14 @@ EXIT_OK, EXIT_GATE, EXIT_BUDGET, EXIT_UNAVAILABLE = 0, 1, 2, 3
 
 NO_VOICE = "audio needs Voice: rules-only mode and runs without MODEL_API_KEY never transcribe"
 NO_PDF = "pdf needs Spark: rules-only mode and runs without MODEL_API_KEY never read PDFs"
-NO_READER = {"audio": NO_VOICE, "pdf": NO_PDF}
-"""Why a record of each kind is skipped without its reader (D-070, D-071)."""
-READ_TOOL = {"audio": "transcribe", "pdf": "read_pdf"}
+NO_IMAGE = "imagen needs Spark: rules-only mode and runs without MODEL_API_KEY never read images"
+NO_READER = {"audio": NO_VOICE, "pdf": NO_PDF, "imagen": NO_IMAGE}
+"""Why a record of each kind is skipped without its reader (D-070, D-071, D-076)."""
+READ_TOOL = {"audio": "transcribe", "pdf": "read_pdf", "imagen": "read_image"}
 """Tool name the reading step is billed under, per eval ``tipo``."""
 
 Readers = Mapping[str, Transcriber]
-"""Voice for ``audio`` and Spark's ``read_pdf`` for ``pdf`` records, by eval ``tipo``."""
+"""Voice for ``audio``, Spark's ``read_pdf`` for ``pdf`` and the image reader for ``imagen``."""
 
 EXPECTED_OF: dict[Label, Expected] = {label: expected for expected, label in EXPECTED_LABEL.items()}
 
@@ -139,7 +141,9 @@ def with_analyst(spark: SparkClient, judge: Judge) -> Classifier:
     Returns:
         A :data:`Classifier` that spends real money (rule 11: ``run`` caps it).
     """
-    analyst = process_case.spark_analyst(spark)
+    analyst = process_case.spark_analyst(
+        spark, segment=make_sam(settings), load=lambda ref: (REPO / ref).read_bytes()
+    )
 
     def run_case(case: Case) -> Outcome:
         usd, tokens = spark.usd, spark.tokens
@@ -150,12 +154,21 @@ def with_analyst(spark: SparkClient, judge: Judge) -> Classifier:
 
 
 class Unheard(Exception):
-    """An audio or PDF record that could not be read; the case fails, the run goes on."""
+    """An audio, PDF or image record that could not be read; the case fails, the run goes on."""
 
 
 def needs_reading(raw: dict[str, Any]) -> bool:
-    """An audio or PDF record whose words only exist in its file (no ``texto``)."""
+    """An audio, PDF or image record whose words only exist in its file (no ``texto``)."""
     return raw["tipo"] in READ_TOOL and bool(raw.get("fuente")) and not raw.get("texto")
+
+
+def _read(kind: str, data: bytes, language: str, reader: Transcriber) -> Transcript | Rejection:
+    """The checked reading step of ``kind``, as the channel will run it."""
+    if kind == "audio":
+        return transcription.transcribe(data, language, reader, settings.voice_max_seconds)
+    if kind == "pdf":
+        return transcription.read_pdf(data, language, reader, settings.pdf_max_bytes)
+    return transcription.read_image(data, language, reader)
 
 
 def _hear(raw: dict[str, Any], root: Path, readers: Readers) -> tuple[Transcript | None, float]:
@@ -175,11 +188,7 @@ def _hear(raw: dict[str, Any], root: Path, readers: Readers) -> tuple[Transcript
         raise Unheard(NO_READER[kind] if reader is None else f"no country pack {raw['pais']}")
     start = time.perf_counter()
     data = (root / raw["fuente"]).read_bytes()
-    heard = (
-        transcription.transcribe(data, pack.language, reader, settings.voice_max_seconds)
-        if kind == "audio"
-        else transcription.read_pdf(data, pack.language, reader, settings.pdf_max_bytes)
-    )
+    heard = _read(kind, data, pack.language, reader)
     if isinstance(heard, Rejection):
         raise Unheard(f"{READ_TOOL[kind]}: {heard.error_code} {heard.message}")
     return heard, round((time.perf_counter() - start) * 1000, 1)
@@ -227,6 +236,7 @@ def to_case(raw: dict[str, Any], root: Path = REPO, heard: Transcript | None = N
             "origin": "eval",
             "sender": None,
             "context": raw.get("contexto") or {},
+            "qr_urls": list(heard.qr_urls) if heard else [],
         }
     )
 
@@ -537,11 +547,14 @@ def _skip_unheard(
 
 
 def _real_readers() -> dict[str, Transcriber]:
-    """Voice and Spark's PDF reader, whichever has a ``MODEL_API_KEY`` behind it."""
+    """Voice, Spark's PDF and image readers, whichever has a ``MODEL_API_KEY`` behind it."""
     voice, spark = make_voice(settings), make_spark(settings)
     found: dict[str, Transcriber | None] = {
         "audio": voice,
         "pdf": spark.read_pdf if spark else None,
+        "imagen": transcription.image_reader(spark.read_image, make_sam(settings))
+        if spark
+        else None,
     }
     return {kind: reader for kind, reader in found.items() if reader is not None}
 

@@ -70,6 +70,7 @@ class Case(BaseModel):
         kind: Normalized type.
         text: Body, caption, email body or transcription.
         urls: Cleaned URLs found in ``text``.
+        qr_urls: URLs decoded from the QR codes of an image, never mixed into ``urls`` (T-12).
         attachments: Files that came with it.
         email: Email headers when ``kind == "email"``.
         context: Extra context from the channel or the eval.
@@ -85,6 +86,7 @@ class Case(BaseModel):
     kind: CaseKind
     text: str | None = None
     urls: list[str] = Field(default_factory=list)
+    qr_urls: list[str] = Field(default_factory=list)
     attachments: list[Attachment] = Field(default_factory=list)
     email: EmailMeta | None = None
     context: dict[str, Any] = Field(default_factory=dict)

@@ -1,4 +1,4 @@
-"""Muse Voice Transcribe over HTTP (adapter): the real :data:`~vigia.domain.voice.Transcriber`.
+"""Muse Voice Transcribe over HTTP (adapter): the real :data:`~vigia.domain.reading.Transcriber`.
 
 Endpoint and shapes verified in T-02 (specs/03 "Verificado" row 5,
 ``tests/fixtures/meta/asr_transcribe.json``). Plain ``httpx`` like :mod:`vigia.model.spark`.
@@ -12,8 +12,8 @@ from uuid import uuid4
 import httpx
 
 from vigia.config import Settings
+from vigia.domain.reading import Transcript
 from vigia.domain.rejection import Rejection
-from vigia.domain.voice import Transcript
 from vigia.model.spark import BASE
 
 MODEL = "muse-voice-transcribe-1.0"

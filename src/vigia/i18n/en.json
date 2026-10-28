@@ -91,6 +91,8 @@
   "audio.too_long": "The voice note is too long. Send me the suspicious part or type what it says.",
   "audio.too_large": "The audio file is too large. Send me a shorter voice note or type what it says.",
   "audio.unavailable": "I couldn't listen to the voice note right now. Please send it again in a few minutes.",
+  "image.invalid": "I couldn't open that image. Send me a PNG or JPG screenshot, or paste the text.",
+  "image.unavailable": "I couldn't read the image right now. Please send it again in a few minutes.",
   "pdf.invalid": "That file doesn't look like a valid PDF. Send me a screenshot of the document or paste its text.",
   "pdf.too_large": "The PDF is too large. Send me only the suspicious page or a screenshot.",
   "pdf.unavailable": "I couldn't read the PDF right now. Please send it again in a few minutes.",

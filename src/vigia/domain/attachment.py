@@ -14,14 +14,33 @@ MAX_ATTACHMENT_BYTES = 10 * 1024 * 1024
 CHANNELS, SAMPLE_WIDTH, SAMPLE_RATE = 1, 2, 16000
 """The only audio Voice gets for now: mono, 16-bit PCM, 16 kHz WAV (specs/03, D-070)."""
 
-_IMAGE_MAGIC = (b"\xff\xd8\xff", b"\x89PNG\r\n\x1a\n", b"GIF87a", b"GIF89a")
+_IMAGE_MIME = {
+    b"\xff\xd8\xff": "image/jpeg",
+    b"\x89PNG\r\n\x1a\n": "image/png",
+    b"GIF87a": "image/gif",
+    b"GIF89a": "image/gif",
+}
+
+
+def image_mime(data: bytes) -> str | None:
+    """MIME type of an image from its magic bytes, the same ones :func:`check_image` accepts.
+
+    Args:
+        data: File bytes.
+
+    Returns:
+        ``image/jpeg``, ``image/png``, ``image/gif`` or ``image/webp``; ``None`` otherwise.
+    """
+    if data[:4] == b"RIFF" and data[8:12] == b"WEBP":
+        return "image/webp"
+    return next((mime for magic, mime in _IMAGE_MIME.items() if data.startswith(magic)), None)
 
 
 def check_image(data: bytes) -> Rejection | None:
     """Refuse empty files and files that do not start like a JPEG, PNG, GIF or WebP.
 
-    ponytail: magic bytes only; a truncated image with a valid header passes until the
-    image tools of T-12 decode it.
+    ponytail: magic bytes only; a truncated image with a valid header passes here and
+    decodes to nothing later (no QR, no text).
 
     Args:
         data: Downloaded file.
@@ -29,8 +48,7 @@ def check_image(data: bytes) -> Rejection | None:
     Returns:
         ``None`` if it looks like an image, else an ``INVALID_ATTACHMENT`` rejection.
     """
-    webp = data[:4] == b"RIFF" and data[8:12] == b"WEBP"
-    if data.startswith(_IMAGE_MAGIC) or webp:
+    if image_mime(data):
         return None
     detail = "empty file" if not data else "not a JPEG, PNG, GIF or WebP"
     return Rejection(error_code="INVALID_ATTACHMENT", message=detail)
