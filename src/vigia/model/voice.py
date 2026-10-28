@@ -11,6 +11,7 @@ from uuid import uuid4
 
 import httpx
 
+from vigia import telemetry
 from vigia.config import Settings
 from vigia.domain.reading import Transcript
 from vigia.domain.rejection import Rejection
@@ -34,7 +35,7 @@ class VoiceClient:
             client: HTTP client; tests pass one with ``httpx.MockTransport``.
         """
         self._key = api_key
-        self._client = client or httpx.Client()
+        self._client = client or httpx.Client(event_hooks=telemetry.MODEL_HOOKS)
 
     def __call__(self, wav: bytes, language: str) -> Transcript | Rejection:
         """Transcribe one WAV (already checked by :func:`~vigia.domain.attachment.check_wav`).

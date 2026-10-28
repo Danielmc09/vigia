@@ -383,7 +383,7 @@ async def save_verdict(
         verdict.confidence,
         signal_types,
         tools,
-        sum(float(tool.get("usd") or 0) for tool in verdict.tools_used),
+        verdict.usd,
         verdict.total_latency_ms,
     )
 

@@ -1,9 +1,10 @@
 """Runtime configuration read from the environment (the only place that reads it)."""
 
+import re
 from pathlib import Path
 from typing import Literal, Self
 
-from pydantic import Field, SecretStr, model_validator
+from pydantic import Field, SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 PANEL_TOKEN_MIN = 32
@@ -37,6 +38,9 @@ class Settings(BaseSettings):
         wazenda_line_id: WhatsApp line VIGIA sends from.
         wazenda_webhook_secret: HMAC key of ``X-Wazenda-Signature``; unset refuses every
             webhook (specs/01).
+        metrics_token: Bearer token for ``/metrics`` (specs/11); unset means no endpoint.
+        sentry_dsn: Sentry DSN; unset leaves error reporting off (D-084).
+        operator_phone: WhatsApp number the sentinel alerts (specs/11 section 4).
     """
 
     model_config = SettingsConfigDict(populate_by_name=True)
@@ -73,6 +77,20 @@ class Settings(BaseSettings):
         None, validation_alias="WAZENDA_WEBHOOK_SECRET"
     )
 
+    metrics_token: SecretStr | None = Field(None, validation_alias="METRICS_TOKEN")
+    sentry_dsn: SecretStr | None = Field(None, validation_alias="SENTRY_DSN")
+    operator_phone: str | None = Field(None, validation_alias="OPERADOR_TELEFONO")
+
+    @field_validator("operator_phone", mode="before")
+    @classmethod
+    def _operator_phone_e164(cls, raw: str | None) -> str | None:
+        """Blank means unset; anything else must be E.164, or the sentinel texts nobody."""
+        if not raw:
+            return None
+        if not re.fullmatch(r"\+[1-9]\d{7,14}", raw):
+            raise ValueError("OPERADOR_TELEFONO must be E.164, e.g. +573000000001")
+        return raw
+
     @model_validator(mode="after")
     def _prod_needs_explicit_dsns(self) -> Self:
         """Refuse the local-compose default DSNs in production."""
@@ -93,11 +111,12 @@ class Settings(BaseSettings):
         return self
 
     @model_validator(mode="after")
-    def _panel_token_is_long(self) -> Self:
-        """Refuse a guessable operator token (D-073)."""
-        token = self.panel_token
-        if token is not None and len(token.get_secret_value()) < PANEL_TOKEN_MIN:
-            raise ValueError(f"VIGIA_PANEL_TOKEN needs at least {PANEL_TOKEN_MIN} characters")
+    def _tokens_are_long(self) -> Self:
+        """Refuse a guessable operator or metrics token (D-073)."""
+        tokens = {"VIGIA_PANEL_TOKEN": self.panel_token, "METRICS_TOKEN": self.metrics_token}
+        for name, token in tokens.items():
+            if token is not None and len(token.get_secret_value()) < PANEL_TOKEN_MIN:
+                raise ValueError(f"{name} needs at least {PANEL_TOKEN_MIN} characters")
         return self
 
 

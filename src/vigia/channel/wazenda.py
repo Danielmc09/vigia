@@ -21,6 +21,7 @@ import av
 import httpx
 from pydantic import BaseModel, Field, ValidationError
 
+from vigia import telemetry
 from vigia.domain.attachment import (
     CHANNELS,
     SAMPLE_RATE,
@@ -105,16 +106,8 @@ def to_message(raw: dict[str, Any]) -> IncomingMessage | None:
     )
 
 
-def mask(phone: str) -> str:
-    """A phone fit for logs: country and prefix, then the last four digits.
-
-    Args:
-        phone: Normalized phone.
-
-    Returns:
-        ``+57300***0001``; ``***`` for anything too short to mask.
-    """
-    return f"{phone[:6]}***{phone[-4:]}" if len(phone) >= 10 else "***"
+HTTP_TIMEOUT_S = 30
+"""Seconds for one call to Wazenda (send or media download)."""
 
 
 def _unavailable(detail: str) -> Rejection:
@@ -216,14 +209,22 @@ class Wazenda:
                     f"{self.base_url}/messages", json=body, headers=headers
                 )
             except httpx.HTTPError as exc:
-                log.warning("wazenda_send_failed to=%s error=%s", mask(number), type(exc).__name__)
+                log.warning(
+                    "wazenda_send_failed to=%s error=%s",
+                    telemetry.mask_phone(number),
+                    type(exc).__name__,
+                )
                 return False
             if response.status_code != httpx.codes.TOO_MANY_REQUESTS or attempt == RETRIES:
                 break
             await self.sleep(2**attempt + self.jitter())
         if response.is_success:
             return True
-        log.warning("wazenda_send_failed to=%s status=%s", mask(number), response.status_code)
+        log.warning(
+            "wazenda_send_failed to=%s status=%s",
+            telemetry.mask_phone(number),
+            response.status_code,
+        )
         return False
 
 

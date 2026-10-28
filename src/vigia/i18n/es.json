@@ -125,5 +125,7 @@
   "scam_confirmed.unknown": "No encontré ese caso en tu negocio. Copia el id tal como aparece en la respuesta de VIGÍA.",
   "scam_confirmed.nothing": "Ese caso no tiene enlaces ni texto suficiente para reconocerlo después. No guardé nada.",
   "attachment.too_large": "El archivo pesa más de 10 MB y no lo puedo revisar. Envíame una captura o el texto del mensaje.",
-  "attachment.unavailable": "No pude descargar el archivo en este momento. Vuelve a enviarlo en unos minutos."
+  "attachment.unavailable": "No pude descargar el archivo en este momento. Vuelve a enviarlo en unos minutos.",
+  "operator.alert": "VIGÍA alerta {name}: valor {value}, umbral {threshold}, caso {case_id}, traza {trace_id}. Qué hacer: {runbook}",
+  "operator.test_alert": "VIGÍA: alerta de prueba del centinela, traza {trace_id}. Si te llegó, el canal al operador funciona. Qué hacer: {runbook}"
 }

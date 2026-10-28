@@ -9,6 +9,7 @@ from typing import Any, get_args
 
 import httpx
 
+from vigia import telemetry
 from vigia.config import Settings
 from vigia.domain.gate import MOCK_ANSWER, Judge, JudgeAnswer, Triage, mock_judge
 
@@ -48,7 +49,7 @@ class JevJudge:
             client: HTTP client; tests pass one with ``httpx.MockTransport``.
         """
         self._key = api_key
-        self._client = client or httpx.Client(timeout=TIMEOUT_S)
+        self._client = client or httpx.Client(timeout=TIMEOUT_S, event_hooks=telemetry.JEV_HOOKS)
 
     def _ask(self, state: str, question: dict[str, Any]) -> dict[str, Any]:
         """One question, one call; returns the answer object for that question."""

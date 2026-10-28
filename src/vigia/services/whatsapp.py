@@ -11,12 +11,14 @@ from collections.abc import Awaitable, Callable, Mapping, Sequence
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from functools import partial
+from typing import NamedTuple
 
 import asyncpg
 import httpx
 
+from vigia import telemetry
 from vigia.channel.templates import team_alert_message, whatsapp_message
-from vigia.channel.wazenda import Wazenda, mask, ogg_to_wav
+from vigia.channel.wazenda import HTTP_TIMEOUT_S, Wazenda, ogg_to_wav
 from vigia.config import Settings
 from vigia.domain.attachment import Attachment, sniff
 from vigia.domain.case import Case, IncomingMessage
@@ -118,9 +120,25 @@ async def _first_media(conn: asyncpg.Connection, vault: Vault, data: bytes) -> b
     return await store.first_webhook_event(conn, vault.hash(f"media:{vault.business_id}:{digest}"))
 
 
+class MediaRead(NamedTuple):
+    """An attachment turned into text.
+
+    Attributes:
+        msg: The message with its ``kind``, ``text`` and checked attachment.
+        data: The checked bytes (the analyst's ``crop`` reuses them).
+        qr_urls: Links decoded from a QR.
+        usd: What the reader cost.
+    """
+
+    msg: IncomingMessage
+    data: bytes
+    qr_urls: tuple[str, ...]
+    usd: float
+
+
 async def _read_media(
     channel: Channel, msg: IncomingMessage, language: str, first: Callable[[bytes], Awaitable[bool]]
-) -> tuple[IncomingMessage, bytes, tuple[str, ...]] | str:
+) -> MediaRead | str:
     """Download the attachment and turn it into text; a string is the reply instead.
 
     ``first`` claims the bytes before any reader is paid; a repeat is answered as a duplicate.
@@ -149,7 +167,8 @@ async def _read_media(
         return transcription.reply(read, language, transcription.REPLY_KEYS[reader_kind])
     attachment = Attachment(ref=msg.attachments[0].ref, mime=mime)
     update = {"kind": kind, "text": read.text, "attachments": [attachment]}
-    return msg.model_copy(update=update), data, read.qr_urls
+    telemetry.add_usd(read.usd)
+    return MediaRead(msg.model_copy(update=update), data, read.qr_urls, read.usd)
 
 
 async def process(conn: asyncpg.Connection, channel: Channel, msg: IncomingMessage) -> None:
@@ -160,6 +179,12 @@ async def process(conn: asyncpg.Connection, channel: Channel, msg: IncomingMessa
         channel: Outbound ports and readers.
         msg: Message parsed from a verified webhook.
     """
+    with telemetry.scope():
+        await _process(conn, channel, msg)
+
+
+async def _process(conn: asyncpg.Connection, channel: Channel, msg: IncomingMessage) -> None:
+    """:func:`process` under one trace."""
     sender = normalize_contact(msg.sender)
     media: bytes | None = None
     qr: tuple[str, ...] = ()
@@ -170,13 +195,15 @@ async def process(conn: asyncpg.Connection, channel: Channel, msg: IncomingMessa
             first = partial(_first_media, conn, vault)
             claim = conn.transaction()  # savepoint: the media claim lives only if the read does
             await claim.start()
-            read = await _read_media(channel, msg, business.language, first)
+            with telemetry.stage("gate") as cost:
+                read = await _read_media(channel, msg, business.language, first)
+                cost["usd"] = read.usd if not isinstance(read, str) else 0.0
             if isinstance(read, str):
                 await claim.rollback()  # a refused or failed read can be sent again (D-083)
                 await channel.wazenda.send(sender, read)
                 return
             await claim.commit()
-            msg, media, qr = read
+            msg, media, qr = read.msg, read.data, read.qr_urls
     cases: list[Case] = []
 
     async def capture(case: Case) -> None:
@@ -185,7 +212,8 @@ async def process(conn: asyncpg.Connection, channel: Channel, msg: IncomingMessa
     async def no_email(to: str, body: str) -> None:
         log.warning("email_sender_missing channel=wazenda")  # ponytail: Resend arrives with T-17
 
-    reply = await ingest.handle(conn, ingest.Ports(channel.keyring, no_email, capture), msg)
+    with telemetry.stage("gate"):
+        reply = await ingest.handle(conn, ingest.Ports(channel.keyring, no_email, capture), msg)
     if reply is not None:
         await channel.wazenda.send(sender, reply)
     for case in cases:
@@ -196,6 +224,14 @@ async def _judge(
     conn: asyncpg.Connection, channel: Channel, case: Case, media: bytes | None
 ) -> None:
     """Verdict, store, reply, and the team alert when it is a new scam of its brand."""
+    with telemetry.scope(case_id=str(case.id), business_id=str(case.business_id)):
+        await _judge_traced(conn, channel, case, media)
+
+
+async def _judge_traced(
+    conn: asyncpg.Connection, channel: Channel, case: Case, media: bytes | None
+) -> None:
+    """:func:`_judge` with the case ids bound."""
     business, vault = await store.open_business(conn, channel.keyring, case.business_id)
     lang = business.language
     pack = await business_pack(conn, channel.config, case.country, vault.hash(str(business.id)))
@@ -206,8 +242,11 @@ async def _judge(
     last = await store.last_verdict_at(conn, SCAM, verdict.impersonated_brand)
     await store.save_verdict(conn, vault, case, verdict)
     sender = normalize_contact(case.sender or "")
-    await channel.wazenda.send(sender, whatsapp_message(verdict, lang))
-    if verdict.label != SCAM or not should_alert_team(last, datetime.now(UTC)):
+    with telemetry.stage("reply"):
+        await channel.wazenda.send(sender, whatsapp_message(verdict, lang))
+    with telemetry.stage("policy"):
+        alert_team = verdict.label == SCAM and should_alert_team(last, datetime.now(UTC))
+    if not alert_team:
         return
     team = await store.team(conn, vault)
     reporter = next((c.name for c in team if c.phone == sender and c.name), None)
@@ -217,10 +256,11 @@ async def _judge(
         t(lang, f"team_alert.kind.{case.kind}"),
         verdict.impersonated_brand,
     )
-    for contact in team:
-        if contact.phone != sender:
-            await channel.wazenda.send(contact.phone, alert)
-    log.info("team_alerted from=%s members=%d", mask(sender), len(team) - 1)
+    with telemetry.stage("reply"):
+        for contact in team:
+            if contact.phone != sender:
+                await channel.wazenda.send(contact.phone, alert)
+    log.info("team_alerted from=%s members=%d", telemetry.mask_phone(sender), len(team) - 1)
 
 
 def model_readers(config: Settings) -> dict[str, Transcriber]:
@@ -241,11 +281,12 @@ def model_readers(config: Settings) -> dict[str, Transcriber]:
     return {kind: reader for kind, reader in found.items() if reader is not None}
 
 
-def live(config: Settings) -> WebhookPorts:
+def live(config: Settings, metrics: telemetry.Metrics) -> WebhookPorts:
     """The real webhook ports: Postgres, Wazenda, Meta models (built on the first request).
 
     Args:
         config: Settings with the Wazenda and model keys.
+        metrics: The app's instruments; each message is recorded into them.
 
     Returns:
         Ports that open their own connection per call.
@@ -264,7 +305,7 @@ def live(config: Settings) -> WebhookPorts:
         load = (lambda _ref: media) if media else None  # crop reuses the checked bytes
         return spark_analyst(spark, suppliers, sam, load)
 
-    http = httpx.AsyncClient(timeout=30)
+    http = httpx.AsyncClient(timeout=HTTP_TIMEOUT_S)
     wazenda = Wazenda(
         config.wazenda_base_url,
         config.wazenda_api_key.get_secret_value(),
@@ -285,7 +326,8 @@ def live(config: Settings) -> WebhookPorts:
         conn = await asyncpg.connect(config.database_url)
         try:
             async with conn.transaction():
-                await process(conn, channel, msg)
+                with telemetry.recording(metrics):
+                    await process(conn, channel, msg)
         finally:
             await conn.close()
 

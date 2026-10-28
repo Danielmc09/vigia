@@ -637,7 +637,6 @@ def test_c10_jev_down_or_without_key_falls_back_to_mock_investigate() -> None:
 
 
 @pytest.mark.edge("C12")
-@_xfail("T-13b: /salud checks its dependencies")
 def test_c12_health_fails_when_postgres_is_down() -> None:
     down = Settings(database_url="postgresql://vigia_app:x@127.0.0.1:1/vigia")
 

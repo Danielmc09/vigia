@@ -10,4 +10,4 @@ def test_health_endpoint_answers_ok() -> None:
     response = client.get("/salud")
 
     assert response.status_code == 200
-    assert response.json() == {"status": "ok"}
+    assert response.json()["status"] == "ok"

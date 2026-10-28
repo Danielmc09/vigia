@@ -13,7 +13,8 @@ import av
 import httpx
 import pytest
 
-from vigia.channel.wazenda import Wazenda, mask, ogg_to_wav, signed_payload, to_message
+from vigia import telemetry
+from vigia.channel.wazenda import Wazenda, ogg_to_wav, signed_payload, to_message
 from vigia.domain.attachment import MAX_ATTACHMENT_BYTES, check_wav, sniff
 from vigia.domain.rejection import Rejection
 
@@ -134,8 +135,8 @@ def test_events_to_ignore(raw: dict[str, Any]) -> None:
 
 
 def test_phones_are_masked_in_logs() -> None:
-    assert mask("+573000000001") == "+57300***0001"
-    assert mask("12") == "***"
+    assert telemetry.mask_phone("+573000000001") == "***0001"
+    assert telemetry.mask_phone("12") == "***"
 
 
 # --- media download (specs/01) --------------------------------------------------------

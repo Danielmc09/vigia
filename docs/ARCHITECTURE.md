@@ -33,8 +33,11 @@ graph TD
   subgraph support
     vigia.config
     vigia.i18n
+    vigia.telemetry
   end
   vigia.app --> vigia.config
+  vigia.services --> vigia.telemetry
+  vigia.telemetry --> vigia.domain
   vigia.store.migrate --> vigia.config
   vigia.store.crypto --> vigia.config
   vigia.app -.-> vigia.store

@@ -125,5 +125,7 @@
   "scam_confirmed.unknown": "I couldn't find that case in your business. Copy the id exactly as it appears in VIGIA's reply.",
   "scam_confirmed.nothing": "That case has no links and too little text to recognize it later. I saved nothing.",
   "attachment.too_large": "The file is over 10 MB and I can't check it. Send me a screenshot or the message text.",
-  "attachment.unavailable": "I couldn't download the file right now. Please send it again in a few minutes."
+  "attachment.unavailable": "I couldn't download the file right now. Please send it again in a few minutes.",
+  "operator.alert": "VIGÍA alert {name}: value {value}, threshold {threshold}, case {case_id}, trace {trace_id}. What to do: {runbook}",
+  "operator.test_alert": "VIGÍA: sentinel test alert, trace {trace_id}. If you got it, the operator channel works. What to do: {runbook}"
 }

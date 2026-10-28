@@ -16,6 +16,7 @@ from uuid import uuid4
 
 import asyncpg
 
+from vigia import telemetry
 from vigia.domain.case import Case, CaseKind, EmailMeta, IncomingMessage
 from vigia.domain.conversation import never, parse_chat, render_chat
 from vigia.domain.member import Business, normalize_contact
@@ -66,6 +67,7 @@ async def handle(conn: asyncpg.Connection, ports: Ports, msg: IncomingMessage) -
         if command and command.name == "enroll" and msg.origin != "email":
             return await enrollment.enroll(conn, ports.keyring, sender, command)
         await store.record_rejection(conn, sender_hash, msg.origin)
+        telemetry.count("rejected", "not_member")
         return None
     business, vault = await store.open_business(conn, ports.keyring, member.business_id)
     if _is_command(command):
@@ -75,8 +77,10 @@ async def handle(conn: asyncpg.Connection, ports: Ports, msg: IncomingMessage) -
         return t(business.language, "case.empty")  # specs/12 A1: no case, no model
     case = normalize(msg, business)
     if case is None:
+        telemetry.count("rejected", "unsupported")
         return t(business.language, "case.unsupported")
     if not await store.save_case(conn, vault, case):
+        telemetry.count("rejected", "duplicate")
         return t(business.language, "case.duplicate")
     await ports.analyze(case)
     return None

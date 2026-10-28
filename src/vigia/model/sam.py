@@ -14,6 +14,7 @@ import re
 
 import httpx
 
+from vigia import telemetry
 from vigia.config import Settings
 from vigia.domain.attachment import image_mime
 from vigia.domain.image import Box, Segmentation
@@ -69,7 +70,7 @@ class SamClient:
             client: HTTP client; tests pass one with ``httpx.MockTransport``.
         """
         self._key = api_key
-        self._client = client or httpx.Client()
+        self._client = client or httpx.Client(event_hooks=telemetry.MODEL_HOOKS)
         self.usd = 0.0
 
     def __call__(self, image: bytes, prompt: str) -> Segmentation | Rejection:

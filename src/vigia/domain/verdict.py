@@ -1,5 +1,6 @@
 """Verdict labels and the full Verdict schema: the only contract fusion outputs (specs/05)."""
 
+from collections.abc import Mapping, Sequence
 from datetime import datetime
 from typing import Any, Literal
 
@@ -62,6 +63,23 @@ class Verdict(BaseModel, frozen=True):
     tools_used: list[dict[str, Any]] = Field(default_factory=list)
     model: dict[str, Any] = Field(default_factory=dict)
     total_latency_ms: int = 0
+
+    @property
+    def usd(self) -> float:
+        """Model spend of the case: the sum of its tool calls' ``usd``."""
+        return tools_usd(self.tools_used)
+
+
+def tools_usd(tools_used: Sequence[Mapping[str, Any]]) -> float:
+    """The sum of the ``usd`` of some tool calls (``None`` counts as 0).
+
+    Args:
+        tools_used: ``Verdict.tools_used`` or ``AnalystResult.tools_used``.
+
+    Returns:
+        USD.
+    """
+    return sum(float(t.get("usd") or 0) for t in tools_used)
 
 
 class VerdictRow(BaseModel, frozen=True):

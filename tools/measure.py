@@ -21,6 +21,7 @@ from statistics import median
 from typing import Any
 from uuid import NAMESPACE_URL, uuid5
 
+from vigia import telemetry
 from vigia.config import settings
 from vigia.domain.attachment import Attachment
 from vigia.domain.case import Case, IncomingMessage
@@ -438,7 +439,7 @@ def summarize_adversarial(records: list[dict[str, Any]]) -> dict[str, Any]:
 
 def _adversarial(path: Path, json_out: Path | None, out_dir: Path) -> int:
     """Run the adversarial set, save its dated result apart and report it."""
-    records = [grade_adversarial(seq) for seq in _load(path, None)]
+    records = [grade_adversarial(seq) for seq in load(path, None)]
     metrics = summarize_adversarial(records)
     code = EXIT_OK if metrics["pasan"] == metrics["secuencias"] else EXIT_GATE
     result = {"fecha": date.today().isoformat(), "modo": "adversarios", "metricas": metrics}
@@ -469,7 +470,8 @@ def _parse(argv: list[str]) -> argparse.Namespace:
     return parser.parse_args(argv)
 
 
-def _load(path: Path, where: str | None) -> list[dict[str, Any]]:
+def load(path: Path, where: str | None) -> list[dict[str, Any]]:
+    """The records of a JSONL eval file, optionally only those where ``campo=valor``."""
     cases = [json.loads(line) for line in path.read_text("utf-8").splitlines() if line.strip()]
     if not where:
         return cases
@@ -484,7 +486,7 @@ def _unavailable(args: argparse.Namespace, out_dir: Path) -> str:
     return "full mode needs MODEL_API_KEY (run with --env-file .env); or use --solo-deterministas"
 
 
-def _full() -> Classifier | None:
+def full() -> Classifier | None:
     """The full system, or ``None`` without a model key."""
     spark = make_spark(settings)
     return with_analyst(spark, make_judge(settings)) if spark else None
@@ -539,7 +541,7 @@ def _skip_unheard(
     return [c for c in cases if c not in deaf], skipped
 
 
-def _real_readers() -> dict[str, Transcriber]:
+def real_readers() -> dict[str, Transcriber]:
     """Voice, Spark's PDF and image readers, whichever has a ``MODEL_API_KEY`` behind it."""
     found = whatsapp.model_readers(settings)
     return {"imagen" if kind == "image" else kind: reader for kind, reader in found.items()}
@@ -575,13 +577,13 @@ def main(
     if args.adversarios and adversarial.is_file():
         return _adversarial(adversarial, args.json, out_dir)
     if classify is None and not args.adversarios:
-        classify = deterministic if args.solo_deterministas else _full()
+        classify = deterministic if args.solo_deterministas else full()
     if args.adversarios or classify is None:
         print(f"medir: {_unavailable(args, out_dir)}", file=sys.stderr)
         return EXIT_UNAVAILABLE
     if readers is None:
-        readers = {} if args.solo_deterministas else _real_readers()
-    runnable, skipped = _skip_unheard(_load(args.path, args.filtro), readers)
+        readers = {} if args.solo_deterministas else real_readers()
+    runnable, skipped = _skip_unheard(load(args.path, args.filtro), readers)
     records, over_budget = run(runnable, classify, args.max_usd, readers)
     metrics = summarize(records)
     failures = gate_failures(metrics, full=mode == "completo")
@@ -606,4 +608,5 @@ def main(
 
 
 if __name__ == "__main__":
+    telemetry.configure_logging(sys.stderr)  # stdout carries only the report
     sys.exit(main(sys.argv[1:]))

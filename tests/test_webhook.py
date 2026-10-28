@@ -185,7 +185,7 @@ async def test_a_stale_message_is_ignored_and_logged_without_pii(
     assert response.status_code == 200 and response.json() == {"status": "ignored"}
     assert fake.processed == []
     assert "webhook_stale" in caplog.text
-    assert "+57300***0001" in caplog.text
+    assert "***0001" in caplog.text
     assert "+573000000001" not in caplog.text and "Bancolombia" not in caplog.text
 
 

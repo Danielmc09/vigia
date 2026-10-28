@@ -12,6 +12,7 @@ from typing import Any
 
 import httpx
 
+from vigia import telemetry
 from vigia.config import Settings
 from vigia.domain.analyst import ModelRequest, ModelTurn, ToolCall
 from vigia.domain.attachment import image_mime
@@ -93,7 +94,7 @@ class SparkClient:
             client: HTTP client; tests pass one with ``httpx.MockTransport``.
         """
         self._key = api_key
-        self._client = client or httpx.Client()
+        self._client = client or httpx.Client(event_hooks=telemetry.MODEL_HOOKS)
         self.usd = 0.0
         self.tokens = 0
 

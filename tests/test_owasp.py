@@ -1,13 +1,21 @@
 """OWASP Web Top 10 checks that apply from T-00 (specs/10 section 5)."""
 
 import ast
+import io
+import json
+import logging
+import logging.config
 from pathlib import Path
 from uuid import uuid4
 
 import asyncpg
 import pytest
+import structlog
+import uvicorn.config
 from fastapi.testclient import TestClient
+from structlog.testing import capture_logs
 
+from vigia import telemetry
 from vigia.app import create_app
 from vigia.config import Settings
 from vigia.store.db import set_business
@@ -149,3 +157,46 @@ def test_a05_no_api_docs_in_prod(path: str) -> None:
     client = TestClient(create_app(prod))
 
     assert client.get(path).status_code == 404
+
+
+# --- A09 Logging failures: every case event is traceable and carries no PII --------
+
+
+def test_a09_case_logs_carry_ids_but_no_pii() -> None:
+    pii = ("+573000000799", "ana.torres@example.com", "Ana Torres")
+    text = f"{pii[2]} {pii[0]} {pii[1]}: Bancolombia bloqueo, verifique en https://bancolombia-seguro.co/v"
+
+    with capture_logs() as logs:
+        response = TestClient(create_app(Settings())).post(
+            "/caso", json={"country": "CO", "text": text}
+        )
+
+    assert response.status_code == 200
+    assert logs and all({"trace_id", "case_id", "business_id"} <= e.keys() for e in logs)
+    dump = json.dumps(logs, default=str)
+    assert not [value for value in pii if value in dump]
+
+
+def test_a09_uvicorn_errors_are_json_without_pii() -> None:
+    names = ("uvicorn", "uvicorn.error", "uvicorn.access")
+    saved = {n: (logging.getLogger(n).handlers[:], logging.getLogger(n).propagate) for n in names}
+    logging.config.dictConfig(uvicorn.config.LOGGING_CONFIG)  # what uvicorn does at start
+    out = io.StringIO()
+    telemetry.configure_logging(out)
+    try:
+        try:
+            raise ValueError("Ana Torres +573000000799")
+        except ValueError:
+            logging.getLogger("uvicorn.error").exception("Exception in ASGI application")
+    finally:
+        structlog.reset_defaults()
+        telemetry.reset_logging()
+        for name, (handlers, propagate) in saved.items():
+            logging.getLogger(name).handlers[:] = handlers
+            logging.getLogger(name).propagate = propagate
+
+    lines = [json.loads(line) for line in out.getvalue().splitlines()]
+    assert lines and lines[0]["event"] == "Exception in ASGI application"
+    assert "ValueError" in out.getvalue()
+    for pii in ("Ana Torres", "+573000000799", "0799"):
+        assert pii not in out.getvalue()

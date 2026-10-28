@@ -4,8 +4,10 @@ The single pipeline of specs/09 for ``/caso``, ``measure.py`` and the adversaria
 signals → (analyst) → fusion. The gate runs before, per chat, because it needs history.
 """
 
+import time
 from collections.abc import Callable, Sequence
 
+from vigia import telemetry
 from vigia.analyst import loop
 from vigia.domain.analyst import AnalystResult, Evidence
 from vigia.domain.case import Case
@@ -13,7 +15,7 @@ from vigia.domain.country import CountryPack
 from vigia.domain.gate import GateResult, Judge
 from vigia.domain.image import Segmenter
 from vigia.domain.member import Supplier
-from vigia.domain.verdict import Verdict
+from vigia.domain.verdict import Verdict, tools_usd
 from vigia.jev.gate import screen
 from vigia.model.spark import SparkClient
 from vigia.services import analyst_tools
@@ -71,11 +73,16 @@ def classify(case: Case, pack: CountryPack, gate: GateResult, analyst: Analyst |
     Returns:
         The verdict of specs/05.
     """
-    signals = detect(case, pack)
+    with telemetry.stage("rules"):
+        signals = detect(case, pack)
     evidence = Evidence(signals=signals, manipulation_detected=gate.manipulation_detected)
     if analyst is not None and not decided_by_rules(soften_citations(signals, case, pack)):
-        evidence = evidence.model_copy(update={"analyst": analyst(case, evidence, pack, gate)})
-    return build_verdict(case, evidence, pack)
+        with telemetry.stage("analyst") as cost:
+            read = analyst(case, evidence, pack, gate)
+            cost["usd"] = tools_usd(read.tools_used) if read else 0.0
+        evidence = evidence.model_copy(update={"analyst": read})
+    with telemetry.stage("fusion"):
+        return build_verdict(case, evidence, pack)
 
 
 def judge_case(case: Case, pack: CountryPack, judge: Judge, analyst: Analyst | None) -> Verdict:
@@ -93,4 +100,12 @@ def judge_case(case: Case, pack: CountryPack, judge: Judge, analyst: Analyst | N
     Returns:
         The verdict of specs/05.
     """
-    return classify(case, pack, screen(case.text or "", [], pack, judge), analyst)
+    business = "eval" if case.origin == "eval" else str(case.business_id)
+    with telemetry.scope(case_id=str(case.id), business_id=str(case.business_id)):
+        start = time.perf_counter()
+        with telemetry.stage("jev"):
+            gate = screen(case.text or "", [], pack, judge)
+        verdict = classify(case, pack, gate, analyst)
+        ms = (time.perf_counter() - start) * 1000
+        telemetry.count_case(verdict, business, ms)
+        return verdict
