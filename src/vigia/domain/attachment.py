@@ -1,4 +1,4 @@
-"""Attachment checks that decode nothing: size cap, image and PDF magic, canonical WAV (domain)."""
+"""Attachment checks before any model is paid: size, image decode, PDF magic, WAV (domain)."""
 
 import io
 import wave
@@ -6,7 +6,7 @@ from collections.abc import AsyncIterable
 
 from pydantic import BaseModel
 
-from vigia.domain.image import check_canvas
+from vigia.domain.image import check_canvas, open_image
 from vigia.domain.rejection import Rejection
 
 MAX_ATTACHMENT_BYTES = 10 * 1024 * 1024
@@ -38,13 +38,11 @@ def image_mime(data: bytes) -> str | None:
 
 
 def check_image(data: bytes) -> Rejection | None:
-    """Refuse an image by size, magic bytes and header, before anything decodes it.
+    """Refuse an image by size, magic bytes and header, then decode it before Spark is paid.
 
-    Over 10 MB or a header declaring more than 25 Mpx is ``TOO_LARGE`` (D-077); not a
-    JPEG, PNG, GIF or WebP, or a header PIL cannot read, is ``INVALID_ATTACHMENT``.
-
-    ponytail: the header is checked, the pixels are not; a truncated image with a valid
-    header passes here and decodes to nothing later (no QR, no text).
+    Over 10 MB or a header declaring more than 25 Mpx is ``TOO_LARGE`` (D-077), refused
+    before decoding; not a JPEG, PNG, GIF or WebP, or bytes that do not decode (a truncated
+    file with a valid header, incident adv-imagen-truncada) is ``INVALID_ATTACHMENT``.
 
     Args:
         data: Downloaded file.
@@ -57,7 +55,13 @@ def check_image(data: bytes) -> Rejection | None:
     if not image_mime(data):
         detail = "empty file" if not data else "not a JPEG, PNG, GIF or WebP"
         return Rejection(error_code="INVALID_ATTACHMENT", message=detail)
-    return check_canvas(data)
+    if refused := check_canvas(data):
+        return refused
+    try:
+        open_image(data).close()
+    except ValueError as exc:
+        return Rejection(error_code="INVALID_ATTACHMENT", message=str(exc))
+    return None
 
 
 def check_pdf(data: bytes, max_bytes: int) -> Rejection | None:
