@@ -1,0 +1,3 @@
+[12/10/26, 10:01:02] +57 312 150 4567: Hola, el cachorro cuesta 400 mil, se lo entrego en su casa y paga al recibir
+[12/10/26, 10:02:10] Yo: listo, ya le pagué
+[12/10/26, 10:03:00] +57 312 150 4567: ahora el transporte cuesta 150 mil, sin eso no lo despachan
