@@ -17,7 +17,7 @@ from PIL import Image
 
 from vigia.domain.attachment import image_mime
 from vigia.domain.case import Case
-from vigia.domain.image import QR_PROMPT, Box, Segmentation, crop
+from vigia.domain.image import QR_PROMPT, Box, Segmentation, crop, shrink
 from vigia.domain.knowledge import hamming, image_phash
 from vigia.domain.reading import Transcript
 from vigia.domain.rejection import Rejection
@@ -192,7 +192,28 @@ def test_spark_reads_an_image_as_an_image_url_part_with_a_text_schema() -> None:
     assert "tools" not in sent
 
 
-@pytest.mark.xfail(strict=True, reason="incident adv-imagen-cmyk")
+def test_spark_gets_a_large_image_shrunk_to_the_read_side() -> None:
+    """Up to 25 Mpx pass ``check_image``; Spark is billed for a bounded image (juez T-12)."""
+    body: dict[str, Any] = json.loads((FIXTURES / "chat_image.json").read_text("utf-8"))["response"]
+    body["choices"][0]["message"]["content"] = json.dumps({"text": "x"})
+    seen: list[httpx.Request] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        seen.append(request)
+        return httpx.Response(200, json=body)
+
+    spark = SparkClient("k", httpx.Client(transport=httpx.MockTransport(handler)))
+    buf = io.BytesIO()
+    Image.new("RGB", (6000, 4000), "white").save(buf, format="PNG")
+
+    spark.read_image(buf.getvalue(), "es")
+
+    parts = json.loads(seen[0].content)["messages"][0]["content"]
+    url = next(p for p in parts if p["type"] == "image_url")["image_url"]["url"]
+    sent = Image.open(io.BytesIO(base64.b64decode(url.split(",", 1)[1])))
+    assert url.startswith("data:image/png;base64,") and sent.size == (2048, 1365)
+
+
 def test_adv_imagen_cmyk() -> None:
     """A large CMYK JPEG is shrunk as a JPEG, not crashed into a PNG (revisor MENOR 3)."""
     body: dict[str, Any] = json.loads((FIXTURES / "chat_image.json").read_text("utf-8"))["response"]
@@ -510,3 +531,13 @@ def test_adv_imagen_truncada() -> None:
         result = transcription.read_image(data, "es", reader)
         assert isinstance(result, Rejection) and result.error_code == "INVALID_ATTACHMENT"
     assert reader.calls == []
+
+
+def test_shrink_keeps_webp_as_webp_and_bilevel_png_small() -> None:
+    """WebP stays WebP and a 1-bit PNG is not inflated to RGB (revisor MENOR 3, D-078)."""
+    webp, bilevel = io.BytesIO(), io.BytesIO()
+    Image.new("RGB", (3000, 2000), "white").save(webp, format="WEBP")
+    Image.new("1", (3000, 2000), 1).save(bilevel, format="PNG")
+
+    assert Image.open(io.BytesIO(shrink(webp.getvalue()))).format == "WEBP"
+    assert Image.open(io.BytesIO(shrink(bilevel.getvalue()))).mode == "1"

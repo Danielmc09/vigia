@@ -16,6 +16,8 @@ CROP_MARGIN = 0.15  # share of the box added on each side: SAM boxes hug the QR'
 CROP_MIN_SIDE = 400  # px; small crops are upscaled to this before decoding (D-076)
 MAX_IMAGE_PIXELS = 25_000_000  # D-077: a phone screenshot is ~3 Mpx; above this, refused
 MAX_BOXES = 8  # D-077: SAM boxes cropped and decoded per image, largest first
+READ_MAX_SIDE = 2048  # D-078: px; longest side sent to a paid reader, a phone screenshot fits
+_PNG_MODES = ("1", "L", "LA", "P", "RGB", "RGBA")  # saved as is; any other mode goes to RGB
 Image.MAX_IMAGE_PIXELS = MAX_IMAGE_PIXELS  # safety net: PIL raises above twice it
 
 
@@ -104,6 +106,32 @@ def open_image(data: bytes) -> Image.Image:
     except (OSError, Image.DecompressionBombError) as exc:
         raise ValueError(f"not a decodable image: {type(exc).__name__}") from exc
     return image
+
+
+def shrink(data: bytes, max_side: int = READ_MAX_SIDE) -> bytes:
+    """The image as sent to a paid reader: untouched if it fits, else downscaled to ``max_side``.
+
+    A JPEG or WebP keeps its format (quality 85, so a photo does not inflate as PNG);
+    anything else becomes a PNG. Modes the target cannot hold (CMYK, incident
+    adv-imagen-cmyk) go to RGB.
+
+    Args:
+        data: A checked image (``check_image`` passed).
+        max_side: Longest side allowed, in px.
+
+    Returns:
+        ``data`` itself, or a downscaled JPEG, WebP or PNG keeping the aspect ratio.
+    """
+    with open_image(data) as image:
+        if max(image.size) <= max_side:
+            return data
+        fmt = image.format if image.format in ("JPEG", "WEBP") else "PNG"
+        image.thumbnail((max_side, max_side), Image.Resampling.LANCZOS)
+        keeps = {"JPEG": ("RGB", "L"), "WEBP": ("RGB", "RGBA")}.get(fmt, _PNG_MODES)
+        small = image if image.mode in keeps else image.convert("RGB")
+        buf = io.BytesIO()
+        small.save(buf, format=fmt, quality=85)
+    return buf.getvalue()
 
 
 def largest(boxes: Sequence[Box], limit: int = MAX_BOXES) -> list[Box]:

@@ -15,6 +15,7 @@ import httpx
 from vigia.config import Settings
 from vigia.domain.analyst import ModelRequest, ModelTurn, ToolCall
 from vigia.domain.attachment import image_mime
+from vigia.domain.image import shrink
 from vigia.domain.reading import Transcript
 from vigia.domain.rejection import Rejection
 
@@ -225,6 +226,8 @@ class SparkClient:
     def read_image(self, image: bytes, language: str) -> Transcript | Rejection:
         """Read the visible text of a screenshot (D-076); it is never shown (regla 14).
 
+        An image over ``READ_MAX_SIDE`` is downscaled first, so the bill is bounded (D-078).
+
         Args:
             image: A file that already passed :func:`~vigia.domain.attachment.check_image`.
             language: Language hint (``es``/``en``).
@@ -232,6 +235,7 @@ class SparkClient:
         Returns:
             The text and its cost, or ``MODEL_UNAVAILABLE``.
         """
+        image = shrink(image)
         data_url = f"data:{image_mime(image)};base64," + base64.b64encode(image).decode()
         part = {"type": "image_url", "image_url": {"url": data_url}}
         return self._read(part, IMAGE_PROMPT.format(language=language), IMAGE_MAX_TOKENS)
