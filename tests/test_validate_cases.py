@@ -76,7 +76,13 @@ def test_dudoso_is_allowed_when_the_case_is_ambiguous(tmp_path: Path) -> None:
 def test_legit_category_must_expect_legitimo(tmp_path: Path) -> None:
     errors = _errors(tmp_path, {**SCAM, "categoria": "legitimo_banco"}, LEGIT)
 
-    assert errors == ["c-1: categoria legitimo_banco requires esperado=legitimo"]
+    assert errors == ["c-1: categoria legitimo_banco requires esperado=legitimo or dudoso"]
+
+
+def test_ambiguous_legit_category_may_expect_dudoso(tmp_path: Path) -> None:
+    unclear = {**SCAM, "categoria": "legitimo_otro", "esperado": "dudoso", "ambiguo": "x"}
+
+    assert _errors(tmp_path, unclear, LEGIT) == []
 
 
 def test_existing_attachment_is_accepted(tmp_path: Path) -> None:

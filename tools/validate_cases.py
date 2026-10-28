@@ -59,8 +59,8 @@ def _consistency_errors(case: dict[str, Any], brands: dict[str, set[str]], root:
     if case.get("esperado") == "dudoso" and not case.get("ambiguo"):
         errors.append("esperado=dudoso requires ambiguo")
     category = str(case.get("categoria") or "")
-    if category.startswith("legitimo_") and case.get("esperado") != "legitimo":
-        errors.append(f"categoria {category} requires esperado=legitimo")
+    if category.startswith("legitimo_") and case.get("esperado") not in ("legitimo", "dudoso"):
+        errors.append(f"categoria {category} requires esperado=legitimo or dudoso")
     if case.get("fuente") and not (root / case["fuente"]).is_file():
         errors.append(f"fuente not found: {case['fuente']}")
     if case.get("kb_test") not in (None, True, False):
