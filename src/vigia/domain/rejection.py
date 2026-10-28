@@ -23,6 +23,8 @@ RejectionCode = Literal[
     "BAD_ARGUMENTS",
     "LIMIT_REACHED",
     "MODEL_UNAVAILABLE",
+    # Channel (T-10): the media could not be downloaded from Wazenda.
+    "CHANNEL_UNAVAILABLE",
 ]
 
 

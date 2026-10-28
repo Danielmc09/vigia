@@ -6,6 +6,7 @@ links are decoded here too and travel apart, as ``Case.qr_urls`` (D-070, D-071, 
 """
 
 from collections.abc import Mapping
+from typing import TYPE_CHECKING
 
 from vigia.domain.attachment import check_image, check_pdf, check_wav
 from vigia.domain.image import QR_PROMPT, Segmenter
@@ -13,6 +14,9 @@ from vigia.domain.reading import Transcriber, Transcript
 from vigia.domain.rejection import Rejection, RejectionCode
 from vigia.i18n import t
 from vigia.signals.qr import qr_urls
+
+if TYPE_CHECKING:
+    from vigia.config import Settings
 
 REPLY_KEY: dict[RejectionCode, str] = {
     "UNSUPPORTED_AUDIO": "audio.unsupported",
@@ -35,6 +39,13 @@ IMAGE_REPLY_KEY: dict[RejectionCode, str] = {
     "MODEL_UNAVAILABLE": "image.unavailable",
 }
 """i18n key of the reply for each way an image can fail to become text."""
+
+REPLY_KEYS: dict[str, Mapping[RejectionCode, str]] = {
+    "audio": REPLY_KEY,
+    "pdf": PDF_REPLY_KEY,
+    "image": IMAGE_REPLY_KEY,
+}
+"""The reply keys of each reader kind, for :func:`reply`."""
 
 
 def transcribe(
@@ -132,6 +143,25 @@ def image_reader(read: Transcriber, segment: Segmenter | None) -> Transcriber:
         return text.model_copy(update={"qr_urls": links, "usd": text.usd + sam_usd})
 
     return reader
+
+
+def checked(kind: str, reader: Transcriber, config: "Settings") -> Transcriber:
+    """The reader of ``kind`` behind its free check: the model is paid only if it passes.
+
+    Args:
+        kind: ``audio``, ``pdf``, or anything else for an image.
+        reader: Voice, Spark's PDF reader or :func:`image_reader`, or a fake in tests.
+        config: Settings with the audio and PDF caps.
+
+    Returns:
+        A :data:`Transcriber` that runs :func:`transcribe`, :func:`read_pdf` or
+        :func:`read_image` (blocking: it calls the model).
+    """
+    if kind == "audio":
+        return lambda data, lang: transcribe(data, lang, reader, config.voice_max_seconds)
+    if kind == "pdf":
+        return lambda data, lang: read_pdf(data, lang, reader, config.pdf_max_bytes)
+    return lambda data, lang: read_image(data, lang, reader)
 
 
 def reply(

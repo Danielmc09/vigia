@@ -343,7 +343,6 @@ async def test_a16_nested_eml_is_processed_only_at_the_first_level(
 
 
 @pytest.mark.edge("B1", "B2")
-@_xfail("T-10: Wazenda webhook (signature format pending T-01 fixtures)")
 def test_b1_b2_webhook_rejects_an_unsigned_request_with_401() -> None:
     client = TestClient(create_app(Settings()))
     body = {"message_id": "m-1", "from": OWNER, "text": "hola"}

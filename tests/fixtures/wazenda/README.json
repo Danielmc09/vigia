@@ -1,0 +1,4 @@
+{
+  "nota": "Fixtures con la forma del contrato de specs/01 (28 oct). Números y line_id sintéticos. T-01 los reemplaza por capturas reales anonimizadas.",
+  "firma": "X-Wazenda-Signature: sha256=<HMAC-SHA256(WAZENDA_WEBHOOK_SECRET, cuerpo crudo)>"
+}

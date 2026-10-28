@@ -7,6 +7,8 @@ from pydantic import Field, SecretStr, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 PANEL_TOKEN_MIN = 32
+WEBHOOK_CONCURRENCY = 8
+"""Webhook messages processed at once; the rest wait their turn (each holds a DB connection)."""
 
 
 class Settings(BaseSettings):
@@ -30,6 +32,11 @@ class Settings(BaseSettings):
         panel_token: Operator token for ``/panel`` (D-073); unset means no panel at all.
         panel_metrics: Eval result whose metrics the panel shows, if the file exists;
             relative to the working directory (``/app`` in the image, D-072).
+        wazenda_base_url: Wazenda public API; media is only downloaded from its exact host.
+        wazenda_api_key: ``X-API-Key`` for downloads and sends.
+        wazenda_line_id: WhatsApp line VIGIA sends from.
+        wazenda_webhook_secret: HMAC key of ``X-Wazenda-Signature``; unset refuses every
+            webhook (specs/01).
     """
 
     model_config = SettingsConfigDict(populate_by_name=True)
@@ -57,6 +64,14 @@ class Settings(BaseSettings):
     panel_metrics: Path = Field(
         Path("evals/ultimo.resultado.json"), validation_alias="VIGIA_PANEL_METRICS"
     )
+    wazenda_base_url: str = Field(
+        "https://wazenda.com/api/v1/public", validation_alias="WAZENDA_BASE_URL"
+    )
+    wazenda_api_key: SecretStr | None = Field(None, validation_alias="WAZENDA_API_KEY")
+    wazenda_line_id: str | None = Field(None, validation_alias="WAZENDA_LINE_ID")
+    wazenda_webhook_secret: SecretStr | None = Field(
+        None, validation_alias="WAZENDA_WEBHOOK_SECRET"
+    )
 
     @model_validator(mode="after")
     def _prod_needs_explicit_dsns(self) -> Self:
@@ -65,6 +80,16 @@ class Settings(BaseSettings):
         if self.mode == "prod" and missing:
             names = ", ".join(sorted(name.upper() for name in missing))
             raise ValueError(f"prod requires explicit {names}")
+        return self
+
+    @model_validator(mode="after")
+    def _wazenda_all_or_nothing(self) -> Self:
+        """Refuse a half-configured Wazenda: signed webhooks would all fail later (specs/01)."""
+        keys = (self.wazenda_api_key, self.wazenda_line_id, self.wazenda_webhook_secret)
+        if len({bool(key) for key in keys}) > 1:  # an empty value counts as unset
+            raise ValueError(
+                "WAZENDA_API_KEY, WAZENDA_LINE_ID and WAZENDA_WEBHOOK_SECRET go together"
+            )
         return self
 
     @model_validator(mode="after")

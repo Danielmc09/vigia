@@ -479,3 +479,107 @@ async def find_escalation(
         created_at=row["created_at"],
         status=row["status"],
     )
+
+
+async def first_webhook_event(conn: asyncpg.Connection, id_hash: Hashed) -> bool:
+    """Remember a channel message id; only its first delivery returns ``True`` (specs/01).
+
+    Args:
+        conn: Any application connection; the definer function needs no business.
+        id_hash: ``Keyring.hash`` of ``"<origin>:<message_id>"`` (never the id in clear).
+
+    Returns:
+        ``False`` when the id was already seen (a webhook retry).
+    """
+    return bool(await conn.fetchval("SELECT vigia_webhook_first($1)", id_hash))
+
+
+async def team(conn: asyncpg.Connection, vault: Vault) -> list[Contact]:
+    """Every member of the business in context, phone and name opened.
+
+    Args:
+        conn: Connection scoped to the business.
+        vault: Open vault of the business.
+
+    Returns:
+        Their contacts, oldest member first.
+    """
+    rows = await conn.fetch("SELECT phone_enc, name_enc FROM members ORDER BY created_at")
+    return [
+        Contact(
+            vault.open("members.phone", r["phone_enc"]),
+            vault.open("members.name", r["name_enc"]) if r["name_enc"] else None,
+        )
+        for r in rows
+    ]
+
+
+async def suppliers(conn: asyncpg.Connection, vault: Vault) -> list[Supplier]:
+    """The address book of the business in context, opened for the analyst.
+
+    Args:
+        conn: Connection scoped to the business.
+        vault: Open vault of the business.
+
+    Returns:
+        The suppliers.
+    """
+    rows = await conn.fetch("SELECT name_enc, email_enc, account_enc FROM suppliers")
+
+    def opened(column: str, blob: bytes | None) -> str | None:
+        """Opened value, or ``None`` for a missing one."""
+        return vault.open(column, blob) if blob else None
+
+    return [
+        Supplier(
+            vault.open("suppliers.name", r["name_enc"]),
+            opened("suppliers.email", r["email_enc"]),
+            opened("suppliers.account", r["account_enc"]),
+        )
+        for r in rows
+    ]
+
+
+async def last_verdict_at(
+    conn: asyncpg.Connection, label: Label, brand: str | None
+) -> datetime | None:
+    """When the business in context last got this label for this brand (alert cooldown).
+
+    Args:
+        conn: Connection scoped to the business.
+        label: Verdict label.
+        brand: Impersonated brand; ``None`` matches the verdicts without one.
+
+    Returns:
+        The latest such verdict time, if any.
+    """
+    found: datetime | None = await conn.fetchval(
+        "SELECT max(created_at) FROM verdicts WHERE label = $1 AND brand IS NOT DISTINCT FROM $2",
+        label,
+        brand,
+    )
+    return found
+
+
+async def case_text(
+    conn: asyncpg.Connection, vault: Vault, case_id: UUID
+) -> tuple[str, str | None] | None:
+    """Text of a case of the business in context and the brand its verdict named.
+
+    Args:
+        conn: Connection scoped to the business.
+        vault: Open vault of the business.
+        case_id: Case id, as the reply quoted it.
+
+    Returns:
+        ``(text, brand)``; ``None`` when the case is not of this business.
+    """
+    row = await conn.fetchrow(
+        "SELECT c.text_enc, v.brand FROM cases c LEFT JOIN verdicts v ON v.case_id = c.id"
+        " WHERE c.id = $1 ORDER BY v.created_at DESC LIMIT 1",
+        case_id,
+    )
+    if row is None:
+        return None
+    text = vault.open("cases.text", row["text_enc"]) if row["text_enc"] else ""
+    return text, row["brand"]

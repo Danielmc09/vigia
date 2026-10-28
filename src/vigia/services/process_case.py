@@ -10,10 +10,11 @@ from vigia.analyst import loop
 from vigia.domain.analyst import AnalystResult, Evidence
 from vigia.domain.case import Case
 from vigia.domain.country import CountryPack
-from vigia.domain.gate import GateResult
+from vigia.domain.gate import GateResult, Judge
 from vigia.domain.image import Segmenter
 from vigia.domain.member import Supplier
 from vigia.domain.verdict import Verdict
+from vigia.jev.gate import screen
 from vigia.model.spark import SparkClient
 from vigia.services import analyst_tools
 from vigia.signals.detector import detect
@@ -75,3 +76,21 @@ def classify(case: Case, pack: CountryPack, gate: GateResult, analyst: Analyst |
     if analyst is not None and not decided_by_rules(soften_citations(signals, case, pack)):
         evidence = evidence.model_copy(update={"analyst": analyst(case, evidence, pack, gate)})
     return build_verdict(case, evidence, pack)
+
+
+def judge_case(case: Case, pack: CountryPack, judge: Judge, analyst: Analyst | None) -> Verdict:
+    """The gate on the case's own text, then :func:`classify`: one stateless message.
+
+    The path of ``/caso``, ``measure.py`` and the WhatsApp webhook. The gate sees no chat
+    history yet (chats are T-16).
+
+    Args:
+        case: The normalized case.
+        pack: Country pack of the business, campaigns attached.
+        judge: Jev, or its mock.
+        analyst: The analyst; ``None`` means no model (degraded verdict).
+
+    Returns:
+        The verdict of specs/05.
+    """
+    return classify(case, pack, screen(case.text or "", [], pack, judge), analyst)

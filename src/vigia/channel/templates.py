@@ -32,16 +32,18 @@ def whatsapp_message(verdict: Verdict, lang: str, escalation: Escalation | None 
     return "\n".join(lines)
 
 
-def team_alert_message(lang: str, reporter: str, kind: str, brand: str) -> str:
+def team_alert_message(lang: str, reporter: str, kind: str, brand: str | None) -> str:
     """The short notice the rest of the team gets when a case is a scam (specs/05).
 
     Args:
         lang: Language of the business.
         reporter: Name of who forwarded it.
         kind: What arrived (already localized by the caller).
-        brand: Brand being impersonated.
+        brand: Brand being impersonated, if the verdict named one.
 
     Returns:
         The alert text (the i18n template keeps it under 200 characters).
     """
+    if brand is None:
+        return t(lang, f"team_alert.{_SCAM}_unbranded", reporter=reporter, kind=kind)
     return t(lang, f"team_alert.{_SCAM}", reporter=reporter, kind=kind, brand=brand)

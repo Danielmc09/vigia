@@ -1,0 +1,9 @@
+{
+  "event": "message.received",
+  "line_id": "00000000-0000-4000-8000-000000000001",
+  "from": "+573000000001",
+  "timestamp": "2026-10-28T14:03:11Z",
+  "message_id": "wamid.HBgLNTczMDAwMDAwMDAxFQIAEhggRkFLRTAwMDQ=",
+  "media_url": "https://wazenda.com/api/v1/public/media/00000000-0000-4000-8000-00000000a004",
+  "media_type": "application/pdf"
+}

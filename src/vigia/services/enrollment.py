@@ -23,13 +23,15 @@ from vigia.i18n import t
 from vigia.policy import actions as policy
 from vigia.services.commands import Command
 from vigia.signals.country_pack import country_pack
+from vigia.signals.knowledge import confirmed_campaign
+from vigia.store import knowledge as store_knowledge
 from vigia.store import postgres as store
 from vigia.store.crypto import Keyring, Vault
 
 SendEmail = Callable[[str, str], Awaitable[None]]
 
 Fields = Mapping[str, str]
-_OWNER_ONLY = {"team", "supplier", "transfer", "confirm", "cancel"}
+_OWNER_ONLY = {"team", "supplier", "transfer", "confirm", "cancel", "scam_confirmed"}
 
 
 @dataclass(frozen=True)
@@ -251,6 +253,28 @@ async def _cancel(session: Session, fields: Fields) -> str:
     return session.reply("escalation.cancelled")
 
 
+async def _scam_confirmed(session: Session, fields: Fields) -> str:
+    """Feed a case's fingerprints to the known campaigns: ``estafa confirmada <id>`` (owner).
+
+    Only simhash, linked domains and brand leave the business (D-017); the campaign counts
+    for other businesses once a second one confirms it (D-082).
+    """
+    try:
+        found = await store.case_text(session.conn, session.vault, UUID(fields["id"]))
+    except ValueError:
+        found = None
+    pack = country_pack(session.business.country)
+    if found is None or pack is None:
+        return session.reply("scam_confirmed.unknown")
+    text, brand = found
+    campaign = confirmed_campaign(text, pack, brand, datetime.now(UTC).date())
+    if campaign is None:
+        return session.reply("scam_confirmed.nothing")
+    business = session.vault.hash(str(session.business.id))
+    await store_knowledge.confirm_campaign(session.conn, campaign, business)
+    return session.reply("scam_confirmed.done")
+
+
 async def _run_transfer(session: Session, escalation: Escalation) -> str:
     """Swap owner and target, if the target is still on the team."""
     target = await store.find_member(session.conn, session.vault.hash(escalation.target))
@@ -293,4 +317,5 @@ _HANDLERS: dict[str, Callable[[Session, Fields], Awaitable[str]]] = {
     "transfer": _transfer,
     "confirm": _confirm,
     "cancel": _cancel,
+    "scam_confirmed": _scam_confirmed,
 }

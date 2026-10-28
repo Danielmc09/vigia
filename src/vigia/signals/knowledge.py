@@ -1,7 +1,9 @@
 """Known-campaign signal of specs/10 §4: a reported scam seen again is hard evidence (rules)."""
 
+import hashlib
 import json
-from collections.abc import Iterable, Sequence
+from collections.abc import Iterable, Iterator, Sequence
+from datetime import date
 from functools import cache
 from pathlib import Path
 from typing import Any
@@ -10,12 +12,13 @@ from vigia.domain.case import Case
 from vigia.domain.country import CountryPack
 from vigia.domain.knowledge import KnownCampaign, campaign_from_seed, hamming, simhash
 from vigia.domain.signal import Signal
-from vigia.domain.urls import split_url
+from vigia.domain.urls import extract_urls, split_url
 from vigia.signals.country_pack import country_pack
 from vigia.signals.urls import SHORTENERS, registrable_domain
 
 MAX_TEXT_DISTANCE = 6  # specs/10 §4
 MAX_IMAGE_DISTANCE = 10  # specs/10 §4
+CONFIRMED_SOURCE = "vigia://owner-confirmed"  # source_url of owner-confirmed campaigns
 
 
 def load_campaigns(path: Path) -> tuple[KnownCampaign, ...]:
@@ -64,19 +67,58 @@ def seeded_pack(iso: str, seed: Path) -> CountryPack | None:
     return with_campaigns(pack, load_campaigns(seed)) if pack else None
 
 
-def _hosts(case: Case, pack: CountryPack) -> set[str]:
-    """Hosts and registrable domains the case links to (text or QR), minus official and short."""
-    hosts = set()
+def _linked(urls: Iterable[str], pack: CountryPack) -> Iterator[tuple[str, str]]:
+    """``(host, registrable domain)`` of each link, minus official domains and shorteners."""
     ignored = pack.official_domains() | SHORTENERS
-    for url in case.urls + case.qr_urls:
+    for url in urls:
         try:
             host = (split_url(url).hostname or "").lower()
         except ValueError:
             continue
         domain = registrable_domain(host)
         if domain not in ignored:
-            hosts |= {host, domain}
-    return hosts
+            yield host, domain
+
+
+def _hosts(case: Case, pack: CountryPack) -> set[str]:
+    """Hosts and registrable domains the case links to (text or QR), minus official and short."""
+    return {name for pair in _linked(case.urls + case.qr_urls, pack) for name in pair}
+
+
+def confirmed_campaign(
+    text: str, pack: CountryPack, brand: str | None, today: date
+) -> KnownCampaign | None:
+    """The fingerprints of a case its owner confirmed as a scam (specs/10 §4, D-017).
+
+    Only the simhash and the registrable domains it links to; nothing of the text, the
+    sender or the case id. The id derives from the fingerprints, so confirming the same
+    campaign again counts it again.
+
+    Args:
+        text: Text of the confirmed case.
+        pack: Country pack of the business (official domains are never fingerprints).
+        brand: Brand its verdict named, if any.
+        today: Date it was confirmed.
+
+    Returns:
+        The campaign, or ``None`` when the case has neither enough words nor a domain.
+    """
+    fingerprint = simhash(text)
+    domains = tuple(sorted({domain for _, domain in _linked(extract_urls(text), pack)}))
+    if fingerprint is None and not domains:
+        return None
+    key = hashlib.sha256(f"{fingerprint}|{','.join(domains)}".encode()).hexdigest()[:16]
+    return KnownCampaign(
+        id=f"usr-{pack.country.lower()}-{key}",
+        country=pack.country,
+        kind="text" if fingerprint is not None else "domain",
+        brand=brand,
+        simhash=fingerprint,
+        domains=domains,
+        source_url=CONFIRMED_SOURCE,
+        source_type="usuario",
+        seen_date=today,
+    )
 
 
 def text_distance(campaign: KnownCampaign, text_hash: int | None) -> int | None:

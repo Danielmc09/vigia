@@ -1,19 +1,31 @@
 """Attachment checks before any model is paid: size, image decode, PDF magic, WAV (domain)."""
 
 import io
+import re
 import wave
 from collections.abc import AsyncIterable
+from typing import TYPE_CHECKING
 
 from pydantic import BaseModel
 
 from vigia.domain.image import check_canvas, open_image
 from vigia.domain.rejection import Rejection
 
+if TYPE_CHECKING:  # case.py imports Attachment from here
+    from vigia.domain.case import ChannelKind
+
 MAX_ATTACHMENT_BYTES = 10 * 1024 * 1024
 """Largest attachment downloaded (specs/12 A6); bigger ones are refused mid-stream."""
 
 CHANNELS, SAMPLE_WIDTH, SAMPLE_RATE = 1, 2, 16000
 """The only audio Voice gets for now: mono, 16-bit PCM, 16 kHz WAV (specs/03, D-070)."""
+
+PDF_MAX_PAGES = 20
+"""Most pages a PDF may declare before Spark reads it (D-081, adv-pdf-paginas)."""
+
+_WAV_SLACK = 64 * 1024  # header chunks (LIST, FLLR) a real WAV may carry besides the frames
+_PDF_COUNT = re.compile(rb"/Count\s+(\d+)")
+_PDF_PAGE = re.compile(rb"/Type\s*/Page\b(?!s)")
 
 _IMAGE_MIME = {
     b"\xff\xd8\xff": "image/jpeg",
@@ -65,10 +77,11 @@ def check_image(data: bytes) -> Rejection | None:
 
 
 def check_pdf(data: bytes, max_bytes: int) -> Rejection | None:
-    """Refuse PDFs over ``max_bytes`` and files that do not start with ``%PDF-``.
+    """Refuse PDFs over ``max_bytes``, not starting with ``%PDF-``, or over ``PDF_MAX_PAGES``.
 
-    ponytail: magic and size only; the page count inside the cap is unbounded and the
-    reader's output is capped instead (D-071).
+    The page count is the larger of the page tree's ``/Count`` and the ``/Type /Page``
+    objects in clear (D-081). ponytail: pages inside compressed object streams are not
+    seen; parse with a PDF library if a real PDF slips past.
 
     Args:
         data: Downloaded file.
@@ -82,13 +95,18 @@ def check_pdf(data: bytes, max_bytes: int) -> Rejection | None:
         return Rejection(error_code="TOO_LARGE", message=f"pdf over {max_bytes} bytes")
     if not data.startswith(b"%PDF-"):
         return Rejection(error_code="INVALID_ATTACHMENT", message="not a PDF file")
+    counts = [int(n) for n in _PDF_COUNT.findall(data)] + [len(_PDF_PAGE.findall(data))]
+    if max(counts) > PDF_MAX_PAGES:
+        return Rejection(error_code="TOO_LARGE", message=f"pdf over {PDF_MAX_PAGES} pages")
     return None
 
 
 def check_wav(data: bytes, max_seconds: int) -> float | Rejection:
     """Accept only canonical WAV no longer than ``max_seconds``.
 
-    ponytail: no conversion; ogg/opus from WhatsApp is refused until ffmpeg lands (T-10/T-19).
+    ogg/opus from WhatsApp comes through ``channel.wazenda.ogg_to_wav`` first. A file much
+    longer than its header's frames is refused: the whole file is billed, not the declared
+    length (D-081, adv-wav-cabecera-falsa).
 
     Args:
         data: Downloaded file.
@@ -108,10 +126,32 @@ def check_wav(data: bytes, max_seconds: int) -> float | Rejection:
         return Rejection(error_code="UNSUPPORTED_AUDIO", message="not a PCM WAV file")
     if shape != (CHANNELS, SAMPLE_WIDTH, SAMPLE_RATE) or not frames:
         return Rejection(error_code="UNSUPPORTED_AUDIO", message=f"wav {shape}, {frames} frames")
+    if len(data) > frames * SAMPLE_WIDTH + _WAV_SLACK:
+        return Rejection(error_code="UNSUPPORTED_AUDIO", message="file longer than its header")
     seconds = frames / SAMPLE_RATE
     if seconds > max_seconds:
         return Rejection(error_code="AUDIO_TOO_LONG", message=f"{seconds:.0f} s > {max_seconds} s")
     return seconds
+
+
+def sniff(data: bytes) -> "tuple[ChannelKind, str] | None":
+    """Kind and MIME of a downloaded file from its magic bytes; the declared type decides nothing.
+
+    Args:
+        data: Downloaded file.
+
+    Returns:
+        ``(kind, mime)`` for an image, a PDF, an ogg or a WAV; ``None`` otherwise.
+    """
+    if mime := image_mime(data):
+        return "image", mime
+    if data.startswith(b"%PDF-"):
+        return "document", "application/pdf"
+    if data.startswith(b"OggS"):
+        return "audio", "audio/ogg"
+    if data[:4] == b"RIFF" and data[8:12] == b"WAVE":
+        return "audio", "audio/wav"
+    return None
 
 
 async def read_capped(

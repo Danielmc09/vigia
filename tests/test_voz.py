@@ -70,6 +70,16 @@ def test_audio_over_the_attachment_size_cap_is_refused_before_parsing() -> None:
     assert result.error_code == "TOO_LARGE"
 
 
+def test_adv_wav_cabecera_falsa() -> None:
+    """Incident adv-wav-cabecera-falsa: a 1 s header over megabytes of data is refused."""
+    lying = _wav(1) + b"\x00" * 2_000_000
+
+    result = check_wav(lying, max_seconds=120)
+
+    assert isinstance(result, Rejection)
+    assert result.error_code == "UNSUPPORTED_AUDIO"
+
+
 # --- Voice adapter (model/voice.py) -------------------------------------------------------
 
 

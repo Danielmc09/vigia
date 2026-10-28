@@ -26,6 +26,8 @@ _GRAMMAR = {
     "confirm": re.compile(r"(?P<id>[0-9A-Fa-f]{8})"),
     "cancel": re.compile(r"(?P<id>[0-9A-Fa-f]{8})"),
     "transfer": re.compile(r"(?P<phone>\+\d[\d\s-]{6,18}\d)"),
+    # ``estafa confirmada <case id>``: the full id the reply quotes (specs/10 §4).
+    "scam_confirmed": re.compile(r"(?P<id>[0-9A-Fa-f-]{36})"),
 }
 
 
@@ -35,7 +37,7 @@ class Command:
 
     Attributes:
         name: Command id (``enroll``, ``team``, ``my_email``, ``code``, ``supplier``,
-            ``history``, ``help``, ``transfer``, ``confirm``, ``cancel``).
+            ``history``, ``help``, ``transfer``, ``confirm``, ``cancel``, ``scam_confirmed``).
         args: Text after the keyword, stripped.
         lang: Language whose keyword matched; used to answer someone not yet enrolled.
         fields: Named groups of the command grammar (``""`` for an absent optional part).

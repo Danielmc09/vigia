@@ -34,8 +34,7 @@ from vigia.jev.gate import screen
 from vigia.model.jev import make_judge
 from vigia.model.sam import make_sam
 from vigia.model.spark import SparkClient, make_spark
-from vigia.model.voice import make_voice
-from vigia.services import process_case, transcription
+from vigia.services import process_case, transcription, whatsapp
 from vigia.services.ingest import normalize
 from vigia.signals.country_pack import country_pack
 from vigia.signals.knowledge import seeded_pack
@@ -101,19 +100,18 @@ Classifier = Callable[[Case], Outcome]
 
 
 def _outcome(case: Case, judge: Judge, analyst: process_case.Analyst | None) -> Outcome:
-    """Gate, then :func:`vigia.services.process_case.classify`: the path of ``/caso``."""
+    """:func:`vigia.services.process_case.judge_case`: the path of ``/caso`` and WhatsApp."""
     pack = seeded_pack(case.country, KNOWLEDGE)
     if pack is None:
         return Outcome(label=DOUBTFUL, confidence=DOUBTFUL_CONFIDENCE, signals=[], degraded=True)
-    gate = screen(case.text or "", [], pack, judge)
-    verdict = process_case.classify(case, pack, gate, analyst)
+    verdict = process_case.judge_case(case, pack, judge, analyst)
     return Outcome(
         label=verdict.label,
         confidence=verdict.confidence,
         signals=[s.type for s in verdict.signals],
         tools_used=verdict.tools_used,
         degraded=verdict.degraded,
-        manipulation=gate.manipulation_detected,
+        manipulation=verdict.manipulation_detected,
     )
 
 
@@ -166,15 +164,6 @@ def needs_reading(raw: dict[str, Any]) -> bool:
     return raw["tipo"] in READ_TOOL and bool(raw.get("fuente")) and not raw.get("texto")
 
 
-def _read(kind: str, data: bytes, language: str, reader: Transcriber) -> Transcript | Rejection:
-    """The checked reading step of ``kind``, as the channel will run it."""
-    if kind == "audio":
-        return transcription.transcribe(data, language, reader, settings.voice_max_seconds)
-    if kind == "pdf":
-        return transcription.read_pdf(data, language, reader, settings.pdf_max_bytes)
-    return transcription.read_image(data, language, reader)
-
-
 def _hear(raw: dict[str, Any], root: Path, readers: Readers) -> tuple[Transcript | None, float]:
     """Read the record's file like the channel will (D-070, D-071): checked, then the model.
 
@@ -192,7 +181,7 @@ def _hear(raw: dict[str, Any], root: Path, readers: Readers) -> tuple[Transcript
         raise Unheard(NO_READER[kind] if reader is None else f"no country pack {raw['pais']}")
     start = time.perf_counter()
     data = (root / raw["fuente"]).read_bytes()
-    heard = _read(kind, data, pack.language, reader)
+    heard = transcription.checked(kind, reader, settings)(data, pack.language)
     if isinstance(heard, Rejection):
         raise Unheard(f"{READ_TOOL[kind]}: {heard.error_code} {heard.message}")
     return heard, round((time.perf_counter() - start) * 1000, 1)
@@ -552,15 +541,8 @@ def _skip_unheard(
 
 def _real_readers() -> dict[str, Transcriber]:
     """Voice, Spark's PDF and image readers, whichever has a ``MODEL_API_KEY`` behind it."""
-    voice, spark = make_voice(settings), make_spark(settings)
-    found: dict[str, Transcriber | None] = {
-        "audio": voice,
-        "pdf": spark.read_pdf if spark else None,
-        "imagen": transcription.image_reader(spark.read_image, make_sam(settings))
-        if spark
-        else None,
-    }
-    return {kind: reader for kind, reader in found.items() if reader is not None}
+    found = whatsapp.model_readers(settings)
+    return {"imagen" if kind == "image" else kind: reader for kind, reader in found.items()}
 
 
 def main(

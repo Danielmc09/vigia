@@ -10,7 +10,7 @@ import measure
 import pytest
 
 from vigia.config import Settings
-from vigia.domain.attachment import check_pdf
+from vigia.domain.attachment import PDF_MAX_PAGES, check_pdf
 from vigia.domain.reading import Transcript
 from vigia.domain.rejection import Rejection
 from vigia.i18n import LANGUAGES, has_key
@@ -45,6 +45,27 @@ def test_a_pdf_over_the_cap_is_refused() -> None:
 
     assert isinstance(result, Rejection)
     assert result.error_code == "TOO_LARGE"
+
+
+@pytest.mark.parametrize(
+    "data",
+    [
+        b"%PDF-1.4\n1 0 obj << /Type /Pages /Count 5000 >> endobj\n%%EOF\n",
+        b"%PDF-1.4\n" + b"<< /Type /Page >>\n" * (PDF_MAX_PAGES + 1) + b"%%EOF\n",
+    ],
+    ids=["declared", "objects"],
+)
+def test_adv_pdf_paginas(data: bytes) -> None:
+    """Incident adv-pdf-paginas: thousands of pages under 5 MB are refused before Spark."""
+    result = check_pdf(data, max_bytes=1024 * 1024)
+
+    assert isinstance(result, Rejection)
+    assert result.error_code == "TOO_LARGE"
+
+
+def test_a_pdf_at_the_page_cap_passes() -> None:
+    pages = b"%PDF-1.4\n<< /Type /Pages /Count 2 >>\n" + b"<< /Type /Page >>\n" * PDF_MAX_PAGES
+    assert check_pdf(pages, max_bytes=1024 * 1024) is None
 
 
 def test_pdf_cap_comes_from_config() -> None:
