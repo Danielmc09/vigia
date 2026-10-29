@@ -208,6 +208,41 @@ def test_other_analyst_failures_add_no_signal() -> None:
     assert "model_could_not_verify" not in _signal_types(verdict)
 
 
+def test_an_unavailable_analyst_is_not_a_content_filter() -> None:
+    """Revisor T-09b: only ``CONTENT_FILTER`` says the model refused; a timeout does not."""
+    down = Rejection(error_code="MODEL_UNAVAILABLE", message="ReadTimeout", retryable=True)
+
+    verdict = process_case.classify(_case(), CO, GATE, lambda *_: down)
+
+    assert verdict.degraded is True
+    assert "model_could_not_verify" not in _signal_types(verdict)
+
+
+def test_adv_slug_busqueda_keeps_the_chat_slug() -> None:
+    """Incident adv-slug-busqueda (revisor T-09b): a 404 on ``/responses`` keeps chat's slug.
+
+    Hypothesis: Baseten may serve chat but not web search; a ``model_not_found`` there must
+    not drop the slug that answers chat turns.
+    """
+    models: list[str] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        if request.url.path.endswith("/responses"):
+            error = {"code": "model_not_found", "type": "invalid_request_error", "message": "no"}
+            return httpx.Response(404, json={"error": error})
+        models.append(json.loads(request.content)["model"])
+        return httpx.Response(
+            200, json={"choices": [{"message": {"content": "{}"}}], "usage": {}}
+        )
+
+    client = _client(spark.SPARK_OPEN, handler)
+
+    assert isinstance(client.web_search("x"), Rejection)
+    client.complete(_request())
+
+    assert models == [spark.SPARK_OPEN.models[0]]
+
+
 # --- judge: a filtered judge is the mock, never an exception ------------------------------
 
 
