@@ -25,8 +25,9 @@ class Settings(BaseSettings):
         email_codes_per_business_hour: Verification emails one business may trigger per hour.
         code_max_attempts: Wrong guesses that invalidate a member's live codes (specs/12 B4).
         knowledge_seed: Known-campaign seed attached to the country packs (D-048).
-        jev_backend: ``real`` asks TypeSafe Jev; ``mock`` (default) never flags (T-08).
-        jev_api_key: TypeSafe key; without it the backend is mock whatever ``jev_backend``.
+        jev_backend: ``real`` asks the Jev judge, a development-only tool (T-08b, D-085);
+            ``mock`` (default) never flags. Forbidden with ``mode in ("eval", "prod")``.
+        jev_api_key: Jev key; without it the backend is mock whatever ``jev_backend``.
         model_api_key: Meta Model API key; without it the analyst never runs (degraded).
         voice_max_seconds: Longest voice note transcribed (D-070); longer ones are refused.
         pdf_max_bytes: Largest PDF read by Spark (D-071); bigger ones are refused.
@@ -107,6 +108,15 @@ class Settings(BaseSettings):
         if len({bool(key) for key in keys}) > 1:  # an empty value counts as unset
             raise ValueError(
                 "WAZENDA_API_KEY, WAZENDA_LINE_ID and WAZENDA_WEBHOOK_SECRET go together"
+            )
+        return self
+
+    @model_validator(mode="after")
+    def _jev_real_only_in_dev(self) -> Self:
+        """Refuse Jev as the runtime judge (T-08b, D-085): only Meta models run outside dev."""
+        if self.jev_backend == "real" and self.mode != "dev":
+            raise ValueError(
+                "JEV_BACKEND=real is a development-only tool; not with VIGIA_MODO=eval|prod"
             )
         return self
 

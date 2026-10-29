@@ -1,7 +1,14 @@
-"""TypeSafe Jev over HTTP (adapter): the real :data:`~vigia.domain.gate.Judge`.
+"""TypeSafe Jev over HTTP (adapter): a judge of steps, development tool only (D-085).
 
 Endpoint and shapes verified in T-02 (specs/03 "Verificado", ``tests/fixtures/jev``).
 Any failure falls back to ``MOCK_ANSWER`` (specs/12 C10): Jev never blocks a case.
+
+**Not called at runtime.** Jev is not a Meta model, so the Discord rule ("every model
+your project calls at runtime must be a Meta model") keeps it out of ``eval``/``prod``
+(``Settings`` refuses ``JEV_BACKEND=real`` there). It stays useful at development time as
+an auxiliary judge of steps; :func:`vigia.services.judge.make_judge` is what the app,
+the webhook and a complete eval run actually wire in, and only defers to this factory in
+``mode="dev"``.
 """
 
 import logging
@@ -84,8 +91,8 @@ class JevJudge:
             return MOCK_ANSWER
 
 
-def make_judge(config: Settings) -> Judge:
-    """The judge for this process: Jev when ``JEV_BACKEND=real`` and a key is set, else mock.
+def make_dev_judge(config: Settings) -> Judge:
+    """The development judge: Jev when ``JEV_BACKEND=real`` and a key is set, else mock.
 
     Args:
         config: Process settings.

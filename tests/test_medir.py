@@ -5,8 +5,12 @@ from types import SimpleNamespace
 
 import measure
 import pytest
+from pydantic import SecretStr
 
 from vigia.domain.case import Case
+from vigia.domain.gate import Judge, JudgeAnswer
+from vigia.model.jev import JevJudge
+from vigia.model.spark_judge import SparkJudge
 
 REPO = Path(__file__).parents[1]
 BASE = {
@@ -416,3 +420,35 @@ def test_with_analyst_bills_sam_crops(monkeypatch: pytest.MonkeyPatch) -> None:
     run_case = measure.with_analyst(spark, measure.mock_judge)  # type: ignore[arg-type]
     outcome = run_case(Case.model_construct())
     assert outcome.usd == pytest.approx(0.2525) and outcome.tokens == 4
+
+
+def test_with_analyst_bills_the_gate_judge(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Rule 11: the Spark judge's spend counts in the case's USD and tokens (revisor T-08b)."""
+    spark = SimpleNamespace(usd=1.0, tokens=5)
+
+    def judged(case: Case, judge: Judge, analyst: object) -> measure.Outcome:
+        judge("<last_turn>hola</last_turn>")
+        return measure.Outcome(label="estafa")
+
+    def paid(_: str) -> JudgeAnswer:
+        return JudgeAnswer(manipulation=0.0, triage="obvious", source="spark", usd=0.003, tokens=7)
+
+    monkeypatch.setattr(measure, "make_sam", lambda _: None)
+    monkeypatch.setattr(measure, "_outcome", judged)
+    run_case = measure.with_analyst(spark, paid)  # type: ignore[arg-type]
+    outcome = run_case(Case.model_construct())
+    assert outcome.usd == pytest.approx(0.003) and outcome.tokens == 7
+
+
+def test_full_run_never_judges_with_jev_even_if_the_env_asks(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """``make evals`` with ``JEV_BACKEND=real`` in ``.env`` still runs in eval mode (D-085)."""
+    seen: list[Judge] = []
+    monkeypatch.setattr(measure.settings, "mode", "dev")
+    monkeypatch.setattr(measure.settings, "jev_backend", "real")
+    monkeypatch.setattr(measure.settings, "jev_api_key", SecretStr("k"))
+    monkeypatch.setattr(measure.settings, "model_api_key", SecretStr("k"))
+    monkeypatch.setattr(measure, "with_analyst", lambda spark, judge: seen.append(judge))
+    measure.full()
+    assert seen and isinstance(seen[0], SparkJudge) and not isinstance(seen[0], JevJudge)

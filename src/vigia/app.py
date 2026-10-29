@@ -27,9 +27,9 @@ from vigia.domain.gate import Judge
 from vigia.domain.member import Business
 from vigia.domain.verdict import Verdict, VerdictRow
 from vigia.model import jev, spark
-from vigia.model.jev import make_judge
 from vigia.services import whatsapp
 from vigia.services.ingest import normalize
+from vigia.services.judge import make_judge
 from vigia.services.process_case import Analyst, judge_case
 from vigia.signals.knowledge import seeded_pack
 from vigia.store import postgres as store
@@ -305,8 +305,8 @@ def create_app(
         config: Settings for this process; ``mode == "prod"`` hides the API docs.
         analyst: Provider of the analyst's read of a case; defaults to none (degraded
             verdicts only), so tests and this endpoint never call a real model.
-        judge: Jev for the manipulation gate; defaults to :func:`make_judge` (mock unless
-            ``JEV_BACKEND=real`` with a key).
+        judge: Spark judge (eval/prod) or mock for the manipulation gate; defaults to
+            :func:`make_judge` (Jev only in ``dev``, D-085).
         panel: Source of the operator panel rows; defaults to Postgres.
 
     Returns:
@@ -367,7 +367,7 @@ def create_app(
             raise HTTPException(status_code=422, detail="unsupported case")
         case = case.model_copy(update={"origin": "eval", "sender": None})
         # No chat here: one stateless text, so the gate sees no history (D-048).
-        # ponytail: a real Jev call blocks the event loop up to its timeout.
+        # ponytail: a real judge call blocks the event loop up to its timeout.
         with telemetry.recording(api.state.metrics):
             return judge_case(case, pack, gate_judge, analyst)
 

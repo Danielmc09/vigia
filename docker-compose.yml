@@ -30,7 +30,8 @@ services:
     build: .
     environment:
       DATABASE_URL: postgresql://vigia_app:${APP_DB_PASSWORD:-vigia_app}@postgres:5432/vigia
-      VIGIA_MODO: ${VIGIA_MODO:-dev}
+      MIGRATION_DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD:-postgres}@postgres:5432/vigia
+      VIGIA_MODO: ${VIGIA_MODO:-prod}
     ports:
       - "127.0.0.1:${VIGIA_API_PORT:-8000}:8000"
     depends_on:

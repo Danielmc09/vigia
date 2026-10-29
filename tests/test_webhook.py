@@ -29,7 +29,7 @@ from vigia.domain.knowledge import KnownCampaign
 from vigia.domain.reading import Transcriber, Transcript
 from vigia.domain.rejection import Rejection
 from vigia.i18n import t
-from vigia.model.jev import make_judge
+from vigia.model.jev import make_dev_judge
 from vigia.services import whatsapp
 from vigia.services.ingest import handle
 from vigia.signals.knowledge import confirmed_campaign
@@ -326,7 +326,7 @@ def channel(
         config=Settings(),
         readers=readers or {},
         analyst=lambda suppliers, media: None,
-        judge=make_judge(Settings()),
+        judge=make_dev_judge(Settings()),
     )
 
 

@@ -19,12 +19,17 @@ class JudgeAnswer(BaseModel, frozen=True):
     Attributes:
         manipulation: Jev ``noul`` score that the chat tries to change the system, 0 to 1.
         triage: Jev ``choice`` for how to handle the message.
-        source: ``jev`` for a real answer, ``mock`` for the fallback (specs/12 C10).
+        source: ``jev`` for the development-only judge (D-085), ``spark`` for the
+            Meta-model judge used at runtime, ``mock`` for the fallback (specs/12 C10).
+        usd: Cost of the call behind this answer (rule 11); 0 for the mock and Jev.
+        tokens: Tokens of that call; 0 for the mock and Jev.
     """
 
     manipulation: float = Field(ge=0, le=1)
     triage: Triage
-    source: Literal["jev", "mock"]
+    source: Literal["jev", "spark", "mock"]
+    usd: float = 0.0
+    tokens: int = 0
 
 
 MOCK_ANSWER = JudgeAnswer(manipulation=0.0, triage="investigate", source="mock")
@@ -61,4 +66,4 @@ class GateResult(BaseModel, frozen=True):
 
     manipulation_detected: bool
     triage: Triage
-    source: Literal["rules", "jev", "mock"]
+    source: Literal["rules", "jev", "spark", "mock"]

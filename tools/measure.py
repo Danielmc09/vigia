@@ -26,17 +26,17 @@ from vigia.config import settings
 from vigia.domain.attachment import Attachment
 from vigia.domain.case import Case, IncomingMessage
 from vigia.domain.eval_case import CHANNEL_KIND, EXPECTED_LABEL, Expected
-from vigia.domain.gate import Judge, mock_judge
+from vigia.domain.gate import Judge, JudgeAnswer, mock_judge
 from vigia.domain.member import Business
 from vigia.domain.reading import Transcriber, Transcript
 from vigia.domain.rejection import Rejection
 from vigia.domain.verdict import Label
 from vigia.jev.gate import screen
-from vigia.model.jev import make_judge
 from vigia.model.sam import make_sam
 from vigia.model.spark import SparkClient, make_spark
 from vigia.services import process_case, transcription, whatsapp
 from vigia.services.ingest import normalize
+from vigia.services.judge import make_judge
 from vigia.signals.country_pack import country_pack
 from vigia.signals.knowledge import seeded_pack
 from vigia.verdict.fusion import DOUBTFUL, DOUBTFUL_CONFIDENCE, LEGIT
@@ -82,7 +82,7 @@ class Outcome:
         usd: Model spend for the case.
         tokens: Model tokens for the case.
         degraded: True when the verdict came without the analyst.
-        manipulation: The Jev gate flagged the case.
+        manipulation: The gate flagged the case.
     """
 
     # ponytail: stands in for the Verdict of specs/05 until fusion exists (T-07).
@@ -135,7 +135,7 @@ def with_analyst(spark: SparkClient, judge: Judge) -> Classifier:
 
     Args:
         spark: Spark client; its growth in ``usd``/``tokens``, plus SAM's, bills each case.
-        judge: Jev, or the mock.
+        judge: Spark judge (eval/prod) or mock; each answer's ``usd``/``tokens`` bill too.
 
     Returns:
         A :data:`Classifier` that spends real money (rule 11: ``run`` caps it).
@@ -144,14 +144,23 @@ def with_analyst(spark: SparkClient, judge: Judge) -> Classifier:
     analyst = process_case.spark_analyst(
         spark, segment=sam, load=lambda ref: (REPO / ref).read_bytes()
     )
+    paid = {"usd": 0.0, "tokens": 0}  # the judge has its own Spark client (rule 11)
 
-    def spent() -> float:
-        return spark.usd + (sam.usd if sam else 0.0)  # SAM ``crop`` bills apart from Spark
+    def billed(state: str) -> JudgeAnswer:
+        answer = judge(state)
+        paid["usd"] += answer.usd
+        paid["tokens"] += answer.tokens
+        return answer
+
+    def spent() -> tuple[float, int]:
+        sam_usd = sam.usd if sam else 0.0  # SAM ``crop`` bills apart from Spark
+        return spark.usd + sam_usd + paid["usd"], spark.tokens + int(paid["tokens"])
 
     def run_case(case: Case) -> Outcome:
-        usd, tokens = spent(), spark.tokens
-        outcome = _outcome(case, judge, analyst)
-        return replace(outcome, usd=spent() - usd, tokens=spark.tokens - tokens)
+        usd, tokens = spent()
+        outcome = _outcome(case, billed, analyst)
+        usd_after, tokens_after = spent()
+        return replace(outcome, usd=usd_after - usd, tokens=tokens_after - tokens)
 
     return run_case
 
@@ -392,7 +401,7 @@ def grade_adversarial(seq: dict[str, Any], judge: Judge = mock_judge) -> dict[st
 
     Args:
         seq: One line of ``adversarios.jsonl``.
-        judge: Jev; the mock unless a test injects another.
+        judge: Spark judge (eval/prod) or mock; the mock unless a test injects another.
 
     Returns:
         The per-sequence record (Spanish keys, as the result file is data).
@@ -489,7 +498,9 @@ def _unavailable(args: argparse.Namespace, out_dir: Path) -> str:
 def full() -> Classifier | None:
     """The full system, or ``None`` without a model key."""
     spark = make_spark(settings)
-    return with_analyst(spark, make_judge(settings)) if spark else None
+    # An eval run is mode eval whatever .env says: Jev never judges it (D-085).
+    judge = make_judge(settings.model_copy(update={"mode": "eval"}))
+    return with_analyst(spark, judge) if spark else None
 
 
 def _write(result: dict[str, Any], path: Path) -> None:

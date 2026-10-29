@@ -18,7 +18,7 @@ Country packs contain only public data (brand names, official domains and servic
 ## Third-party services used as-is (not built by us)
 - Meta Model API (Muse Spark, SAM 3.1, Muse Voice Transcribe), Muse Glimmer open weights. Standard tier.
 - Wazenda: WhatsApp Business transport (webhook in / message out). Only the adapter is ours.
-- TypeSafe Jev: typed judgments. Only the gate logic is ours.
+- TypeSafe Jev: typed judgments. **Development tool only** (T-08b, D-085): every model called at runtime is a Meta model; Jev is not one, so it never runs in `eval`/`prod` (`model/jev.py`, enforced by `Settings`). Only the gate logic is ours.
 - Hermes Agent (Nous Research): agent runtime for the optional local-model profile.
 - Railway, Postgres, Redis, Resend (inbound email), Sentry.
 

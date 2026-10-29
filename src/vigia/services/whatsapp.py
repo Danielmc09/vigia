@@ -28,12 +28,12 @@ from vigia.domain.member import Supplier, normalize_contact
 from vigia.domain.reading import Transcriber
 from vigia.domain.rejection import Rejection
 from vigia.i18n import t
-from vigia.model.jev import make_judge
 from vigia.model.sam import make_sam
 from vigia.model.spark import make_spark
 from vigia.model.voice import make_voice
 from vigia.policy.actions import should_alert_team
 from vigia.services import ingest, transcription
+from vigia.services.judge import make_judge
 from vigia.services.process_case import Analyst, judge_case, spark_analyst
 from vigia.signals.knowledge import seeded_pack, with_campaigns
 from vigia.store import knowledge as store_knowledge
@@ -74,7 +74,7 @@ class Channel:
         config: Settings (audio and PDF caps, knowledge seed).
         readers: Voice, PDF and image readers keyed ``audio``, ``pdf``, ``image``.
         analyst: Builds the analyst per case; returns ``None`` without a model.
-        judge: Jev for the gate.
+        judge: Spark judge (eval/prod) or mock for the gate.
     """
 
     keyring: Keyring

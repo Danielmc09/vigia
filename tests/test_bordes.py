@@ -30,7 +30,7 @@ from vigia.domain.rejection import Rejection
 from vigia.domain.urls import extract_urls
 from vigia.i18n import t
 from vigia.jev.gate import screen
-from vigia.model.jev import JevJudge, make_judge
+from vigia.model.jev import JevJudge, make_dev_judge
 from vigia.policy.actions import confirm, new_escalation
 from vigia.services.ingest import handle, normalize
 from vigia.signals.country_pack import country_pack
@@ -625,7 +625,7 @@ def test_c10_jev_down_or_without_key_falls_back_to_mock_investigate() -> None:
         raise httpx.ConnectError("down", request=request)
 
     keyed = JevJudge("k", client=httpx.Client(transport=httpx.MockTransport(down)))
-    keyless = make_judge(Settings(JEV_BACKEND="real", JEV_API_KEY=None))
+    keyless = make_dev_judge(Settings(JEV_BACKEND="real", JEV_API_KEY=None))
     assert CO is not None
 
     results = [screen("Su paquete esta retenido", [], CO, j) for j in (keyed, keyless)]
