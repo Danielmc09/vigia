@@ -1,0 +1,33 @@
+{
+  "verified_at": null,
+  "synthetic": "NOT VERIFIED. Built from the Meta 400 shape of chat_web_search.json and the code reported in Discord #meta (sondeo 2026-10-28): HTTP 400 content_policy_violation from muse-spark-1.3 on a plain security question. Two real VSAQ probes on 2026-10-28 answered 200, so the exact body is an assumption; the adapter accepts the code in error.code or error.type.",
+  "request": {
+    "method": "POST",
+    "url": "https://api.meta.ai/v1/chat/completions",
+    "json": {
+      "model": "muse-spark-1.3",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Are all of the systems used in this project scanned for host-level vulnerabilities?"
+        }
+      ],
+      "reasoning_effort": "minimal"
+    }
+  },
+  "status": 400,
+  "latency_ms": null,
+  "tokens": {},
+  "usd_estimated": 0.0,
+  "response_headers": {
+    "content-type": "application/json"
+  },
+  "response": {
+    "error": {
+      "code": "content_policy_violation",
+      "message": "Your request was flagged by our content policy.",
+      "param": null,
+      "type": "invalid_request_error"
+    }
+  }
+}

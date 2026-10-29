@@ -464,6 +464,32 @@ async def test_media_is_read_by_its_bytes_then_judged(
     assert [(r["kind"], r["label"]) for r in rows] == [(kind, "scam")]
 
 
+@pytest.mark.parametrize(
+    "media_case",
+    [("pdf", b"%PDF-1.4\n<< /Type /Page >>\n%%EOF\n", "pdf"), ("imagen", _png(), "image")],
+)
+async def test_adv_filtro_contenido_media_gets_a_degraded_verdict(
+    app_conn: asyncpg.Connection,
+    recorder: Recorder,
+    keyring: Keyring,
+    media_case: tuple[str, bytes, str],
+) -> None:
+    """adv-filtro-contenido (T-09b): a filtered read answers a verdict, never silence."""
+    fixture_name, media, reader = media_case
+    await team(app_conn, recorder)
+    outbox = Outbox(media)
+    filtered = Rejection(error_code="CONTENT_FILTER", message="content_policy_violation")
+
+    ch = channel(keyring, outbox, {reader: FakeReader(filtered)})
+    await whatsapp.process(app_conn, ch, incoming(fixture_name, EMPLOYEE))
+
+    [reply] = outbox.to(EMPLOYEE)
+    assert reply.startswith(t("es", "verdict.doubtful.header"))
+    assert t("es", "signal.model_could_not_verify") in reply
+    rows = await app_conn.fetch("SELECT label FROM verdicts")
+    assert [r["label"] for r in rows] == ["doubtful"]
+
+
 async def test_an_image_qr_link_reaches_the_signals(
     app_conn: asyncpg.Connection, recorder: Recorder, keyring: Keyring
 ) -> None:
