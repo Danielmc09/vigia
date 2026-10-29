@@ -22,7 +22,7 @@ from vigia.domain.rejection import Rejection
 
 BASE = "https://api.meta.ai/v1"
 MODEL = "muse-spark-1.3"
-FILTERED = "content_policy_violation"  # Discord #meta, 28 oct: a 400 on plain security text
+FILTER_CODE = "content_policy_violation"  # Discord #meta, 28 oct: a 400 on plain security text
 REASONING = "minimal"  # the lowest Spark accepts; "none" is a 400 (specs/03)
 SEARCH_TOOL = {"type": "web_search", "search_context_size": "low"}
 SEARCH_TIMEOUT_S = 10.0
@@ -76,7 +76,7 @@ SPARK_OPEN = Endpoint(
     "https://inference.baseten.co/v1",
     ("meta-models/muse-spark-open-1026", "meta-models/muse-spark-open"),
 )
-"""Muse Spark Open on Baseten (T-09b): chat turns only; same prices as Spark 1.3 (D-087)."""
+"""Muse Spark Open on Baseten (T-09b): chat turns only; same prices as Spark 1.3 (D-086)."""
 
 
 def usage_usd(usage: dict[str, Any]) -> tuple[float, int]:
@@ -107,13 +107,13 @@ def _error_code(exc: Exception) -> str | None:
     if not isinstance(error, dict):
         return None
     codes = {error.get("code"), error.get("type")}
-    return next((c for c in (FILTERED, "model_not_found") if c in codes), None)
+    return next((c for c in (FILTER_CODE, "model_not_found") if c in codes), None)
 
 
 def _unavailable(exc: Exception) -> Rejection:
-    if _error_code(exc) == FILTERED:
+    if _error_code(exc) == FILTER_CODE:
         log.warning("spark content filter")
-        return Rejection(error_code="CONTENT_FILTER", message=FILTERED)
+        return Rejection(error_code="CONTENT_FILTER", message=FILTER_CODE)
     log.warning("spark unavailable: %s", type(exc).__name__)
     return Rejection(error_code="MODEL_UNAVAILABLE", message=type(exc).__name__, retryable=True)
 
@@ -152,7 +152,12 @@ class SparkClient:
         try:
             return self._send(path, body | {"model": self.model}, timeout_s)
         except httpx.HTTPStatusError as exc:
-            if _error_code(exc) != "model_not_found" or len(self._models) == 1:
+            # only chat moves to the next id: a host may lack /responses (adv-slug-busqueda)
+            if (
+                _error_code(exc) != "model_not_found"
+                or len(self._models) == 1
+                or path != "/chat/completions"
+            ):
                 raise
             log.warning("spark model not found, trying the next id")
             self._models.pop(0)

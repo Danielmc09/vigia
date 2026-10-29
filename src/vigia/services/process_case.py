@@ -28,9 +28,9 @@ from vigia.verdict.fusion import decided_by_rules, soften_citations
 Analyst = Callable[[Case, Evidence, CountryPack, GateResult], AnalystResult | Rejection | None]
 """The analyst's read of a case, given what the rules and the gate already found.
 
-A :class:`Rejection` is only ever ``CONTENT_FILTER`` (see :func:`loop.investigate`)."""
+Only a ``CONTENT_FILTER`` :class:`Rejection` adds :data:`FILTERED_SIGNAL`; any other degrades."""
 
-FILTERED = Signal(type="model_could_not_verify", weight="light", source="analyst")
+FILTERED_SIGNAL = Signal(type="model_could_not_verify", weight="light", source="analyst")
 """The model's content filter refused the case (T-09b): informs, never decides."""
 
 Loader = Callable[[str], bytes]
@@ -78,7 +78,7 @@ def classify(case: Case, pack: CountryPack, gate: GateResult, analyst: Analyst |
         analyst: The analyst; ``None`` means no model (degraded verdict).
 
     A content-filter refusal, by a reader (``case.model_refused``) or by the analyst, leaves
-    the verdict degraded with the light signal :data:`FILTERED`, never an error (T-09b).
+    the verdict degraded with the light signal :data:`FILTERED_SIGNAL`, never an error (T-09b).
 
     Returns:
         The verdict of specs/05.
@@ -86,15 +86,15 @@ def classify(case: Case, pack: CountryPack, gate: GateResult, analyst: Analyst |
     with telemetry.stage("rules"):
         signals = detect(case, pack)
     if case.model_refused:
-        signals, analyst = [*signals, FILTERED], None
+        signals, analyst = [*signals, FILTERED_SIGNAL], None
     evidence = Evidence(signals=signals, manipulation_detected=gate.manipulation_detected)
     if analyst is not None and not decided_by_rules(soften_citations(signals, case, pack)):
         with telemetry.stage("analyst") as cost:
             read = analyst(case, evidence, pack, gate)
             cost["usd"] = tools_usd(read.tools_used) if isinstance(read, AnalystResult) else 0.0
-        if isinstance(read, Rejection):
-            evidence = evidence.model_copy(update={"signals": [*signals, FILTERED]})
-        else:
+        if isinstance(read, Rejection) and read.error_code == "CONTENT_FILTER":
+            evidence = evidence.model_copy(update={"signals": [*signals, FILTERED_SIGNAL]})
+        elif not isinstance(read, Rejection):
             evidence = evidence.model_copy(update={"analyst": read})
     with telemetry.stage("fusion"):
         return build_verdict(case, evidence, pack)

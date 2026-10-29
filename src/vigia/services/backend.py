@@ -1,4 +1,4 @@
-"""Who answers the chat turns of the analyst and the judge (T-09b, D-087).
+"""Who answers the chat turns of the analyst and the judge (T-09b, D-086).
 
 Wiring, so it lives in ``services``: ``MODEL_BACKEND`` picks Muse Spark on the Meta Model API
 or Muse Spark Open on Baseten. Readers (PDF, image), SAM, Voice and the web search stay on
