@@ -144,6 +144,34 @@ def test_spark_open_falls_back_to_the_short_slug_on_model_not_found() -> None:
     assert models == [*spark.SPARK_OPEN.models, spark.SPARK_OPEN.models[1]]
 
 
+def test_adv_slug_carrera_a_late_404_does_not_drop_the_working_slug() -> None:
+    """Incident adv-slug-carrera (juez T-09b): two calls 404 on the first slug at once.
+
+    Hypothesis: the call whose 404 lands after another already moved on retries with the
+    current slug instead of popping it; today it sees one slug left and gives up.
+    """
+    models: list[str] = []
+    client: SparkClient
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        model = json.loads(request.content)["model"]
+        models.append(model)
+        if model == spark.SPARK_OPEN.models[0]:
+            if len(models) == 1:  # a concurrent call fails on the same slug and moves on
+                assert not isinstance(client.complete(_request()), Rejection)
+            error = {"code": "model_not_found", "type": "invalid_request_error", "message": "no"}
+            return httpx.Response(404, json={"error": error})
+        content = json.dumps({"text": "x"})
+        return httpx.Response(200, json={"choices": [{"message": {"content": content}}]})
+
+    client = _client(spark.SPARK_OPEN, handler)
+
+    late = client.complete(_request())
+
+    assert not isinstance(late, Rejection)
+    assert client.model == spark.SPARK_OPEN.models[1]
+
+
 # --- backend choice is wiring (services), never an adapter importing another --------------
 
 
