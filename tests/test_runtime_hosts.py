@@ -61,10 +61,10 @@ def test_jev_backend_real_is_accepted_in_dev() -> None:
     assert Settings(VIGIA_MODO="dev", JEV_BACKEND="real", JEV_API_KEY="k").jev_backend == "real"
 
 
-def test_adv_runtime_sin_modo_jev_never_reaches_the_webhook(
+def test_adv_runtime_sin_modo_settings_refuse_jev_without_declared_mode(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """Incident adv-runtime-sin-modo: without VIGIA_MODO, JEV_BACKEND=real skips the webhook.
+    """Incident adv-runtime-sin-modo: without VIGIA_MODO, JEV_BACKEND=real does not start.
 
     Hypothesis (juez T-08b, MAYOR): JEV_BACKEND=real does not reach the webhook.
 
@@ -75,7 +75,7 @@ def test_adv_runtime_sin_modo_jev_never_reaches_the_webhook(
     monkeypatch.delenv("VIGIA_MODO", raising=False)
 
     with pytest.raises(ValidationError, match="JEV_BACKEND"):
-        make_judge(Settings(_env_file=None, JEV_BACKEND="real", JEV_API_KEY="k", MODEL_API_KEY="k"))
+        Settings(_env_file=None, JEV_BACKEND="real", JEV_API_KEY="k", MODEL_API_KEY="k")
 
 
 def test_dev_mode_declared_from_the_environment_allows_jev(
@@ -203,7 +203,11 @@ def test_dev_factory_still_allows_the_jev_development_tool() -> None:
 
 
 def test_runtime_adapters_share_one_meta_host() -> None:
-    """Spark, the analyst (a SparkClient), SAM and Voice all build URLs from ``spark.BASE``."""
+    """Configuration contract: Spark, the analyst, SAM and Voice build URLs from ``spark.BASE``.
+
+    It pins the constant, not the request: a call per adapter is covered by each adapter's
+    own MockTransport tests, and only the judge needed a new one here.
+    """
     assert voice.BASE is spark.BASE and sam.BASE is spark.BASE
     assert urlparse(spark.BASE).hostname in ALLOWED_RUNTIME_HOSTS
     assert urlparse(spark.SPARK_OPEN.base).hostname in ALLOWED_RUNTIME_HOSTS
