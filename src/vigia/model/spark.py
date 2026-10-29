@@ -149,18 +149,19 @@ class SparkClient:
         return self._models[0]
 
     def _post(self, path: str, body: dict[str, Any], timeout_s: float) -> dict[str, Any]:
+        tried = self.model
         try:
-            return self._send(path, body | {"model": self.model}, timeout_s)
+            return self._send(path, body | {"model": tried}, timeout_s)
         except httpx.HTTPStatusError as exc:
             # only chat moves to the next id: a host may lack /responses (adv-slug-busqueda)
-            if (
-                _error_code(exc) != "model_not_found"
-                or len(self._models) == 1
-                or path != "/chat/completions"
-            ):
+            if _error_code(exc) != "model_not_found" or path != "/chat/completions":
                 raise
-            log.warning("spark model not found, trying the next id")
-            self._models.pop(0)
+            # compare-and-advance: a concurrent call may have moved on already (adv-slug-carrera)
+            if self.model == tried:
+                if len(self._models) == 1:
+                    raise
+                log.warning("spark model not found, trying the next id")
+                self._models = self._models[1:]
             return self._send(path, body | {"model": self.model}, timeout_s)
 
     def _send(self, path: str, body: dict[str, Any], timeout_s: float) -> dict[str, Any]:
