@@ -625,7 +625,7 @@ def test_c10_jev_down_or_without_key_falls_back_to_mock_investigate() -> None:
         raise httpx.ConnectError("down", request=request)
 
     keyed = JevJudge("k", client=httpx.Client(transport=httpx.MockTransport(down)))
-    keyless = make_dev_judge(Settings(JEV_BACKEND="real", JEV_API_KEY=None))
+    keyless = make_dev_judge(Settings(VIGIA_MODO="dev", JEV_BACKEND="real", JEV_API_KEY=None))
     assert CO is not None
 
     results = [screen("Su paquete esta retenido", [], CO, j) for j in (keyed, keyless)]

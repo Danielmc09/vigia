@@ -21,8 +21,8 @@ class JudgeAnswer(BaseModel, frozen=True):
         triage: Jev ``choice`` for how to handle the message.
         source: ``jev`` for the development-only judge (D-085), ``spark`` for the
             Meta-model judge used at runtime, ``mock`` for the fallback (specs/12 C10).
-        usd: Cost of the call behind this answer (rule 11); 0 for the mock and Jev.
-        tokens: Tokens of that call; 0 for the mock and Jev.
+        usd: Cost of the call behind this answer (rule 11); 0 for Jev and an unbilled mock.
+        tokens: Tokens of that call; 0 for Jev and an unbilled mock.
     """
 
     manipulation: float = Field(ge=0, le=1)

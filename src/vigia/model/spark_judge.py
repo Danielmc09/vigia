@@ -63,7 +63,8 @@ class SparkJudge:
             state: History and last message, delimited (see :func:`vigia.jev.gate.screen`).
 
         Returns:
-            Spark's answer, or ``MOCK_ANSWER`` if the call failed or answered off-schema.
+            Spark's answer, or ``MOCK_ANSWER`` if the call failed or answered off-schema
+            (carrying the turn's cost when Spark did answer).
         """
         request = ModelRequest(
             messages=[
@@ -94,4 +95,5 @@ class SparkJudge:
             )
         except (json.JSONDecodeError, KeyError, ValueError, TypeError) as exc:
             log.warning("spark judge answered off-schema: %s", type(exc).__name__)
-            return MOCK_ANSWER
+            # Spark billed the turn even if its answer is unusable (rule 11).
+            return MOCK_ANSWER.model_copy(update={"usd": turn.usd, "tokens": turn.tokens})

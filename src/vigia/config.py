@@ -26,7 +26,7 @@ class Settings(BaseSettings):
         code_max_attempts: Wrong guesses that invalidate a member's live codes (specs/12 B4).
         knowledge_seed: Known-campaign seed attached to the country packs (D-048).
         jev_backend: ``real`` asks the Jev judge, a development-only tool (T-08b, D-085);
-            ``mock`` (default) never flags. Forbidden with ``mode in ("eval", "prod")``.
+            ``mock`` (default) never flags. Needs ``VIGIA_MODO=dev`` set explicitly.
         jev_api_key: Jev key; without it the backend is mock whatever ``jev_backend``.
         model_api_key: Meta Model API key; without it the analyst never runs (degraded).
         voice_max_seconds: Longest voice note transcribed (D-070); longer ones are refused.
@@ -113,10 +113,16 @@ class Settings(BaseSettings):
 
     @model_validator(mode="after")
     def _jev_real_only_in_dev(self) -> Self:
-        """Refuse Jev as the runtime judge (T-08b, D-085): only Meta models run outside dev."""
-        if self.jev_backend == "real" and self.mode != "dev":
+        """Refuse Jev as the runtime judge (T-08b, D-085): only Meta models run outside dev.
+
+        ``dev`` must be declared: ``mode`` defaults to it, and the image runs without the
+        compose file, so the default alone would let Jev reach production.
+        """
+        if self.jev_backend == "real" and (
+            self.mode != "dev" or "mode" not in self.model_fields_set
+        ):
             raise ValueError(
-                "JEV_BACKEND=real is a development-only tool; not with VIGIA_MODO=eval|prod"
+                "JEV_BACKEND=real is a development-only tool; it needs VIGIA_MODO=dev declared"
             )
         return self
 

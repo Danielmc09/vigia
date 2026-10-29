@@ -229,7 +229,7 @@ def test_health_checks_meta_only_with_a_key_and_fails_on_its_errors() -> None:
 
 
 def test_health_checks_jev_only_when_the_backend_is_real() -> None:
-    api = create_app(Settings(JEV_BACKEND="real", JEV_API_KEY="key-not-real"))
+    api = create_app(Settings(VIGIA_MODO="dev", JEV_BACKEND="real", JEV_API_KEY="key-not-real"))
     api.state.health_http = _meta(502)
 
     response = TestClient(api).get("/salud")

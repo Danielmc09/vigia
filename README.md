@@ -12,6 +12,7 @@ Voice Transcribe (voice notes). Everything else behind a "model" name is determi
 code: the country-pack signals, the manipulation floor (D-051), fusion and policy.
 
 TypeSafe Jev is a **development-only** tool (judge of steps), never called at runtime:
-`Settings` refuses `JEV_BACKEND=real` outside `VIGIA_MODO=dev` (T-08b, D-085). The gate
+`Settings` refuses `JEV_BACKEND=real` unless `VIGIA_MODO=dev` is declared explicitly
+(the default mode does not count; the Docker image sets `VIGIA_MODO=prod`; T-08b, D-085). The gate
 (`jev/gate.py`) always runs the deterministic floor first; its model fallback is Spark in
 `eval`/`prod` and, only in `dev`, optionally Jev.

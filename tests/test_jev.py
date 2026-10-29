@@ -324,7 +324,7 @@ def test_any_jev_failure_falls_back_to_mock(handler: Any) -> None:
     [("mock", "k", False), ("real", None, False), ("real", "", False), ("real", "k", True)],
 )
 def test_backend_is_mock_unless_real_and_keyed(backend: str, key: str | None, real: bool) -> None:
-    judge = make_dev_judge(Settings(JEV_BACKEND=backend, JEV_API_KEY=key))
+    judge = make_dev_judge(Settings(VIGIA_MODO="dev", JEV_BACKEND=backend, JEV_API_KEY=key))
 
     assert isinstance(judge, JevJudge) is real
     if not real:
