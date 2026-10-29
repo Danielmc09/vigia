@@ -33,8 +33,9 @@ from vigia.domain.rejection import Rejection
 from vigia.domain.verdict import Label
 from vigia.jev.gate import screen
 from vigia.model.sam import make_sam
-from vigia.model.spark import SparkClient, make_spark
+from vigia.model.spark import SparkClient
 from vigia.services import process_case, transcription, whatsapp
+from vigia.services.backend import make_chat
 from vigia.services.ingest import normalize
 from vigia.services.judge import make_judge
 from vigia.signals.country_pack import country_pack
@@ -240,6 +241,7 @@ def to_case(raw: dict[str, Any], root: Path = REPO, heard: Transcript | None = N
             "sender": None,
             "context": raw.get("contexto") or {},
             "qr_urls": list(heard.qr_urls) if heard else [],
+            "model_refused": heard.refused if heard else False,
         }
     )
 
@@ -497,7 +499,7 @@ def _unavailable(args: argparse.Namespace, out_dir: Path) -> str:
 
 def full() -> Classifier | None:
     """The full system, or ``None`` without a model key."""
-    spark = make_spark(settings)
+    spark = make_chat(settings)
     # An eval run is mode eval whatever .env says: Jev never judges it (D-085).
     judge = make_judge(settings.model_copy(update={"mode": "eval"}))
     return with_analyst(spark, judge) if spark else None

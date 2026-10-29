@@ -15,6 +15,8 @@ from vigia.domain.country import CountryPack
 from vigia.domain.gate import GateResult, Judge
 from vigia.domain.image import Segmenter
 from vigia.domain.member import Supplier
+from vigia.domain.rejection import Rejection
+from vigia.domain.signal import Signal
 from vigia.domain.verdict import Verdict, tools_usd
 from vigia.jev.gate import screen
 from vigia.model.spark import SparkClient
@@ -23,8 +25,13 @@ from vigia.signals.detector import detect
 from vigia.verdict.build import build_verdict
 from vigia.verdict.fusion import decided_by_rules, soften_citations
 
-Analyst = Callable[[Case, Evidence, CountryPack, GateResult], AnalystResult | None]
-"""The analyst's read of a case, given what the rules and the gate already found."""
+Analyst = Callable[[Case, Evidence, CountryPack, GateResult], AnalystResult | Rejection | None]
+"""The analyst's read of a case, given what the rules and the gate already found.
+
+A :class:`Rejection` is only ever ``CONTENT_FILTER`` (see :func:`loop.investigate`)."""
+
+FILTERED = Signal(type="model_could_not_verify", weight="light", source="analyst")
+"""The model's content filter refused the case (T-09b): informs, never decides."""
 
 Loader = Callable[[str], bytes]
 """Port: the bytes of an attachment, by its ``ref`` (a path in evals, the channel's media later)."""
@@ -50,7 +57,7 @@ def spark_analyst(
 
     def analyst(
         case: Case, evidence: Evidence, pack: CountryPack, gate: GateResult
-    ) -> AnalystResult | None:
+    ) -> AnalystResult | Rejection | None:
         search = spark if gate.triage == "investigate" else None
         crop = None
         if segment and load and case.kind == "image" and case.attachments:
@@ -70,17 +77,25 @@ def classify(case: Case, pack: CountryPack, gate: GateResult, analyst: Analyst |
         gate: What the gate (Jev and its rules floor) said about the chat.
         analyst: The analyst; ``None`` means no model (degraded verdict).
 
+    A content-filter refusal, by a reader (``case.model_refused``) or by the analyst, leaves
+    the verdict degraded with the light signal :data:`FILTERED`, never an error (T-09b).
+
     Returns:
         The verdict of specs/05.
     """
     with telemetry.stage("rules"):
         signals = detect(case, pack)
+    if case.model_refused:
+        signals, analyst = [*signals, FILTERED], None
     evidence = Evidence(signals=signals, manipulation_detected=gate.manipulation_detected)
     if analyst is not None and not decided_by_rules(soften_citations(signals, case, pack)):
         with telemetry.stage("analyst") as cost:
             read = analyst(case, evidence, pack, gate)
-            cost["usd"] = tools_usd(read.tools_used) if read else 0.0
-        evidence = evidence.model_copy(update={"analyst": read})
+            cost["usd"] = tools_usd(read.tools_used) if isinstance(read, AnalystResult) else 0.0
+        if isinstance(read, Rejection):
+            evidence = evidence.model_copy(update={"signals": [*signals, FILTERED]})
+        else:
+            evidence = evidence.model_copy(update={"analyst": read})
     with telemetry.stage("fusion"):
         return build_verdict(case, evidence, pack)
 

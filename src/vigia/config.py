@@ -29,6 +29,9 @@ class Settings(BaseSettings):
             ``mock`` (default) never flags. Needs ``VIGIA_MODO=dev`` set explicitly.
         jev_api_key: Jev key; without it the backend is mock whatever ``jev_backend``.
         model_api_key: Meta Model API key; without it the analyst never runs (degraded).
+        model_backend: Who answers the chat turns of the analyst and the judge (T-09b):
+            ``spark`` (Meta Model API) or ``spark_open`` (Muse Spark Open on Baseten).
+        baseten_api_key: Baseten key for ``spark_open``; without it the chat is off.
         voice_max_seconds: Longest voice note transcribed (D-070); longer ones are refused.
         pdf_max_bytes: Largest PDF read by Spark (D-071); bigger ones are refused.
         panel_token: Operator token for ``/panel`` (D-073); unset means no panel at all.
@@ -63,6 +66,8 @@ class Settings(BaseSettings):
     jev_backend: Literal["mock", "real"] = Field("mock", validation_alias="JEV_BACKEND")
     jev_api_key: SecretStr | None = Field(None, validation_alias="JEV_API_KEY")
     model_api_key: SecretStr | None = Field(None, validation_alias="MODEL_API_KEY")
+    model_backend: Literal["spark", "spark_open"] = Field("spark", validation_alias="MODEL_BACKEND")
+    baseten_api_key: SecretStr | None = Field(None, validation_alias="BASETEN_API_KEY")
     voice_max_seconds: int = Field(120, ge=1, validation_alias="VIGIA_VOICE_MAX_SECONDS")
     pdf_max_bytes: int = Field(5 * 1024 * 1024, ge=1, validation_alias="VIGIA_PDF_MAX_BYTES")
     panel_token: SecretStr | None = Field(None, validation_alias="VIGIA_PANEL_TOKEN")

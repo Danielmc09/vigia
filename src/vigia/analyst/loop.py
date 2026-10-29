@@ -150,7 +150,9 @@ def _result(answer: _Answer, used: list[dict[str, Any]], clock: float) -> Analys
     )
 
 
-def investigate(case: Case, evidence: Evidence, tools: Tools, spark: Spark) -> AnalystResult | None:
+def investigate(
+    case: Case, evidence: Evidence, tools: Tools, spark: Spark
+) -> AnalystResult | Rejection | None:
     """Let the model investigate the case with the bound tools and answer the schema.
 
     Args:
@@ -160,8 +162,9 @@ def investigate(case: Case, evidence: Evidence, tools: Tools, spark: Spark) -> A
         spark: The model port.
 
     Returns:
-        The analyst's read, or ``None`` when the model failed, ran out of steps or time,
-        or gave two invalid answers.
+        The analyst's read; the ``CONTENT_FILTER`` rejection when the provider's filter
+        refused the case (T-09b); or ``None`` when the model failed, ran out of steps or
+        time, or gave two invalid answers.
     """
     deadline, clock = monotonic() + DEADLINE_S, perf_counter()
     messages: list[dict[str, Any]] = [
@@ -181,7 +184,7 @@ def investigate(case: Case, evidence: Evidence, tools: Tools, spark: Spark) -> A
         sent = perf_counter()
         turn = spark(request)
         if isinstance(turn, Rejection):
-            return None
+            return turn if turn.error_code == "CONTENT_FILTER" else None
         ms = round((perf_counter() - sent) * 1000)
         used.append({"name": turn.model, "ms": ms, "usd": turn.usd})
         if turn.tool_calls and offer:

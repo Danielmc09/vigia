@@ -19,12 +19,14 @@ class Transcript(BaseModel, frozen=True):
         audio_ms: Audio duration Voice billed; 0 for a PDF or an image.
         usd: Cost of the call (for an image, plus SAM's when it looked for the QR).
         qr_urls: Links decoded from the QR codes of an image; they become ``Case.qr_urls``.
+        refused: The model's content filter refused to read it (T-09b); ``text`` is empty.
     """
 
     text: str
     audio_ms: int = 0
     usd: float
     qr_urls: tuple[str, ...] = ()
+    refused: bool = False
 
 
 Transcriber = Callable[[bytes, str], Transcript | Rejection]

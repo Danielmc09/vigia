@@ -57,6 +57,7 @@
   "signal.ip_or_port": "el link usa una IP o un puerto inusual",
   "signal.unresolved_shortener": "el link acortado no se pudo verificar",
   "signal.could_not_verify": "no se pudo verificar el link",
+  "signal.model_could_not_verify": "el modelo de lenguaje no pudo revisarlo",
   "signal.official_domain": "el link es de un dominio oficial",
   "signal.http_without_tls": "el link no usa conexión segura",
   "signal.qr_to_unofficial_domain": "el código QR lleva a un dominio que no es oficial",

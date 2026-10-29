@@ -48,6 +48,27 @@ REPLY_KEYS: dict[str, Mapping[RejectionCode, str]] = {
 """The reply keys of each reader kind, for :func:`reply`."""
 
 
+REFUSED = Transcript(text="", usd=0.0, refused=True)
+"""What a read becomes when the model's content filter refuses it: no text, a signal later."""
+
+
+def unfiltered(read: Transcript | Rejection) -> Transcript | Rejection:
+    """A content-filter refusal as an empty, refused transcript; anything else as it is.
+
+    The case then gets a deterministic verdict with ``model_could_not_verify`` instead of an
+    error reply (T-09b).
+
+    Args:
+        read: What a reader answered.
+
+    Returns:
+        :data:`REFUSED` for ``CONTENT_FILTER``, else ``read``.
+    """
+    if isinstance(read, Rejection) and read.error_code == "CONTENT_FILTER":
+        return REFUSED
+    return read
+
+
 def transcribe(
     wav: bytes, language: str, transcriber: Transcriber, max_seconds: int
 ) -> Transcript | Rejection:
@@ -85,7 +106,7 @@ def read_pdf(
     checked = check_pdf(pdf, max_bytes)
     if checked is not None:
         return checked
-    return reader(pdf, language)
+    return unfiltered(reader(pdf, language))
 
 
 def read_image(image: bytes, language: str, reader: Transcriber) -> Transcript | Rejection:
@@ -102,7 +123,7 @@ def read_image(image: bytes, language: str, reader: Transcriber) -> Transcript |
     checked = check_image(image)
     if checked is not None:
         return checked
-    return reader(image, language)
+    return unfiltered(reader(image, language))
 
 
 def find_qr(image: bytes, segment: Segmenter | None) -> tuple[tuple[str, ...], float]:
@@ -137,7 +158,7 @@ def image_reader(read: Transcriber, segment: Segmenter | None) -> Transcriber:
 
     def reader(image: bytes, language: str) -> Transcript | Rejection:
         links, sam_usd = find_qr(image, segment)
-        text = read(image, language)
+        text = unfiltered(read(image, language))
         if isinstance(text, Rejection):
             return text
         return text.model_copy(update={"qr_urls": links, "usd": text.usd + sam_usd})

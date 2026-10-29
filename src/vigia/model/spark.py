@@ -8,7 +8,7 @@ Any failure is a :class:`~vigia.domain.rejection.Rejection`, never an exception.
 import base64
 import json
 import logging
-from typing import Any
+from typing import Any, NamedTuple
 
 import httpx
 
@@ -22,6 +22,7 @@ from vigia.domain.rejection import Rejection
 
 BASE = "https://api.meta.ai/v1"
 MODEL = "muse-spark-1.3"
+FILTERED = "content_policy_violation"  # Discord #meta, 28 oct: a 400 on plain security text
 REASONING = "minimal"  # the lowest Spark accepts; "none" is a 400 (specs/03)
 SEARCH_TOOL = {"type": "web_search", "search_context_size": "low"}
 SEARCH_TIMEOUT_S = 10.0
@@ -56,6 +57,28 @@ PRICE_SEARCH = 0.0025
 log = logging.getLogger(__name__)
 
 
+class Endpoint(NamedTuple):
+    """An OpenAI-compatible host serving Spark, and the model ids to try in order.
+
+    Attributes:
+        base: Base URL, up to ``/v1``.
+        models: Model ids; the next one is used when the host says ``model_not_found``.
+    """
+
+    base: str
+    models: tuple[str, ...]
+
+
+META = Endpoint(BASE, (MODEL,))
+"""Muse Spark 1.3 on the Meta Model API: chat, web search, PDF and image reading."""
+
+SPARK_OPEN = Endpoint(
+    "https://inference.baseten.co/v1",
+    ("meta-models/muse-spark-open-1026", "meta-models/muse-spark-open"),
+)
+"""Muse Spark Open on Baseten (T-09b): chat turns only; same prices as Spark 1.3 (D-087)."""
+
+
 def usage_usd(usage: dict[str, Any]) -> tuple[float, int]:
     """Cost and total tokens of one call, from its ``usage`` (chat or responses naming).
 
@@ -73,7 +96,24 @@ def usage_usd(usage: dict[str, Any]) -> tuple[float, int]:
     return usd, tokens_in + tokens_out
 
 
+def _error_code(exc: Exception) -> str | None:
+    """The provider's ``error.code`` (or ``error.type``) of a 4xx, if there is one."""
+    if not isinstance(exc, httpx.HTTPStatusError):
+        return None
+    try:
+        error = exc.response.json().get("error") or {}
+    except ValueError:
+        return None
+    if not isinstance(error, dict):
+        return None
+    codes = {error.get("code"), error.get("type")}
+    return next((c for c in (FILTERED, "model_not_found") if c in codes), None)
+
+
 def _unavailable(exc: Exception) -> Rejection:
+    if _error_code(exc) == FILTERED:
+        log.warning("spark content filter")
+        return Rejection(error_code="CONTENT_FILTER", message=FILTERED)
     log.warning("spark unavailable: %s", type(exc).__name__)
     return Rejection(error_code="MODEL_UNAVAILABLE", message=type(exc).__name__, retryable=True)
 
@@ -86,21 +126,41 @@ class SparkClient:
         tokens: Tokens spent by this client so far.
     """
 
-    def __init__(self, api_key: str, client: httpx.Client | None = None) -> None:
-        """Keep the key and the HTTP client.
+    def __init__(
+        self, api_key: str, client: httpx.Client | None = None, endpoint: Endpoint = META
+    ) -> None:
+        """Keep the key, the HTTP client and the host.
 
         Args:
-            api_key: Model API key, from settings only.
+            api_key: Key of ``endpoint``'s provider, from settings only.
             client: HTTP client; tests pass one with ``httpx.MockTransport``.
+            endpoint: :data:`META` (default) or :data:`SPARK_OPEN`.
         """
         self._key = api_key
         self._client = client or httpx.Client(event_hooks=telemetry.MODEL_HOOKS)
+        self.endpoint = endpoint
+        self._models = list(endpoint.models)
         self.usd = 0.0
         self.tokens = 0
 
+    @property
+    def model(self) -> str:
+        """The model id in use (it moves to the next one after a ``model_not_found``)."""
+        return self._models[0]
+
     def _post(self, path: str, body: dict[str, Any], timeout_s: float) -> dict[str, Any]:
+        try:
+            return self._send(path, body | {"model": self.model}, timeout_s)
+        except httpx.HTTPStatusError as exc:
+            if _error_code(exc) != "model_not_found" or len(self._models) == 1:
+                raise
+            log.warning("spark model not found, trying the next id")
+            self._models.pop(0)
+            return self._send(path, body | {"model": self.model}, timeout_s)
+
+    def _send(self, path: str, body: dict[str, Any], timeout_s: float) -> dict[str, Any]:
         response = self._client.post(
-            f"{BASE}{path}",
+            f"{self.endpoint.base}{path}",
             headers={"Authorization": f"Bearer {self._key}"},
             json=body,
             timeout=timeout_s,
@@ -120,11 +180,11 @@ class SparkClient:
             request: Messages, tools, output schema and timeout.
 
         Returns:
-            The turn (text and tool calls, cost), or ``MODEL_UNAVAILABLE``.
+            The turn (text and tool calls, cost), ``CONTENT_FILTER`` when the provider's
+            filter refused it, or ``MODEL_UNAVAILABLE``.
         """
         schema = {"name": request.output_name, "strict": True, "schema": request.output_schema}
         body: dict[str, Any] = {
-            "model": MODEL,
             "messages": request.messages,
             "reasoning_effort": REASONING,
             "response_format": {"type": "json_schema", "json_schema": schema},
@@ -146,7 +206,7 @@ class SparkClient:
                 tool_calls=calls,
                 usd=usd,
                 tokens=tokens,
-                model=MODEL,  # never the provider's echo (regla 14)
+                model=self.model,  # never the provider's echo (regla 14)
             )
         except (httpx.HTTPError, ValueError, KeyError, TypeError, IndexError) as exc:
             return _unavailable(exc)
@@ -165,7 +225,6 @@ class SparkClient:
             including the per-search fee, or ``MODEL_UNAVAILABLE``.
         """
         body = {
-            "model": MODEL,
             "input": query,
             "tools": [SEARCH_TOOL],
             "reasoning": {"effort": REASONING},
@@ -182,7 +241,7 @@ class SparkClient:
                 content=text,
                 usd=usd + searches * PRICE_SEARCH,
                 tokens=tokens,
-                model=MODEL,  # never the provider's echo (regla 14)
+                model=self.model,  # never the provider's echo (regla 14)
             )
         except (httpx.HTTPError, ValueError, KeyError, TypeError, IndexError) as exc:
             return _unavailable(exc)

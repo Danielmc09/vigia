@@ -7,8 +7,8 @@ adapter module never imports another (specs/09 §19).
 from vigia.config import Settings
 from vigia.domain.gate import Judge, mock_judge
 from vigia.model.jev import make_dev_judge
-from vigia.model.spark import make_spark
 from vigia.model.spark_judge import SparkJudge
+from vigia.services.backend import make_chat
 
 
 def make_judge(config: Settings) -> Judge:
@@ -26,5 +26,5 @@ def make_judge(config: Settings) -> Judge:
     """
     if config.mode == "dev":
         return make_dev_judge(config)
-    spark = make_spark(config)
+    spark = make_chat(config)
     return SparkJudge(spark) if spark else mock_judge

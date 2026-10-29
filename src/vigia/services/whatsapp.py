@@ -33,6 +33,7 @@ from vigia.model.spark import make_spark
 from vigia.model.voice import make_voice
 from vigia.policy.actions import should_alert_team
 from vigia.services import ingest, transcription
+from vigia.services.backend import make_chat
 from vigia.services.judge import make_judge
 from vigia.services.process_case import Analyst, judge_case, spark_analyst
 from vigia.signals.knowledge import seeded_pack, with_campaigns
@@ -128,12 +129,14 @@ class MediaRead(NamedTuple):
         data: The checked bytes (the analyst's ``crop`` reuses them).
         qr_urls: Links decoded from a QR.
         usd: What the reader cost.
+        refused: The model's content filter refused to read it (T-09b).
     """
 
     msg: IncomingMessage
     data: bytes
     qr_urls: tuple[str, ...]
     usd: float
+    refused: bool = False
 
 
 async def _read_media(
@@ -168,7 +171,7 @@ async def _read_media(
     attachment = Attachment(ref=msg.attachments[0].ref, mime=mime)
     update = {"kind": kind, "text": read.text, "attachments": [attachment]}
     telemetry.add_usd(read.usd)
-    return MediaRead(msg.model_copy(update=update), data, read.qr_urls, read.usd)
+    return MediaRead(msg.model_copy(update=update), data, read.qr_urls, read.usd, read.refused)
 
 
 async def process(conn: asyncpg.Connection, channel: Channel, msg: IncomingMessage) -> None:
@@ -188,6 +191,7 @@ async def _process(conn: asyncpg.Connection, channel: Channel, msg: IncomingMess
     sender = normalize_contact(msg.sender)
     media: bytes | None = None
     qr: tuple[str, ...] = ()
+    refused = False
     if msg.attachments:
         member = await store.find_member(conn, channel.keyring.hash(sender))
         if member is not None:  # strangers cost no download (ingest drops them below)
@@ -203,7 +207,7 @@ async def _process(conn: asyncpg.Connection, channel: Channel, msg: IncomingMess
                 await channel.wazenda.send(sender, read)
                 return
             await claim.commit()
-            msg, media, qr = read.msg, read.data, read.qr_urls
+            msg, media, qr, refused = read.msg, read.data, read.qr_urls, read.refused
     cases: list[Case] = []
 
     async def capture(case: Case) -> None:
@@ -217,7 +221,8 @@ async def _process(conn: asyncpg.Connection, channel: Channel, msg: IncomingMess
     if reply is not None:
         await channel.wazenda.send(sender, reply)
     for case in cases:
-        await _judge(conn, channel, case.model_copy(update={"qr_urls": list(qr)}), media)
+        update = {"qr_urls": list(qr), "model_refused": refused}
+        await _judge(conn, channel, case.model_copy(update=update), media)
 
 
 async def _judge(
@@ -297,7 +302,7 @@ def live(config: Settings, metrics: telemetry.Metrics) -> WebhookPorts:
     if config.wazenda_api_key is None or config.wazenda_line_id is None:
         raise RuntimeError("WAZENDA_API_KEY and WAZENDA_LINE_ID are required")
     keyring = Keyring.from_settings(config)
-    spark, sam = make_spark(config), make_sam(config)
+    spark, sam = make_chat(config), make_sam(config)
 
     def analyst(suppliers: Sequence[Supplier], media: bytes | None) -> Analyst | None:
         if spark is None:

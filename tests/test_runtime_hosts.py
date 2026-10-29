@@ -206,6 +206,7 @@ def test_runtime_adapters_share_one_meta_host() -> None:
     """Spark, the analyst (a SparkClient), SAM and Voice all build URLs from ``spark.BASE``."""
     assert voice.BASE is spark.BASE and sam.BASE is spark.BASE
     assert urlparse(spark.BASE).hostname in ALLOWED_RUNTIME_HOSTS
+    assert urlparse(spark.SPARK_OPEN.base).hostname in ALLOWED_RUNTIME_HOSTS
 
 
 def test_runtime_judge_calls_only_meta_hosts() -> None:

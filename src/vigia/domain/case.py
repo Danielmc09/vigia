@@ -75,6 +75,7 @@ class Case(BaseModel):
         email: Email headers when ``kind == "email"``.
         context: Extra context from the channel or the eval.
         received_at: When the channel received it.
+        model_refused: The model's content filter refused to read its attachment (T-09b).
     """
 
     id: UUID
@@ -91,3 +92,4 @@ class Case(BaseModel):
     email: EmailMeta | None = None
     context: dict[str, Any] = Field(default_factory=dict)
     received_at: datetime
+    model_refused: bool = False

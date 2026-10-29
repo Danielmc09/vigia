@@ -57,6 +57,7 @@
   "signal.ip_or_port": "the link uses an IP address or an unusual port",
   "signal.unresolved_shortener": "the shortened link could not be checked",
   "signal.could_not_verify": "the link could not be verified",
+  "signal.model_could_not_verify": "the language model could not review it",
   "signal.official_domain": "the link is on an official domain",
   "signal.http_without_tls": "the link does not use a secure connection",
   "signal.qr_to_unofficial_domain": "the QR code leads to a domain that is not official",
