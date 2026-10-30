@@ -8,6 +8,7 @@ import asyncio
 import json
 import webbrowser
 from datetime import UTC, datetime
+from urllib.parse import urlencode
 from uuid import uuid4
 
 import asyncpg
@@ -87,7 +88,7 @@ async def send_samples(conn: asyncpg.Connection, channel: whatsapp.Channel) -> N
 
 def panel_url(token: str, config: Settings | None = None) -> str:
     """The panel on the host port compose publishes (``VIGIA_API_PORT``)."""
-    return f"http://localhost:{(config or Settings()).api_port}/panel?token={token}"
+    return f"http://localhost:{(config or Settings()).api_port}/panel?{urlencode({'token': token})}"
 
 
 async def _main() -> None:

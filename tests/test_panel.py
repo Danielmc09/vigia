@@ -3,6 +3,7 @@
 import json
 from datetime import UTC, datetime
 from pathlib import Path
+from urllib.parse import urlencode
 from uuid import uuid4
 
 import asyncpg
@@ -220,6 +221,10 @@ def test_panel_does_not_exist_without_a_configured_token() -> None:
     assert _client(None).get("/panel").status_code == 404
 
 
+def test_a_browser_link_does_not_exist_without_a_configured_token() -> None:
+    assert _client(None).get(f"/panel?token={TOKEN}").status_code == 404
+
+
 @pytest.mark.parametrize(
     "headers",
     [{}, {"Authorization": "Bearer wrong"}, {"Authorization": TOKEN}],
@@ -263,6 +268,36 @@ def test_a_browser_link_trades_the_token_for_a_cookie_and_drops_it_from_the_url(
 
 def test_a_browser_link_with_a_wrong_token_is_refused() -> None:
     assert _client(TOKEN).get("/panel?token=wrong", follow_redirects=False).status_code == 401
+
+
+@pytest.mark.parametrize(
+    ("scheme", "proto", "secure"),
+    [
+        ("http", "https", True),
+        ("http", None, False),
+        ("http", "https,http", True),
+        ("https", "http", True),
+        ("http", "HTTPS", True),
+    ],
+)
+def test_the_panel_cookie_is_secure_behind_an_https_proxy(
+    scheme: str, proto: str | None, secure: bool
+) -> None:
+    """T-22e: Railway ends TLS at its proxy, so the app sees http; the header can only harden."""
+    headers = {"x-forwarded-proto": proto} if proto else {}
+    url = f"{scheme}://testserver/panel?token={TOKEN}"
+
+    response = _client(TOKEN).get(url, headers=headers, follow_redirects=False)
+
+    assert ("secure" in response.headers["set-cookie"].lower()) is secure
+
+
+def test_a_link_with_an_escaped_base64_token_opens_the_panel() -> None:
+    """T-22e: a base64 token carries ``+``; unescaped in a URL it arrives as a space."""
+    token = "a+b/c=" * 6
+    client = _client(token)
+
+    assert client.get(f"/panel?{urlencode({'token': token})}").status_code == 200
 
 
 def test_a_short_panel_token_is_refused_at_startup() -> None:

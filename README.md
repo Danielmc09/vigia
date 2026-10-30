@@ -14,8 +14,12 @@ make demo
 
 Starts Postgres and the API with Docker Compose, seeds a sample business with 3
 members, sends 5 sample cases through the local channel, and opens the panel with the
-verdicts. Without `MODEL_API_KEY` it says so and runs rules only (no analyst). The
-`.env.example` keys are public demo keys: `VIGIA_MODO=prod` refuses them.
+verdicts at `http://localhost:8000/panel?token=<VIGIA_PANEL_TOKEN>` (it prints the full
+link). On a deployed instance open `https://<host>/panel?token=<VIGIA_PANEL_TOKEN>`: the
+link sets an HttpOnly cookie and redirects to `/panel`, so the token leaves the address
+bar. Escape the token if it has `+`, `/` or `=`. Without `MODEL_API_KEY` it says so
+and runs rules only (no analyst). The `.env.example` keys are public demo keys:
+`VIGIA_MODO=prod` refuses them.
 
 See `DECLARACION.md` for what was built during the event. Full README written in T-22b.
 

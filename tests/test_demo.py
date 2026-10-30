@@ -65,3 +65,8 @@ def test_panel_url_uses_the_published_port(monkeypatch: pytest.MonkeyPatch) -> N
     monkeypatch.setenv("VIGIA_API_PORT", "8010")
 
     assert demo.panel_url("t").startswith("http://localhost:8010/panel?")
+
+
+def test_panel_url_escapes_the_token() -> None:
+    """T-22e: ``+`` in a base64 token must survive the browser link."""
+    assert demo.panel_url("a+b/c=").endswith("/panel?token=a%2Bb%2Fc%3D")

@@ -130,7 +130,9 @@ async def _panel_page(
         # A browser cannot send Bearer: trade the link for a cookie, off the URL (D-088).
         _require_token(link, config.panel_token)
         response = RedirectResponse("/panel", status_code=303, headers=_PANEL_HEADERS)
-        response.set_cookie(PANEL_COOKIE, link, httponly=True, samesite="lax")
+        proxied = request.headers.get("x-forwarded-proto", "").split(",")[0].strip().lower()
+        https = request.url.scheme == "https" or proxied == "https"
+        response.set_cookie(PANEL_COOKIE, link, httponly=True, samesite="lax", secure=https)
         return response
     _require_token(_presented_token(request), config.panel_token)
     return await _panel_html(config, source, form)
