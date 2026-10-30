@@ -1,6 +1,8 @@
 """Fusion of specs/05: signals, and the analyst when present, decide the label."""
 
+import json
 from datetime import UTC, datetime
+from pathlib import Path
 from uuid import uuid4
 
 import pytest
@@ -9,8 +11,10 @@ from pydantic import ValidationError
 from vigia.domain.analyst import AnalystResult, Evidence
 from vigia.domain.case import Case
 from vigia.domain.signal import Signal
+from vigia.domain.urls import extract_urls
 from vigia.domain.verdict import Verdict
 from vigia.signals.country_pack import country_pack
+from vigia.signals.detector import detect
 from vigia.verdict.build import build_verdict
 from vigia.verdict.fusion import fuse, soften_citations
 
@@ -358,3 +362,33 @@ def test_confidence_is_bounded_between_0_and_1(confidence: float) -> None:
     verdict = build_verdict(_case("hola"), Evidence(), country_pack("CO"))  # type: ignore[arg-type]
     with pytest.raises(ValidationError):
         Verdict.model_validate(verdict.model_dump() | {"confidence": confidence})
+
+
+@pytest.mark.parametrize("case_id", ["c-0211", "c-0212"])
+def test_inc_marca_en_el_cuerpo_names_the_brand_written_in_the_message(case_id: str) -> None:
+    """Incident c-0211/c-0212: a raw-IP link convicts, but the brand only lived in the body."""
+    pack = country_pack("CO")
+    assert pack is not None
+    raw = next(
+        json.loads(line)
+        for line in (Path(__file__).parents[1] / "evals" / "casos.jsonl")
+        .read_text("utf-8")
+        .splitlines()
+        if f'"{case_id}"' in line
+    )
+    case = _case(raw["texto"], extract_urls(raw["texto"]))
+
+    verdict = build_verdict(case, Evidence(signals=detect(case, pack)), pack)
+
+    assert verdict.label == "scam"
+    assert verdict.impersonated_brand == "Coordinadora"
+
+
+def test_a_brand_in_the_body_is_not_named_when_the_message_is_legit() -> None:
+    pack = country_pack("CO")
+    assert pack is not None
+    case = _case("Coordinadora: su guia va en camino, rastreela en https://www.coordinadora.com")
+
+    verdict = build_verdict(case, Evidence(signals=detect(case, pack)), pack)
+
+    assert verdict.impersonated_brand is None
