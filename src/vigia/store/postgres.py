@@ -6,7 +6,7 @@ set by ``open_business``/``create_business`` (RLS on ``app.business_id``).
 """
 
 import secrets
-from datetime import datetime
+from datetime import UTC, datetime
 from uuid import UUID, uuid4
 
 import asyncpg
@@ -368,8 +368,7 @@ async def save_verdict(
         case: The case the verdict is about (already saved).
         verdict: The verdict.
     """
-    signal_types = list(dict.fromkeys(s.type for s in verdict.signals if s.source != "analyst"))
-    tools = list(dict.fromkeys(str(tool.get("name")) for tool in verdict.tools_used))
+    row = VerdictRow.of(verdict, case.kind, datetime.now(UTC))
     await conn.execute(
         "INSERT INTO verdicts (business_id, case_id, label, payload_enc, kind, brand, confidence,"
         " signal_types, tools, usd, latency_ms)"
@@ -378,13 +377,13 @@ async def save_verdict(
         case.id,
         verdict.label,
         vault.seal("verdicts.payload", verdict.model_dump_json()),
-        case.kind,
-        verdict.impersonated_brand,
-        verdict.confidence,
-        signal_types,
-        tools,
-        verdict.usd,
-        verdict.total_latency_ms,
+        row.kind,
+        row.brand,
+        row.confidence,
+        row.signal_types,
+        row.tools,
+        row.usd,
+        row.latency_ms,
     )
 
 

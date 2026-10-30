@@ -106,3 +106,29 @@ class VerdictRow(BaseModel, frozen=True):
     tools: list[str] = Field(default_factory=list)
     usd: float = 0.0
     latency_ms: int = 0
+
+    @classmethod
+    def of(cls, verdict: Verdict, kind: str | None, created_at: datetime) -> "VerdictRow":
+        """The panel's view of a verdict; analyst signal types stay out (D-060, D-072).
+
+        Args:
+            verdict: The full verdict.
+            kind: Kind of the case it judged.
+            created_at: When it was produced or stored.
+
+        Returns:
+            The row, with no PII by construction.
+        """
+        return cls(
+            created_at=created_at,
+            kind=kind,
+            brand=verdict.impersonated_brand,
+            label=verdict.label,
+            confidence=verdict.confidence,
+            signal_types=list(
+                dict.fromkeys(s.type for s in verdict.signals if s.source != "analyst")
+            ),
+            tools=list(dict.fromkeys(str(tool.get("name")) for tool in verdict.tools_used)),
+            usd=verdict.usd,
+            latency_ms=verdict.total_latency_ms,
+        )

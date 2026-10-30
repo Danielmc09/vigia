@@ -275,3 +275,44 @@ def test_the_image_ships_the_eval_result_the_panel_reads() -> None:
     assert "!evals/ultimo*.resultado.json" in ignore
     assert "COPY evals ./evals" in dockerfile
     assert Settings().panel_metrics == Path("evals/ultimo.resultado.json")  # relative to WORKDIR
+
+
+# --- T-22d: "try it" form ----------------------------------------------------------------
+
+
+def test_the_page_offers_a_try_form_with_three_examples() -> None:
+    page = render_panel([], {}, None)
+
+    assert '<form method="post" action="/panel"' in page
+    assert page.count('name="text" value=') == 3
+
+
+def test_a_tried_verdict_is_shown_above_the_table_with_its_text_escaped() -> None:
+    page = render_panel([], {}, None, tried=("<b>hola</b>", _row()))
+
+    assert page.index("brand_off_domain") < page.index("<table><thead>")
+    assert "&lt;b&gt;hola&lt;/b&gt;</textarea>" in page
+
+
+def test_the_try_form_judges_a_pasted_text_and_shows_the_verdict() -> None:
+    client = _client(TOKEN)
+    client.cookies.set("vigia_panel", TOKEN)
+
+    response = client.post("/panel", data={"text": "Ingresa a bancolombia-seguro.com ya"})
+
+    assert response.status_code == 200
+    assert "brand_off_domain" in response.text
+    assert "default-src 'none'" in response.headers["content-security-policy"]
+
+
+def test_the_try_form_needs_the_panel_token() -> None:
+    response = _client(TOKEN).post("/panel", data={"text": "hola"})
+
+    assert response.status_code == 401
+
+
+def test_an_empty_try_is_refused() -> None:
+    client = _client(TOKEN)
+    client.cookies.set("vigia_panel", TOKEN)
+
+    assert client.post("/panel", data={"text": "  "}).status_code == 422

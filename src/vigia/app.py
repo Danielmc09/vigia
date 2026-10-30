@@ -9,6 +9,7 @@ from collections.abc import AsyncIterator, Awaitable, Callable
 from contextlib import asynccontextmanager
 from datetime import UTC, datetime
 from typing import Any
+from urllib.parse import parse_qs
 from uuid import uuid4
 
 import asyncpg
@@ -46,6 +47,7 @@ MAX_CLOCK_SKEW_S = 300  # specs/01: a webhook older or newer than 5 minutes is i
 PANEL_ROWS = 50
 HEALTH_TIMEOUT_S = 2.0  # specs/11 §2: a slow dependency is a failing one
 HEALTH_CACHE_S = 10.0  # one real check per 10 s, however often /salud is hit
+TRY_COUNTRY = "CO"  # ponytail: the panel's "try it" judges with the CO pack; a selector with US
 
 PanelSource = Callable[[], Awaitable[tuple[list[VerdictRow], dict[str, int]]]]
 """Where the panel reads its rows and today's counts; tests inject a fake (D-072)."""
@@ -126,8 +128,15 @@ async def _panel_page(request: Request, config: Settings, source: PanelSource) -
         response.set_cookie(PANEL_COOKIE, link, httponly=True, samesite="lax")
         return response
     _require_token(_presented_token(request), config.panel_token)
+    return await _panel_html(config, source)
+
+
+async def _panel_html(
+    config: Settings, source: PanelSource, tried: tuple[str, VerdictRow] | None = None
+) -> HTMLResponse:
+    """Render the panel, with a text tried from its form and its verdict if there is one."""
     rows, today = await source()
-    page = render_panel(rows, today, _latest_metrics(config))
+    page = render_panel(rows, today, _latest_metrics(config), tried)
     return HTMLResponse(page, headers=_PANEL_HEADERS)
 
 
@@ -300,6 +309,35 @@ def _operations(api: FastAPI, config: Settings) -> None:
         return Response(generate_latest(api.state.metrics.registry), media_type=CONTENT_TYPE_LATEST)
 
 
+def _panel(
+    api: FastAPI, config: Settings, source: PanelSource, judge_text: Callable[[str, str], Verdict]
+) -> None:
+    """The operator panel and its "try it" form (specs/07, D-072, D-073, T-22d)."""
+
+    @api.get("/panel", response_class=HTMLResponse)
+    async def operator_panel(request: Request) -> Response:
+        """Operator panel: latest verdicts without PII."""
+        return await _panel_page(request, config, source)
+
+    @api.post("/panel", response_class=HTMLResponse)
+    async def try_text(request: Request) -> Response:
+        """A pasted text judged like ``/caso``, shown above the table.
+
+        A plain form post, so the panel keeps its script-free CSP; the ``SameSite=Lax``
+        cookie never rides a cross-site post.
+        """
+        _require_token(_presented_token(request), config.panel_token)
+        form = parse_qs((await request.body()).decode(errors="replace"))
+        text = form.get("text", [""])[0].strip()
+        if not text:
+            raise HTTPException(status_code=422, detail="empty text")
+        # Off the event loop: a real judge or analyst call takes seconds.
+        verdict = await asyncio.to_thread(judge_text, TRY_COUNTRY, text)
+        return await _panel_html(
+            config, source, (text, VerdictRow.of(verdict, "text", datetime.now(UTC)))
+        )
+
+
 def create_app(
     config: Settings,
     analyst: Analyst | None = None,
@@ -347,25 +385,25 @@ def create_app(
 
     _operations(api, config)
 
-    @api.post("/caso")
-    async def post_case(request: CaseRequest) -> Verdict:
-        """Fuse a case into its verdict (specs/05), without any real channel or store.
+    def judge_text(country: str, text: str) -> Verdict:
+        """Fuse one text into its verdict (specs/05), without any real channel or store.
 
         Args:
-            request: Country and text of the case.
+            country: ISO code of the country pack.
+            text: The message.
 
         Returns:
             The verdict, degraded unless ``analyst`` was given to :func:`create_app`.
         """
-        pack = seeded_pack(request.country, config.knowledge_seed)
+        pack = seeded_pack(country, config.knowledge_seed)
         if pack is None:
-            raise HTTPException(status_code=422, detail=f"unknown country: {request.country!r}")
+            raise HTTPException(status_code=422, detail=f"unknown country: {country!r}")
         msg = IncomingMessage(
             message_id=str(uuid4()),
             origin="local",
             sender="eval",
             kind="text",
-            text=request.text,
+            text=text,
             received_at=datetime.now(UTC),
         )
         # A throwaway business per request: nothing is stored, no tenant is touched (D-048).
@@ -378,16 +416,18 @@ def create_app(
         with telemetry.recording(api.state.metrics):
             return judge_case(case, pack, gate_judge, analyst)
 
+    @api.post("/caso")
+    async def post_case(request: CaseRequest) -> Verdict:
+        """One case outside any channel (D-048): see ``judge_text``."""
+        return judge_text(request.country, request.text)
+
     @api.post("/webhook/wazenda")
     async def wazenda_webhook(request: Request) -> JSONResponse:
         """Wazenda's ``message.received`` webhook (specs/01)."""
         with telemetry.recording(api.state.metrics):
             return await _webhook(request, config)
 
-    @api.get("/panel", response_class=HTMLResponse)
-    async def operator_panel(request: Request) -> Response:
-        """Operator panel: latest verdicts without PII (specs/07, D-072, D-073)."""
-        return await _panel_page(request, config, panel_source)
+    _panel(api, config, panel_source, judge_text)
 
     return api
 

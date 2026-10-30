@@ -14,6 +14,7 @@ from vigia.i18n import t
 
 LANG = "en"  # ponytail: one operator, one language; per-operator language with T-17b
 COLOMBIA = timezone(timedelta(hours=-5))  # no DST in Colombia
+EXAMPLES = ("bank", "courier", "legit")
 COLUMNS = ("time", "kind", "brand", "label", "confidence", "signals", "tools", "usd", "ms")
 _COLORS = ("#d93025", "#188038", "#e37400")  # same order as Label
 _LABEL_CSS = "".join(
@@ -36,7 +37,9 @@ _STYLE = (
     "th{color:var(--muted);font-weight:600}td.n{text-align:right}"
     ".chip{display:inline-block;background:var(--chip);border-radius:10px;padding:1px 8px;"
     "margin:1px;font-size:12px}"
-    ".tag{border-radius:4px;padding:2px 8px;font-weight:600}" + _LABEL_CSS
+    ".tag{border-radius:4px;padding:2px 8px;font-weight:600}"
+    "textarea{width:100%;box-sizing:border-box;font:inherit}"
+    "form{margin:0 0 8px}button{margin:4px 4px 0 0}" + _LABEL_CSS
 )
 
 
@@ -82,10 +85,29 @@ def _row(row: VerdictRow) -> str:
     return "<tr>" + "".join(f"<td>{cell}</td>" for cell in cells) + "</tr>"
 
 
+def _try(head: str, tried: tuple[str, VerdictRow] | None) -> str:
+    """The "try it" form: plain HTML posting to ``/panel``, so the CSP stays script-free."""
+    examples = "".join(
+        f'<button name="text" value="{escape(t(LANG, f"panel.try.example.{name}.text"))}">'
+        f"{escape(t(LANG, f'panel.try.example.{name}'))}</button>"
+        for name in EXAMPLES
+    )
+    text, row = tried or ("", None)
+    result = row and f'<table class="tried"><thead><tr>{head}</tr></thead>{_row(row)}</table>'
+    return (
+        f"<h2>{escape(t(LANG, 'panel.try.title'))}</h2>"
+        '<form method="post" action="/panel">'
+        f'<textarea name="text" rows="3" required>{escape(text)}</textarea>'
+        f"<button>{escape(t(LANG, 'panel.try.button'))}</button></form>"
+        f'<form method="post" action="/panel">{examples}</form>{result or ""}'
+    )
+
+
 def render_panel(
     rows: Sequence[VerdictRow],
     today: Mapping[str, int],
     metrics: Mapping[str, Any] | None,
+    tried: tuple[str, VerdictRow] | None = None,
 ) -> str:
     """The whole panel page.
 
@@ -93,6 +115,7 @@ def render_panel(
         rows: Latest verdicts, newest first (no PII by construction, D-072).
         today: Verdicts since midnight in Colombia, by label.
         metrics: The latest eval result file (``metricas``, ``fecha``), if there is one.
+        tried: Text just tried from the form and its verdict, shown above the table.
 
     Returns:
         A self-contained HTML document with no script.
@@ -110,7 +133,7 @@ def render_panel(
         f'<meta name="viewport" content="width=device-width,initial-scale=1">'
         f"<title>{title}</title><style>{_STYLE}</style></head><body><main>"
         f"<h1>{title}</h1><h2>{escape(t(LANG, 'panel.today'))}</h2>"
-        f'<div class="cards">{counters}</div>{_metrics(metrics)}'
+        f'<div class="cards">{counters}</div>{_try(head, tried)}{_metrics(metrics)}'
         f"<table><thead><tr>{head}</tr></thead><tbody>{body}</tbody></table>"
         "</main></body></html>"
     )
