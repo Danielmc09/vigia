@@ -10,4 +10,5 @@ COPY evals ./evals
 RUN uv sync --frozen --no-dev && useradd --system app
 USER app
 EXPOSE 8000
-CMD ["uvicorn", "vigia.app:app", "--host", "0.0.0.0", "--port", "8000"]
+# $PORT is injected by the platform (Railway); falls back to 8000 for local `docker run`.
+CMD ["sh", "-c", "exec uvicorn vigia.app:app --host 0.0.0.0 --port ${PORT:-8000}"]
