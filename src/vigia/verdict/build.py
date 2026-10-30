@@ -10,7 +10,7 @@ from collections.abc import Sequence
 from vigia.domain.analyst import Evidence
 from vigia.domain.case import Case
 from vigia.domain.country import Brand, CountryPack
-from vigia.domain.signal import WEIGHT_ORDER, Signal
+from vigia.domain.signal import Signal, by_weight
 from vigia.domain.text import fold
 from vigia.domain.urls import split_url
 from vigia.domain.verdict import Action, Label, Verdict
@@ -115,7 +115,7 @@ def _explanation(lang: str, label: Label, signals: Sequence[Signal], brand: str 
         if label == SCAM and brand
         else t(lang, f"verdict.{label}.header")
     )
-    ordered = sorted(signals, key=lambda s: WEIGHT_ORDER.index(s.weight))
+    ordered = by_weight(signals)
     # a type with no catalog entry (e.g. made up by the analyst) is left out, never echoed
     known = (s.type for s in ordered if has_key(lang, f"signal.{s.type}"))
     names = list(dict.fromkeys(known))[:MAX_EXPLANATION_SIGNALS]

@@ -1,5 +1,6 @@
 """The Signal: one piece of deterministic evidence about a case (domain)."""
 
+from collections.abc import Iterable
 from typing import Any, Literal
 
 from pydantic import BaseModel, Field
@@ -39,3 +40,15 @@ class Signal(BaseModel, frozen=True):
     weight: Weight
     source: SignalSource
     evidence: dict[str, Any] = Field(default_factory=dict)
+
+
+def by_weight(signals: Iterable[Signal]) -> list[Signal]:
+    """The signals from strongest to weakest, stable within one weight.
+
+    Args:
+        signals: Signals in any order.
+
+    Returns:
+        A new list ordered by ``WEIGHT_ORDER``.
+    """
+    return sorted(signals, key=lambda s: WEIGHT_ORDER.index(s.weight))

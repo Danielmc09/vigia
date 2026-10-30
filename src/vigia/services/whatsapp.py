@@ -301,8 +301,8 @@ async def _judge_traced(
     alert = team_alert_message(
         lang,
         reporter or t(lang, "team_alert.someone"),
-        t(lang, f"team_alert.kind.{case.kind}"),
-        verdict.impersonated_brand,
+        verdict,
+        case,
     )
     with telemetry.stage("reply"):
         for contact in team:

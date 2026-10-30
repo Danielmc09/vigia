@@ -5,7 +5,7 @@ from collections.abc import Sequence
 from vigia.domain.case import Case
 from vigia.domain.country import CountryPack
 from vigia.domain.member import Supplier
-from vigia.domain.signal import WEIGHT_ORDER, Signal
+from vigia.domain.signal import Signal, by_weight
 from vigia.signals.address_book import address_book_signals
 from vigia.signals.knowledge import knowledge_signals
 from vigia.signals.patterns import pattern_signals
@@ -40,4 +40,4 @@ def detect(
     signals += pattern_signals(case.text or "", pack, unofficial)
     signals += address_book_signals(case, suppliers, pack)
     signals += sequence_signals(case, pack)
-    return sorted(signals, key=lambda s: WEIGHT_ORDER.index(s.weight))
+    return by_weight(signals)

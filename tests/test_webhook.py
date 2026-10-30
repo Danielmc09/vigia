@@ -364,7 +364,7 @@ async def test_a_scam_gets_a_verdict_a_reply_and_alerts_the_rest_of_the_team(
     assert reply.endswith(t("es", "message.id_line", ref="1"))
     [alert] = outbox.to(OWNER)
     assert "Luis" in alert and "Bancolombia" in alert
-    assert len(alert) <= 200
+    assert len(alert) <= 300  # hook + disarmed indicator (T-10d), still one glance
     assert [r["label"] for r in await app_conn.fetch("SELECT label FROM verdicts")] == ["scam"]
 
 
