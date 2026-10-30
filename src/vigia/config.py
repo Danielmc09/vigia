@@ -47,7 +47,9 @@ class Settings(BaseSettings):
         operator_phone: WhatsApp number the sentinel alerts (specs/11 section 4).
     """
 
-    model_config = SettingsConfigDict(populate_by_name=True)
+    # env_ignore_empty: an empty env var (MODEL_API_KEY=, as .env.example ships it for the
+    # demo) degrades like an absent one, instead of becoming a truthy SecretStr('').
+    model_config = SettingsConfigDict(populate_by_name=True, env_ignore_empty=True)
 
     database_url: str = "postgresql://vigia_app:vigia_app@localhost:5432/vigia"
     migration_database_url: str = "postgresql://postgres:postgres@localhost:5432/vigia"

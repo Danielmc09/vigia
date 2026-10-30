@@ -21,6 +21,7 @@ services:
     build: .
     command: ["python", "-m", "vigia.store.migrate"]
     environment:
+      DATABASE_URL: postgresql://vigia_app:${APP_DB_PASSWORD:-vigia_app}@postgres:5432/vigia
       MIGRATION_DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD:-postgres}@postgres:5432/vigia
     depends_on:
       postgres:
@@ -32,6 +33,10 @@ services:
       DATABASE_URL: postgresql://vigia_app:${APP_DB_PASSWORD:-vigia_app}@postgres:5432/vigia
       MIGRATION_DATABASE_URL: postgresql://postgres:${POSTGRES_PASSWORD:-postgres}@postgres:5432/vigia
       VIGIA_MODO: ${VIGIA_MODO:-prod}
+      MODEL_API_KEY: ${MODEL_API_KEY:-}
+      VIGIA_KEK: ${VIGIA_KEK:-}
+      PII_HMAC_KEY: ${PII_HMAC_KEY:-}
+      VIGIA_PANEL_TOKEN: ${VIGIA_PANEL_TOKEN:-}
     ports:
       - "127.0.0.1:${VIGIA_API_PORT:-8000}:8000"
     depends_on:

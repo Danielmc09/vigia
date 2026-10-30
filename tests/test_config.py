@@ -26,3 +26,16 @@ def test_prod_with_explicit_dsns_is_accepted(monkeypatch: pytest.MonkeyPatch) ->
     monkeypatch.setenv("MIGRATION_DATABASE_URL", "postgresql://owner@db/vigia")
 
     assert Settings(mode="prod").mode == "prod"
+
+
+def test_empty_model_api_key_degrades_like_an_absent_one(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """T-22c incident: an empty MODEL_API_KEY must degrade like an absent one.
+
+    .env.example ships ``MODEL_API_KEY=`` (empty, not absent) so `make demo` works
+    without a real key. Rules only sees an empty string as a real key.
+    """
+    monkeypatch.setenv("MODEL_API_KEY", "")
+
+    assert Settings().model_api_key is None

@@ -2,6 +2,18 @@
 
 *Scam sentinel for small businesses, built during the Meta Global AI Developer Hackathon (Oct 27 – Nov 4, 2026).*
 
+## Run the demo
+
+```
+git clone <este repo> && cd vigia
+cp .env.example .env   # solo MODEL_API_KEY es opcional; sin ella corre en modo reglas
+make demo
+```
+
+Levanta Postgres y la API con Docker Compose, siembra un negocio de ejemplo con 3
+miembros, manda 5 casos de muestra por el canal local, y abre el panel con los
+veredictos. Sin `MODEL_API_KEY` lo dice y sigue en modo reglas (sin analista).
+
 See `DECLARACION.md` for what was built during the event. Full README written in T-22b.
 
 ## Meta model calls vs code
