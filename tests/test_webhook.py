@@ -404,7 +404,7 @@ async def test_a_command_is_answered_over_whatsapp(
     ask = incoming("texto", OWNER, body="ayuda")
     await whatsapp.process(app_conn, channel(keyring, outbox), ask)
 
-    assert outbox.to(OWNER) == [t("es", "help")]
+    assert outbox.to(OWNER) == [f"{t('es', 'help')}\n\n{t('es', 'help.owner')}"]
 
 
 async def test_a_stranger_gets_nothing_and_no_media_is_downloaded(

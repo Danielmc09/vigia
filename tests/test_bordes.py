@@ -424,7 +424,7 @@ async def test_b12_us_business_gets_english_replies_even_to_spanish_commands(
     reply = await handle(app_conn, recorder.ports, message(OWNER, "ayuda"))
 
     assert enrolled == t("en", "enroll.done", business="Corner Hardware")
-    assert reply == t("en", "help")
+    assert reply == f"{t('en', 'help')}\n\n{t('en', 'help.owner')}"
 
 
 async def _role(conn: asyncpg.Connection, recorder: Recorder, phone: str) -> str | None:

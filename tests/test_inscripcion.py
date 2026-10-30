@@ -1,5 +1,7 @@
 """Enrollment over WhatsApp: commands, owner-only actions, email verification (specs/01)."""
 
+import re
+
 import asyncpg
 import pytest
 
@@ -8,6 +10,7 @@ from tests.conftest import escalation_id as _escalation_id
 from vigia.config import settings
 from vigia.i18n import t
 from vigia.services.commands import parse_command
+from vigia.services.enrollment import OWNER_ONLY
 from vigia.services.ingest import handle
 from vigia.store import postgres as store
 
@@ -301,7 +304,35 @@ async def test_help_lists_the_commands(app_conn: asyncpg.Connection, recorder: R
 
     reply = await handle(app_conn, recorder.ports, message(OWNER, "ayuda"))
 
+    assert reply == f"{t('es', 'help')}\n\n{t('es', 'help.owner')}"
+
+
+async def test_help_for_an_employee_hides_the_owner_commands(
+    app_conn: asyncpg.Connection, recorder: Recorder
+) -> None:
+    """T-10c, seen live on 30 oct: an employee got the owner's commands under "owner only"."""
+    await _enroll_owner(app_conn, recorder)
+    await handle(app_conn, recorder.ports, message(OWNER, "equipo +57 300 000 0202 Luis"))
+
+    reply = await handle(app_conn, recorder.ports, message(EMPLOYEE, "ayuda"))
+
     assert reply == t("es", "help")
+    for word in OWNER_ONLY:
+        assert t("es", f"command.{word}") not in reply.lower(), word
+
+
+@pytest.mark.parametrize("lang", ["es", "en"])
+@pytest.mark.parametrize("key", ["help", "help.owner"])
+def test_help_is_one_line_per_command_without_linkable_examples(lang: str, key: str) -> None:
+    """WhatsApp turns emails and phone numbers into blue links: the examples use placeholders."""
+    text = t(lang, key)
+    lines = text.splitlines()
+
+    assert len(lines) >= 5
+    assert "@" not in text
+    assert not re.search(r"\d{3}", text)
+    owner_words = [t(lang, f"command.{word}") in text.lower() for word in OWNER_ONLY]
+    assert all(owner_words) if key == "help.owner" else not any(owner_words)
 
 
 async def test_email_enrolled_in_any_case_is_found_from_the_email_channel(

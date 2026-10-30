@@ -34,7 +34,8 @@ SendEmail = Callable[[str, str], Awaitable[None]]
 Fields = Mapping[str, str]
 MIN_PHONE_DIGITS = 11
 """Country code plus national number: CO and US both have 11 or more (D-092)."""
-_OWNER_ONLY = {"team", "supplier", "transfer", "confirm", "cancel", "scam_confirmed"}
+OWNER_ONLY = {"team", "supplier", "transfer", "confirm", "cancel", "scam_confirmed"}
+"""Commands only the owner may run; the help lists them only to the owner (T-10c)."""
 
 
 @dataclass(frozen=True)
@@ -95,7 +96,7 @@ async def run(session: Session, command: Command) -> str:
     Returns:
         Reply text in the business language.
     """
-    if command.name in _OWNER_ONLY and session.member.role != "owner":
+    if command.name in OWNER_ONLY and session.member.role != "owner":
         return session.reply("command.owner_only")
     return await _HANDLERS[command.name](session, command.fields)
 
@@ -106,8 +107,11 @@ async def _already_enrolled(session: Session, _: Fields) -> str:
 
 
 async def _help(session: Session, _: Fields) -> str:
-    """Reply with the command list."""
-    return session.reply("help")
+    """Reply with the commands this member may use: the owner also gets theirs (T-10c)."""
+    help_text = session.reply("help")
+    if session.member.role == "owner":
+        return f"{help_text}\n\n{session.reply('help.owner')}"
+    return help_text
 
 
 async def _taken(session: Session, contact: str) -> Literal["here", "elsewhere"] | None:
