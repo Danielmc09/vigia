@@ -47,9 +47,7 @@ class Settings(BaseSettings):
         operator_phone: WhatsApp number the sentinel alerts (specs/11 section 4).
     """
 
-    # env_ignore_empty: an empty env var (MODEL_API_KEY=, as .env.example ships it for the
-    # demo) degrades like an absent one, instead of becoming a truthy SecretStr('').
-    model_config = SettingsConfigDict(populate_by_name=True, env_ignore_empty=True)
+    model_config = SettingsConfigDict(populate_by_name=True)
 
     database_url: str = "postgresql://vigia_app:vigia_app@localhost:5432/vigia"
     migration_database_url: str = "postgresql://postgres:postgres@localhost:5432/vigia"
@@ -98,6 +96,12 @@ class Settings(BaseSettings):
         if not re.fullmatch(r"\+[1-9]\d{7,14}", raw):
             raise ValueError("OPERADOR_TELEFONO must be E.164, e.g. +573000000001")
         return raw
+
+    @field_validator("model_api_key", mode="before")
+    @classmethod
+    def _empty_model_key_is_absent(cls, raw: object) -> object:
+        """``MODEL_API_KEY=`` (as .env.example ships it) means rules-only mode (D-087)."""
+        return raw or None
 
     @model_validator(mode="after")
     def _prod_needs_explicit_dsns(self) -> Self:

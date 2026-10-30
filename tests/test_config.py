@@ -39,3 +39,19 @@ def test_empty_model_api_key_degrades_like_an_absent_one(
     monkeypatch.setenv("MODEL_API_KEY", "")
 
     assert Settings().model_api_key is None
+
+
+def test_empty_mode_is_still_rejected(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Only MODEL_API_KEY treats empty as absent: VIGIA_MODO= must not fall back to dev."""
+    monkeypatch.setenv("VIGIA_MODO", "")
+
+    with pytest.raises(ValidationError, match="VIGIA_MODO"):
+        Settings()
+
+
+def test_empty_panel_token_is_still_rejected(monkeypatch: pytest.MonkeyPatch) -> None:
+    """An empty VIGIA_PANEL_TOKEN stops startup instead of silently closing the panel."""
+    monkeypatch.setenv("VIGIA_PANEL_TOKEN", "")
+
+    with pytest.raises(ValidationError, match="VIGIA_PANEL_TOKEN"):
+        Settings()

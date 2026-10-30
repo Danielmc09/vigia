@@ -286,6 +286,28 @@ def model_readers(config: Settings) -> dict[str, Transcriber]:
     return {kind: reader for kind, reader in found.items() if reader is not None}
 
 
+def build_channel(config: Settings, keyring: Keyring, wazenda: Wazenda) -> Channel:
+    """The channel with whatever Meta models have a key: analyst, readers and judge.
+
+    Args:
+        config: Settings with ``MODEL_API_KEY``; without it, rules only.
+        keyring: Process keys.
+        wazenda: Real client, or a local one (``make demo``).
+
+    Returns:
+        The channel :func:`process` talks to.
+    """
+    spark, sam = make_chat(config), make_sam(config)
+
+    def analyst(suppliers: Sequence[Supplier], media: bytes | None) -> Analyst | None:
+        if spark is None:
+            return None
+        load = (lambda _ref: media) if media else None  # crop reuses the checked bytes
+        return spark_analyst(spark, suppliers, sam, load)
+
+    return Channel(keyring, wazenda, config, model_readers(config), analyst, make_judge(config))
+
+
 def live(config: Settings, metrics: telemetry.Metrics) -> WebhookPorts:
     """The real webhook ports: Postgres, Wazenda, Meta models (built on the first request).
 
@@ -302,14 +324,6 @@ def live(config: Settings, metrics: telemetry.Metrics) -> WebhookPorts:
     if config.wazenda_api_key is None or config.wazenda_line_id is None:
         raise RuntimeError("WAZENDA_API_KEY and WAZENDA_LINE_ID are required")
     keyring = Keyring.from_settings(config)
-    spark, sam = make_chat(config), make_sam(config)
-
-    def analyst(suppliers: Sequence[Supplier], media: bytes | None) -> Analyst | None:
-        if spark is None:
-            return None
-        load = (lambda _ref: media) if media else None  # crop reuses the checked bytes
-        return spark_analyst(spark, suppliers, sam, load)
-
     http = httpx.AsyncClient(timeout=HTTP_TIMEOUT_S)
     wazenda = Wazenda(
         config.wazenda_base_url,
@@ -317,8 +331,7 @@ def live(config: Settings, metrics: telemetry.Metrics) -> WebhookPorts:
         config.wazenda_line_id,
         http,
     )
-    readers = model_readers(config)
-    channel = Channel(keyring, wazenda, config, readers, analyst, make_judge(config))
+    channel = build_channel(config, keyring, wazenda)
 
     async def first_time(message_id: str) -> bool:
         conn = await asyncpg.connect(config.database_url)

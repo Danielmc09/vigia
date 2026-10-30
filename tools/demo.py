@@ -5,6 +5,7 @@ mode and says so; it never fails for lack of a model key (specs/07).
 """
 
 import asyncio
+import json
 import webbrowser
 from datetime import UTC, datetime
 from uuid import uuid4
@@ -16,12 +17,7 @@ from vigia.channel.wazenda import Wazenda
 from vigia.config import Settings
 from vigia.domain.case import IncomingMessage
 from vigia.domain.member import Business, Contact
-from vigia.model.sam import make_sam
-from vigia.model.voice import make_voice
 from vigia.services import whatsapp
-from vigia.services.backend import make_chat
-from vigia.services.judge import make_judge
-from vigia.services.process_case import spark_analyst
 from vigia.store import postgres as store
 from vigia.store.crypto import Keyring
 
@@ -46,15 +42,13 @@ CASES = [
 
 
 def _printed_send(request: httpx.Request) -> httpx.Response:
-    import json
-
     body = json.loads(request.content)
     print(f"  -> WhatsApp a {body['number']}: {body['message'][:90]}")
     return httpx.Response(200, json={"ok": True})
 
 
 def demo_channel(keyring: Keyring, config: Settings | None = None) -> whatsapp.Channel:
-    """A channel like :func:`whatsapp.live` builds, but the local channel: no Wazenda keys.
+    """The production channel (:func:`whatsapp.build_channel`) with a printing Wazenda.
 
     Degrades like production: without ``MODEL_API_KEY`` the analyst and readers are empty
     and the judge falls back to its deterministic mock (specs/07, "modo reglas").
@@ -62,20 +56,7 @@ def demo_channel(keyring: Keyring, config: Settings | None = None) -> whatsapp.C
     config = config or Settings()
     http = httpx.AsyncClient(transport=httpx.MockTransport(_printed_send))
     wazenda = Wazenda(config.wazenda_base_url, "demo", "demo-line", http)
-    spark, sam, voice = make_chat(config), make_sam(config), make_voice(config)
-
-    def analyst(suppliers: object, media: bytes | None) -> object | None:
-        return spark_analyst(spark, suppliers, sam) if spark else None  # type: ignore[arg-type]
-
-    readers = {
-        k: r
-        for k, r in {
-            "audio": voice,
-            "pdf": spark.read_pdf if spark else None,
-        }.items()
-        if r is not None
-    }
-    return whatsapp.Channel(keyring, wazenda, config, readers, analyst, make_judge(config))  # type: ignore[arg-type]
+    return whatsapp.build_channel(config, keyring, wazenda)
 
 
 async def seed_business(conn: asyncpg.Connection, keyring: Keyring) -> None:
