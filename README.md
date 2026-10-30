@@ -4,6 +4,8 @@
 
 ## Run the demo
 
+Needs Docker (with Compose) and [uv](https://docs.astral.sh/uv/).
+
 ```
 git clone <this repo> && cd vigia
 cp .env.example .env   # MODEL_API_KEY is optional; without it the demo runs rules only
