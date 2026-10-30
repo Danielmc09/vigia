@@ -378,10 +378,14 @@ def test_inc_marca_en_el_cuerpo_names_the_brand_written_in_the_message(case_id: 
     )
     case = _case(raw["texto"], extract_urls(raw["texto"]))
 
-    verdict = build_verdict(case, Evidence(signals=detect(case, pack)), pack)
+    # Rules alone convict c-0211; the English c-0212 needs the analyst, as in production.
+    analyst = _analyst("scam", 0.9) if case_id == "c-0212" else None
+    evidence = Evidence(signals=detect(case, pack), analyst=analyst)
+    verdict = build_verdict(case, evidence, pack)
 
     assert verdict.label == "scam"
     assert verdict.impersonated_brand == "Coordinadora"
+    assert "Coordinadora" in verdict.user_explanation
 
 
 def test_a_brand_in_the_body_is_not_named_when_the_message_is_legit() -> None:
@@ -390,5 +394,17 @@ def test_a_brand_in_the_body_is_not_named_when_the_message_is_legit() -> None:
     case = _case("Coordinadora: su guia va en camino, rastreela en https://www.coordinadora.com")
 
     verdict = build_verdict(case, Evidence(signals=detect(case, pack)), pack)
+
+    assert verdict.impersonated_brand is None
+
+
+def test_a_brand_that_is_also_a_plain_lowercase_word_is_not_named() -> None:
+    pack = country_pack("CO")
+    assert pack is not None
+    assert {"Claro", "Dale"} <= {brand.name for brand in pack.brands}
+    case = _case("claro que si, dale y pague hoy en http://203.0.113.9/pago")
+
+    evidence = Evidence(signals=detect(case, pack), analyst=_analyst("scam", 0.9))
+    verdict = build_verdict(case, evidence, pack)
 
     assert verdict.impersonated_brand is None

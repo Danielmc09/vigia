@@ -4,12 +4,14 @@
 official channel, action and the code-built explanation (regla 14, D-043).
 """
 
+import re
 from collections.abc import Sequence
 
 from vigia.domain.analyst import Evidence
 from vigia.domain.case import Case
 from vigia.domain.country import Brand, CountryPack
 from vigia.domain.signal import WEIGHT_ORDER, Signal
+from vigia.domain.text import fold
 from vigia.domain.urls import split_url
 from vigia.domain.verdict import Action, Label, Verdict
 from vigia.i18n import has_key, t
@@ -59,6 +61,23 @@ def _impersonated_brand(signals: Sequence[Signal], pack: CountryPack) -> Brand |
         if s.weight == "hard" and s.type == "lookalike_domain":
             official = s.evidence.get("official")
             if brand := next((b for b in pack.brands if official in b.domains), None):
+                return brand
+    return None
+
+
+def _brand_in_body(text: str, pack: CountryPack) -> Brand | None:
+    """The pack brand written as a whole word in the body (incident c-0211).
+
+    Case-insensitive ("CoordInadora"), but an all-lowercase match is skipped so plain
+    words like "dale" or "claro" do not name a brand.
+    """
+    # ponytail: a brand that is also a word, capitalized at the start ("Dale clic"),
+    # is still named; a per-brand ambiguity flag in the pack if it shows up in evals.
+    folded = fold(text).lower()
+    for brand in pack.brands:
+        name = re.escape(fold(brand.name).lower())
+        for found in re.finditer(rf"(?<![a-z0-9]){name}(?![a-z0-9])", folded):
+            if not text[found.start() : found.end()].islower():
                 return brand
     return None
 
@@ -124,6 +143,8 @@ def build_verdict(case: Case, evidence: Evidence, pack: CountryPack) -> Verdict:
 
     all_signals = softened + (list(analyst.signals) if analyst else [])
     brand = _impersonated_brand(all_signals, pack)
+    if brand is None and label == SCAM:
+        brand = _brand_in_body(case.text or "", pack)
     return Verdict(
         case_id=str(case.id),
         business_id=str(case.business_id),
