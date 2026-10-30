@@ -112,6 +112,13 @@ def test_scrub_leaves_uuids_alone() -> None:
     assert telemetry.scrub(case_id) == case_id
 
 
+def test_scrub_masks_the_panel_token_in_an_access_log_line() -> None:
+    """T-22c: the panel link carries ?token= and uvicorn.access logs the full path (D-088)."""
+    line = '127.0.0.1:5 - "GET /panel?token=s3cret-operator-token&x=1 HTTP/1.1" 303'
+
+    assert telemetry.scrub(line) == '127.0.0.1:5 - "GET /panel?token=***&x=1 HTTP/1.1" 303'
+
+
 # --- /metrics (specs/11 §2) --------------------------------------------------------------
 
 

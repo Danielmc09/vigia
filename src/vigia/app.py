@@ -14,7 +14,7 @@ from uuid import uuid4
 import asyncpg
 import httpx
 from fastapi import FastAPI, HTTPException, Request, Response
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 from pydantic import BaseModel, SecretStr
 
@@ -79,11 +79,11 @@ def _db_panel(config: Settings) -> PanelSource:
 
 
 def _presented_token(request: Request) -> str:
-    """The operator token from ``Authorization: Bearer`` or the panel cookie, else empty."""
+    """The operator token from ``Authorization: Bearer``, a ``?token=`` link or the cookie."""
     scheme, _, value = request.headers.get("authorization", "").partition(" ")
     if scheme.lower() == "bearer" and value:
         return value
-    return request.cookies.get(PANEL_COOKIE, "")
+    return request.query_params.get("token") or request.cookies.get(PANEL_COOKIE, "")
 
 
 def _latest_metrics(config: Settings) -> dict[str, Any] | None:
@@ -107,7 +107,7 @@ def _require_token(request: Request, token: SecretStr | None) -> None:
         raise HTTPException(status_code=401, headers={"WWW-Authenticate": "Bearer"})
 
 
-async def _panel_page(request: Request, config: Settings, source: PanelSource) -> HTMLResponse:
+async def _panel_page(request: Request, config: Settings, source: PanelSource) -> Response:
     """The operator panel behind the operator token (D-072, D-073).
 
     Args:
@@ -116,9 +116,15 @@ async def _panel_page(request: Request, config: Settings, source: PanelSource) -
         source: Where the rows and today's counts come from.
 
     Returns:
-        The page; 404 when no token is configured, 401 without the right one.
+        The page; 404 when no token is configured, 401 without the right one; a
+        ``?token=`` link redirects to ``/panel`` with the token as a cookie (D-088).
     """
     _require_token(request, config.panel_token)
+    if token := request.query_params.get("token"):
+        # A browser cannot send Bearer: trade the link for a cookie, off the URL (D-088).
+        response = RedirectResponse("/panel", status_code=303, headers=_PANEL_HEADERS)
+        response.set_cookie(PANEL_COOKIE, token, httponly=True, samesite="lax")
+        return response
     rows, today = await source()
     page = render_panel(rows, today, _latest_metrics(config))
     return HTMLResponse(page, headers=_PANEL_HEADERS)
@@ -378,7 +384,7 @@ def create_app(
             return await _webhook(request, config)
 
     @api.get("/panel", response_class=HTMLResponse)
-    async def operator_panel(request: Request) -> HTMLResponse:
+    async def operator_panel(request: Request) -> Response:
         """Operator panel: latest verdicts without PII (specs/07, D-072, D-073)."""
         return await _panel_page(request, config, panel_source)
 

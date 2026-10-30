@@ -28,6 +28,7 @@ Stage = Literal["gate", "jev", "rules", "analyst", "fusion", "policy", "reply"]
 CASE_MS_BUCKETS = (100, 250, 500, 1000, 2000, 5000, 10000, 20000, 30000, 60000)
 _PHONE = re.compile(r"(?<![\w-])[+(]?\d[\d ()\-]{4,}(\d{4})(?!\w)")
 _EMAIL = re.compile(r"[\w.+-]+@[\w-]+(?:\.[\w-]+)+")
+_TOKEN_PARAM = re.compile(r"([?&]token=)[^&\s\"]+")  # the panel link (D-088)
 _log = structlog.get_logger("vigia")
 
 
@@ -215,14 +216,15 @@ def mask_phone(phone: str) -> str:
 
 
 def scrub(text: str) -> str:
-    """Mask phones (last four digits kept) and emails.
+    """Mask phones (last four digits kept), emails and ``?token=`` values.
 
     Args:
         text: Any log or error text.
 
     Returns:
-        The text with ``***1234`` for phones and ``***@***`` for emails.
+        The text with ``***1234`` for phones, ``***@***`` for emails and ``token=***``.
     """
+    text = _TOKEN_PARAM.sub(r"\1***", text)
     return _PHONE.sub(r"***\1", _EMAIL.sub("***@***", text))
 
 

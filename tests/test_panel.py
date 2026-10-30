@@ -246,6 +246,22 @@ def test_panel_accepts_the_token_as_a_cookie() -> None:
     assert client.get("/panel").status_code == 200
 
 
+def test_a_browser_link_trades_the_token_for_a_cookie_and_drops_it_from_the_url() -> None:
+    """T-22c incident (clean clone): `make demo` opens /panel?token=... and got 401."""
+    client = _client(TOKEN)
+
+    response = client.get(f"/panel?token={TOKEN}", follow_redirects=False)
+
+    assert response.status_code == 303
+    assert response.headers["location"] == "/panel"
+    assert "httponly" in response.headers["set-cookie"].lower()
+    assert client.get("/panel").status_code == 200
+
+
+def test_a_browser_link_with_a_wrong_token_is_refused() -> None:
+    assert _client(TOKEN).get("/panel?token=wrong", follow_redirects=False).status_code == 401
+
+
 def test_a_short_panel_token_is_refused_at_startup() -> None:
     with pytest.raises(ValueError, match="VIGIA_PANEL_TOKEN"):
         Settings(VIGIA_PANEL_TOKEN="short")
