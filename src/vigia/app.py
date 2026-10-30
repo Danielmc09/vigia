@@ -14,13 +14,13 @@ from uuid import uuid4
 
 import asyncpg
 import httpx
-from fastapi import FastAPI, HTTPException, Request, Response
+from fastapi import APIRouter, FastAPI, HTTPException, Request, Response
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
-from pydantic import BaseModel, SecretStr
+from pydantic import BaseModel, Field, SecretStr
 
 from vigia import telemetry
-from vigia.channel.panel import render_panel
+from vigia.channel.panel import TryForm, render_panel
 from vigia.channel.wazenda import signed_payload, to_message
 from vigia.config import WEBHOOK_CONCURRENCY, Settings, settings
 from vigia.domain.case import IncomingMessage
@@ -29,9 +29,10 @@ from vigia.domain.member import Business
 from vigia.domain.verdict import Verdict, VerdictRow
 from vigia.model import jev, spark
 from vigia.services import whatsapp
+from vigia.services.backend import make_chat
 from vigia.services.ingest import normalize
 from vigia.services.judge import make_judge
-from vigia.services.process_case import Analyst, judge_case
+from vigia.services.process_case import Analyst, judge_case, spark_analyst
 from vigia.signals.knowledge import seeded_pack
 from vigia.store import postgres as store
 
@@ -47,6 +48,7 @@ MAX_CLOCK_SKEW_S = 300  # specs/01: a webhook older or newer than 5 minutes is i
 PANEL_ROWS = 50
 HEALTH_TIMEOUT_S = 2.0  # specs/11 §2: a slow dependency is a failing one
 HEALTH_CACHE_S = 10.0  # one real check per 10 s, however often /salud is hit
+MAX_CASE_CHARS = 4000  # a forwarded SMS, chat or mail body; longer is abuse, not a case
 TRY_COUNTRY = "CO"  # ponytail: the panel's "try it" judges with the CO pack; a selector with US
 
 PanelSource = Callable[[], Awaitable[tuple[list[VerdictRow], dict[str, int]]]]
@@ -62,7 +64,7 @@ class CaseRequest(BaseModel):
     """
 
     country: str
-    text: str
+    text: str = Field(max_length=MAX_CASE_CHARS)
 
 
 def _db_panel(config: Settings) -> PanelSource:
@@ -109,13 +111,16 @@ def _require_token(presented: str, token: SecretStr | None) -> None:
         raise HTTPException(status_code=401, headers={"WWW-Authenticate": "Bearer"})
 
 
-async def _panel_page(request: Request, config: Settings, source: PanelSource) -> Response:
+async def _panel_page(
+    request: Request, config: Settings, source: PanelSource, form: TryForm
+) -> Response:
     """The operator panel behind the operator token (D-072, D-073).
 
     Args:
         request: Carries the operator token as a Bearer header or a cookie.
         config: Settings with the token and the eval result path.
         source: Where the rows and today's counts come from.
+        form: The empty "try it" block (whether it says rules only).
 
     Returns:
         The page; 404 when no token is configured, 401 without the right one; a
@@ -128,15 +133,13 @@ async def _panel_page(request: Request, config: Settings, source: PanelSource) -
         response.set_cookie(PANEL_COOKIE, link, httponly=True, samesite="lax")
         return response
     _require_token(_presented_token(request), config.panel_token)
-    return await _panel_html(config, source)
+    return await _panel_html(config, source, form)
 
 
-async def _panel_html(
-    config: Settings, source: PanelSource, tried: tuple[str, VerdictRow] | None = None
-) -> HTMLResponse:
+async def _panel_html(config: Settings, source: PanelSource, form: TryForm) -> HTMLResponse:
     """Render the panel, with a text tried from its form and its verdict if there is one."""
     rows, today = await source()
-    page = render_panel(rows, today, _latest_metrics(config), tried)
+    page = render_panel(rows, today, _latest_metrics(config), form)
     return HTMLResponse(page, headers=_PANEL_HEADERS)
 
 
@@ -310,16 +313,21 @@ def _operations(api: FastAPI, config: Settings) -> None:
 
 
 def _panel(
-    api: FastAPI, config: Settings, source: PanelSource, judge_text: Callable[[str, str], Verdict]
-) -> None:
-    """The operator panel and its "try it" form (specs/07, D-072, D-073, T-22d)."""
+    config: Settings,
+    source: PanelSource,
+    judge: Callable[[str], Verdict],
+    rules_only: bool,
+) -> APIRouter:
+    """The operator panel and its "try it" form (specs/07, D-072, D-073, T-22d, D-090)."""
+    router = APIRouter()
+    blank = TryForm(rules_only=rules_only)
 
-    @api.get("/panel", response_class=HTMLResponse)
+    @router.get("/panel", response_class=HTMLResponse)
     async def operator_panel(request: Request) -> Response:
         """Operator panel: latest verdicts without PII."""
-        return await _panel_page(request, config, source)
+        return await _panel_page(request, config, source, blank)
 
-    @api.post("/panel", response_class=HTMLResponse)
+    @router.post("/panel", response_class=HTMLResponse)
     async def try_text(request: Request) -> Response:
         """A pasted text judged like ``/caso``, shown above the table.
 
@@ -331,11 +339,14 @@ def _panel(
         text = form.get("text", [""])[0].strip()
         if not text:
             raise HTTPException(status_code=422, detail="empty text")
+        if len(text) > MAX_CASE_CHARS:
+            raise HTTPException(status_code=422, detail="text too long")
         # Off the event loop: a real judge or analyst call takes seconds.
-        verdict = await asyncio.to_thread(judge_text, TRY_COUNTRY, text)
-        return await _panel_html(
-            config, source, (text, VerdictRow.of(verdict, "text", datetime.now(UTC)))
-        )
+        verdict = await asyncio.to_thread(judge, text)
+        row = VerdictRow.of(verdict, "text", datetime.now(UTC))
+        return await _panel_html(config, source, blank._replace(text=text, row=row))
+
+    return router
 
 
 def create_app(
@@ -348,8 +359,9 @@ def create_app(
 
     Args:
         config: Settings for this process; ``mode == "prod"`` hides the API docs.
-        analyst: Provider of the analyst's read of a case; defaults to none (degraded
-            verdicts only), so tests and this endpoint never call a real model.
+        analyst: Provider of the analyst's read of a case. ``/caso`` uses only this one
+            (none by default: degraded, so an anonymous caller spends no credits); the
+            panel form uses it too, or else Spark when the model key is set (D-090).
         judge: Spark judge (eval/prod) or mock for the manipulation gate; defaults to
             :func:`make_judge` (Jev only in ``dev``, D-085).
         panel: Source of the operator panel rows; defaults to Postgres.
@@ -385,15 +397,16 @@ def create_app(
 
     _operations(api, config)
 
-    def judge_text(country: str, text: str) -> Verdict:
+    def judge_text(country: str, text: str, reader: Analyst | None) -> Verdict:
         """Fuse one text into its verdict (specs/05), without any real channel or store.
 
         Args:
             country: ISO code of the country pack.
             text: The message.
+            reader: The analyst, or ``None`` for a degraded verdict.
 
         Returns:
-            The verdict, degraded unless ``analyst`` was given to :func:`create_app`.
+            The verdict.
         """
         pack = seeded_pack(country, config.knowledge_seed)
         if pack is None:
@@ -414,12 +427,12 @@ def create_app(
         # No chat here: one stateless text, so the gate sees no history (D-048).
         # ponytail: a real judge call blocks the event loop up to its timeout.
         with telemetry.recording(api.state.metrics):
-            return judge_case(case, pack, gate_judge, analyst)
+            return judge_case(case, pack, gate_judge, reader)
 
     @api.post("/caso")
     async def post_case(request: CaseRequest) -> Verdict:
         """One case outside any channel (D-048): see ``judge_text``."""
-        return judge_text(request.country, request.text)
+        return judge_text(request.country, request.text, analyst)
 
     @api.post("/webhook/wazenda")
     async def wazenda_webhook(request: Request) -> JSONResponse:
@@ -427,9 +440,26 @@ def create_app(
         with telemetry.recording(api.state.metrics):
             return await _webhook(request, config)
 
-    _panel(api, config, panel_source, judge_text)
+    form_analyst = analyst or _form_analyst(config)
+    api.include_router(
+        _panel(
+            config,
+            panel_source,
+            lambda text: judge_text(TRY_COUNTRY, text, form_analyst),
+            rules_only=form_analyst is None,
+        )
+    )
 
     return api
+
+
+def _form_analyst(config: Settings) -> Analyst | None:
+    """The panel form's analyst: the webhook's Spark reader, text only (D-090).
+
+    Behind the panel token, so it may spend; ``/caso`` never gets this one (D-048).
+    """
+    chat = make_chat(config)
+    return spark_analyst(chat) if chat else None
 
 
 app = create_app(settings)

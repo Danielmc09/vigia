@@ -9,8 +9,8 @@ import asyncpg
 import pytest
 from fastapi.testclient import TestClient
 
-from vigia.app import PANEL_ROWS, create_app
-from vigia.channel.panel import render_panel
+from vigia.app import MAX_CASE_CHARS, PANEL_ROWS, create_app
+from vigia.channel.panel import TryForm, render_panel
 from vigia.config import Settings
 from vigia.domain.case import Case
 from vigia.domain.member import Business
@@ -206,11 +206,14 @@ async def _source() -> tuple[list[VerdictRow], dict[str, int]]:
     return [_row()], {"scam": 1}
 
 
-def _client(token: str | None, metrics: Path | None = None) -> TestClient:
-    values: dict[str, object] = {"VIGIA_PANEL_TOKEN": token}
+def _client(
+    token: str | None, metrics: Path | None = None, model_key: str = "", analyst: object = None
+) -> TestClient:
+    # MODEL_API_KEY="" (unset, D-087): a key in the shell must never reach real Spark here.
+    values: dict[str, object] = {"VIGIA_PANEL_TOKEN": token, "MODEL_API_KEY": model_key}
     if metrics is not None:
         values["VIGIA_PANEL_METRICS"] = metrics
-    return TestClient(create_app(Settings(**values), panel=_source))  # type: ignore[arg-type]
+    return TestClient(create_app(Settings(**values), analyst=analyst, panel=_source))  # type: ignore[arg-type]
 
 
 def test_panel_does_not_exist_without_a_configured_token() -> None:
@@ -288,7 +291,7 @@ def test_the_page_offers_a_try_form_with_three_examples() -> None:
 
 
 def test_a_tried_verdict_is_shown_above_the_table_with_its_text_escaped() -> None:
-    page = render_panel([], {}, None, tried=("<b>hola</b>", _row()))
+    page = render_panel([], {}, None, TryForm(text="<b>hola</b>", row=_row()))
 
     assert page.index("brand_off_domain") < page.index("<table><thead>")
     assert "&lt;b&gt;hola&lt;/b&gt;</textarea>" in page
@@ -316,3 +319,51 @@ def test_an_empty_try_is_refused() -> None:
     client.cookies.set("vigia_panel", TOKEN)
 
     assert client.post("/panel", data={"text": "  "}).status_code == 422
+
+
+def test_the_form_says_rules_only_when_there_is_no_model() -> None:
+    assert "Rules only" in render_panel([], {}, None, TryForm(rules_only=True))
+    assert "Rules only" not in render_panel([], {}, None, TryForm())
+
+
+def test_without_a_model_key_the_panel_says_rules_only() -> None:
+    client = _client(TOKEN)
+    client.cookies.set("vigia_panel", TOKEN)
+
+    assert "Rules only" in client.get("/panel").text
+
+
+def test_with_a_model_key_the_form_does_not_say_rules_only() -> None:
+    client = _client(TOKEN, model_key="not-a-real-key")
+    client.cookies.set("vigia_panel", TOKEN)
+
+    assert "Rules only" not in client.get("/panel").text
+
+
+def test_the_try_form_asks_the_analyst() -> None:
+    asked: list[str] = []
+
+    def analyst(case: Case, *_: object) -> None:
+        asked.append(case.text or "")
+
+    client = _client(TOKEN, analyst=analyst)
+    client.cookies.set("vigia_panel", TOKEN)
+
+    client.post("/panel", data={"text": "Le escribe su asesor, confirme el pago de hoy"})
+
+    assert asked == ["Le escribe su asesor, confirme el pago de hoy"]
+
+
+def test_a_try_longer_than_the_cap_is_refused() -> None:
+    client = _client(TOKEN)
+    client.cookies.set("vigia_panel", TOKEN)
+
+    assert client.post("/panel", data={"text": "a" * (MAX_CASE_CHARS + 1)}).status_code == 422
+
+
+def test_a_case_longer_than_the_cap_is_refused() -> None:
+    too_long = "a" * (MAX_CASE_CHARS + 1)
+
+    response = _client(TOKEN).post("/caso", json={"country": "CO", "text": too_long})
+
+    assert response.status_code == 422

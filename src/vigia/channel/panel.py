@@ -7,7 +7,7 @@ ship a ``default-src 'none'`` CSP. User-facing labels come from ``i18n`` (``pane
 from collections.abc import Mapping, Sequence
 from datetime import timedelta, timezone
 from html import escape
-from typing import Any, get_args
+from typing import Any, NamedTuple, get_args
 
 from vigia.domain.verdict import Label, VerdictRow
 from vigia.i18n import t
@@ -85,19 +85,34 @@ def _row(row: VerdictRow) -> str:
     return "<tr>" + "".join(f"<td>{cell}</td>" for cell in cells) + "</tr>"
 
 
-def _try(head: str, tried: tuple[str, VerdictRow] | None) -> str:
+class TryForm(NamedTuple):
+    """The "try it" block of the panel.
+
+    Attributes:
+        text: Text just tried, put back in the form.
+        row: Its verdict, shown above the table.
+        rules_only: True when no model is configured: the verdict comes from rules alone.
+    """
+
+    text: str = ""
+    row: VerdictRow | None = None
+    rules_only: bool = False
+
+
+def _try(head: str, form: TryForm) -> str:
     """The "try it" form: plain HTML posting to ``/panel``, so the CSP stays script-free."""
     examples = "".join(
         f'<button name="text" value="{escape(t(LANG, f"panel.try.example.{name}.text"))}">'
         f"{escape(t(LANG, f'panel.try.example.{name}'))}</button>"
         for name in EXAMPLES
     )
-    text, row = tried or ("", None)
+    row = form.row
     result = row and f'<table class="tried"><thead><tr>{head}</tr></thead>{_row(row)}</table>'
+    scope = form.rules_only and f"<p>{escape(t(LANG, 'panel.try.rules_only'))}</p>"
     return (
-        f"<h2>{escape(t(LANG, 'panel.try.title'))}</h2>"
+        f"<h2>{escape(t(LANG, 'panel.try.title'))}</h2>{scope or ''}"
         '<form method="post" action="/panel">'
-        f'<textarea name="text" rows="3" required>{escape(text)}</textarea>'
+        f'<textarea name="text" rows="3" required>{escape(form.text)}</textarea>'
         f"<button>{escape(t(LANG, 'panel.try.button'))}</button></form>"
         f'<form method="post" action="/panel">{examples}</form>{result or ""}'
     )
@@ -107,7 +122,7 @@ def render_panel(
     rows: Sequence[VerdictRow],
     today: Mapping[str, int],
     metrics: Mapping[str, Any] | None,
-    tried: tuple[str, VerdictRow] | None = None,
+    form: TryForm | None = None,
 ) -> str:
     """The whole panel page.
 
@@ -115,7 +130,7 @@ def render_panel(
         rows: Latest verdicts, newest first (no PII by construction, D-072).
         today: Verdicts since midnight in Colombia, by label.
         metrics: The latest eval result file (``metricas``, ``fecha``), if there is one.
-        tried: Text just tried from the form and its verdict, shown above the table.
+        form: The "try it" block: the text just tried, its verdict, and whether rules only.
 
     Returns:
         A self-contained HTML document with no script.
@@ -133,7 +148,7 @@ def render_panel(
         f'<meta name="viewport" content="width=device-width,initial-scale=1">'
         f"<title>{title}</title><style>{_STYLE}</style></head><body><main>"
         f"<h1>{title}</h1><h2>{escape(t(LANG, 'panel.today'))}</h2>"
-        f'<div class="cards">{counters}</div>{_try(head, tried)}{_metrics(metrics)}'
+        f'<div class="cards">{counters}</div>{_try(head, form or TryForm())}{_metrics(metrics)}'
         f"<table><thead><tr>{head}</tr></thead><tbody>{body}</tbody></table>"
         "</main></body></html>"
     )

@@ -114,6 +114,7 @@
   "panel.col.ms": "ms",
   "panel.try.title": "Pruébalo",
   "panel.try.button": "Analizar",
+  "panel.try.rules_only": "Solo reglas: sin llave de modelo no hay analista.",
   "panel.try.example.bank": "SMS de banco",
   "panel.try.example.courier": "Link de transportadora",
   "panel.try.example.legit": "Legítimo",
