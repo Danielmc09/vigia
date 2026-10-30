@@ -95,15 +95,15 @@ def _latest_metrics(config: Settings) -> dict[str, Any] | None:
     return data
 
 
-def _require_token(request: Request, token: SecretStr | None) -> None:
-    """404 when ``token`` is not configured, 401 unless the request presents it.
+def _require_token(presented: str, token: SecretStr | None) -> None:
+    """404 when ``token`` is not configured, 401 unless ``presented`` matches it.
 
     Compared in constant time (D-073).
     """
     if token is None:
         raise HTTPException(status_code=404)
     expected = token.get_secret_value().encode()
-    if not hmac.compare_digest(_presented_token(request).encode(), expected):
+    if not hmac.compare_digest(presented.encode(), expected):
         raise HTTPException(status_code=401, headers={"WWW-Authenticate": "Bearer"})
 
 
@@ -121,14 +121,11 @@ async def _panel_page(request: Request, config: Settings, source: PanelSource) -
     """
     if (link := request.query_params.get("token")) is not None:
         # A browser cannot send Bearer: trade the link for a cookie, off the URL (D-088).
-        if config.panel_token is None:
-            raise HTTPException(status_code=404)
-        if not hmac.compare_digest(link.encode(), config.panel_token.get_secret_value().encode()):
-            raise HTTPException(status_code=401)
+        _require_token(link, config.panel_token)
         response = RedirectResponse("/panel", status_code=303, headers=_PANEL_HEADERS)
         response.set_cookie(PANEL_COOKIE, link, httponly=True, samesite="lax")
         return response
-    _require_token(request, config.panel_token)
+    _require_token(_presented_token(request), config.panel_token)
     rows, today = await source()
     page = render_panel(rows, today, _latest_metrics(config))
     return HTMLResponse(page, headers=_PANEL_HEADERS)
@@ -299,7 +296,7 @@ def _operations(api: FastAPI, config: Settings) -> None:
     @api.get("/metrics")
     async def metrics(request: Request) -> Response:
         """Prometheus metrics behind ``METRICS_TOKEN`` (specs/11 §2)."""
-        _require_token(request, config.metrics_token)
+        _require_token(_presented_token(request), config.metrics_token)
         return Response(generate_latest(api.state.metrics.registry), media_type=CONTENT_TYPE_LATEST)
 
 
