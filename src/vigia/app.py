@@ -8,6 +8,8 @@ import time
 from collections.abc import AsyncIterator, Awaitable, Callable
 from contextlib import asynccontextmanager
 from datetime import UTC, datetime
+from email.parser import BytesParser
+from email.policy import default as email_policy
 from typing import Any
 from urllib.parse import parse_qs
 from uuid import uuid4
@@ -20,14 +22,17 @@ from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 from pydantic import BaseModel, Field, SecretStr
 
 from vigia import telemetry
-from vigia.channel.panel import TryForm, render_panel
+from vigia.channel.panel import LANG, TryForm, render_panel
 from vigia.channel.wazenda import signed_payload, to_message
 from vigia.config import WEBHOOK_CONCURRENCY, Settings, settings
+from vigia.domain.attachment import MAX_ATTACHMENT_BYTES, Attachment, read_capped
 from vigia.domain.case import IncomingMessage
 from vigia.domain.gate import Judge
 from vigia.domain.member import Business
 from vigia.domain.verdict import Verdict, VerdictRow
+from vigia.i18n import t
 from vigia.model import jev, spark
+from vigia.model.sam import make_sam
 from vigia.services import whatsapp
 from vigia.services.backend import has_chat, make_chat
 from vigia.services.ingest import normalize
@@ -49,6 +54,7 @@ PANEL_ROWS = 50
 HEALTH_TIMEOUT_S = 2.0  # specs/11 §2: a slow dependency is a failing one
 HEALTH_CACHE_S = 10.0  # one real check per 10 s, however often /salud is hit
 MAX_CASE_CHARS = 4000  # a forwarded SMS, chat or mail body; longer is abuse, not a case
+FORM_OVERHEAD = 64 * 1024  # multipart headers and the textarea around the file
 TRY_COUNTRY = "CO"  # ponytail: the panel's "try it" judges with the CO pack; a selector with US
 
 PanelSource = Callable[[], Awaitable[tuple[list[VerdictRow], dict[str, int]]]]
@@ -317,13 +323,40 @@ def _operations(api: FastAPI, config: Settings) -> None:
         return Response(generate_latest(api.state.metrics.registry), media_type=CONTENT_TYPE_LATEST)
 
 
-def _panel(
-    config: Settings,
-    source: PanelSource,
-    judge: Callable[[str], Verdict],
-    rules_only: bool,
-) -> APIRouter:
-    """The operator panel and its "try it" form (specs/07, D-072, D-073, T-22d, D-090)."""
+def _form_fields(content_type: str, body: bytes) -> dict[str, bytes]:
+    """Fields of a posted form, urlencoded or multipart, without a multipart dependency.
+
+    Args:
+        content_type: The request's ``Content-Type`` (it carries the boundary).
+        body: The raw body.
+
+    Returns:
+        Each field's bytes by name; an empty file input maps to ``b""``.
+    """
+    if not content_type.startswith("multipart/form-data"):
+        found = parse_qs(body.decode(errors="replace"))
+        return {name: values[0].encode() for name, values in found.items()}
+    head = f"Content-Type: {content_type}\r\n\r\n".encode()
+    message = BytesParser(policy=email_policy).parsebytes(head + body)
+    return {
+        str(part.get_param("name", header="content-disposition")): part.get_payload(decode=True)
+        or b""
+        for part in message.iter_parts()
+    }
+
+
+def _read_steps(media: whatsapp.Media) -> list[str]:
+    """What read the file before the verdict, for the row's tools."""
+    found = {"audio": ["transcribe"], "image": ["read_image"], "document": ["read_pdf"]}
+    return found.get(media.kind, []) + (["decode_qr"] if media.transcript.qr_urls else [])
+
+
+TryIt = Callable[[str, bytes], Awaitable[TryForm]]
+"""Judges the form's text, or its file when there is one (``b""`` when not)."""
+
+
+def _panel(config: Settings, source: PanelSource, try_it: TryIt, rules_only: bool) -> APIRouter:
+    """The operator panel and its "try it" form (specs/07, D-072, D-073, T-22d, D-090, T-22f)."""
     router = APIRouter()
     blank = TryForm(rules_only=rules_only)
 
@@ -334,22 +367,29 @@ def _panel(
 
     @router.post("/panel", response_class=HTMLResponse)
     async def try_text(request: Request) -> Response:
-        """A pasted text judged like ``/caso``, shown above the table.
+        """A pasted text or an uploaded file judged like a forwarded one, above the table.
 
         A plain form post, so the panel keeps its script-free CSP; the ``SameSite=Lax``
         cookie never rides a cross-site post.
         """
         _require_token(_presented_token(request), config.panel_token)
-        form = parse_qs((await request.body()).decode(errors="replace"))
-        text = form.get("text", [""])[0].strip()
-        if not text:
+        body = await read_capped(request.stream(), MAX_ATTACHMENT_BYTES + FORM_OVERHEAD)
+        fields = (
+            _form_fields(request.headers.get("content-type", ""), body)
+            if isinstance(body, bytes)
+            else {}
+        )
+        data = fields.get("file", b"")
+        if not isinstance(body, bytes) or len(data) > MAX_ATTACHMENT_BYTES:
+            too_large = blank._replace(notice=t(LANG, "attachment.too_large"))
+            return await _panel_html(config, source, too_large)
+        text = fields.get("text", b"").decode(errors="replace").strip()
+        if not text and not data:
             raise HTTPException(status_code=422, detail="empty text")
         if len(text) > MAX_CASE_CHARS:
             raise HTTPException(status_code=422, detail="text too long")
-        # Off the event loop: a real judge or analyst call takes seconds.
-        verdict = await asyncio.to_thread(judge, text)
-        row = VerdictRow.of(verdict, "text", datetime.now(UTC))
-        return await _panel_html(config, source, blank._replace(text=text, row=row))
+        form = await try_it(text, data)
+        return await _panel_html(config, source, form._replace(rules_only=rules_only))
 
     return router
 
@@ -402,13 +442,16 @@ def create_app(
 
     _operations(api, config)
 
-    def judge_text(country: str, text: str, reader: Analyst | None) -> Verdict:
+    def judge_text(
+        country: str, text: str, reader: Analyst | None, media: whatsapp.Media | None = None
+    ) -> Verdict:
         """Fuse one text into its verdict (specs/05), without any real channel or store.
 
         Args:
             country: ISO code of the country pack.
-            text: The message.
+            text: The message, or what a reader made of ``media``.
             reader: The analyst, or ``None`` for a degraded verdict.
+            media: An uploaded file already read (panel form only).
 
         Returns:
             The verdict.
@@ -420,15 +463,20 @@ def create_app(
             message_id=str(uuid4()),
             origin="local",
             sender="eval",
-            kind="text",
+            kind=media.kind if media else "text",
             text=text,
+            attachments=[Attachment(ref="upload", mime=media.mime)] if media else [],
             received_at=datetime.now(UTC),
         )
         # A throwaway business per request: nothing is stored, no tenant is touched (D-048).
         case = normalize(msg, Business(uuid4(), pack.country, pack.language))
         if case is None:
             raise HTTPException(status_code=422, detail="unsupported case")
-        case = case.model_copy(update={"origin": "eval", "sender": None})
+        update: dict[str, Any] = {"origin": "eval", "sender": None}
+        if media:
+            found = media.transcript
+            update |= {"qr_urls": list(found.qr_urls), "model_refused": found.refused}
+        case = case.model_copy(update=update)
         # No chat here: one stateless text, so the gate sees no history (D-048).
         # ponytail: a real judge call blocks the event loop up to its timeout.
         with telemetry.recording(api.state.metrics):
@@ -445,26 +493,59 @@ def create_app(
         with telemetry.recording(api.state.metrics):
             return await _webhook(request, config)
 
-    form_analyst = analyst or _form_analyst(config)
-    api.include_router(
-        _panel(
-            config,
-            panel_source,
-            lambda text: judge_text(TRY_COUNTRY, text, form_analyst),
-            rules_only=form_analyst is None,
-        )
-    )
+    try_it, rules_only = _try_it(config, analyst, judge_text)
+    api.include_router(_panel(config, panel_source, try_it, rules_only))
 
     return api
 
 
-def _form_analyst(config: Settings) -> Analyst | None:
-    """The panel form's analyst: the webhook's Spark reader, text only (D-090).
+def _try_it(
+    config: Settings,
+    analyst: Analyst | None,
+    judge_text: Callable[[str, str, Analyst | None, whatsapp.Media | None], Verdict],
+) -> tuple[TryIt, bool]:
+    """The panel form: the webhook's readers and Spark analyst on a text or a file.
 
-    Behind the panel token, so it may spend; ``/caso`` never gets this one (D-048).
+    Behind the panel token, so it may spend; ``/caso`` never gets these (D-048, D-090).
+
+    Args:
+        config: Process settings (model key, caps, knowledge seed).
+        analyst: A fixed analyst (tests); otherwise Spark when the key is set.
+        judge_text: ``create_app``'s fusion of one text into its verdict.
+
+    Returns:
+        The form's judge and whether it runs on rules alone.
     """
-    chat = make_chat(config)
-    return spark_analyst(chat) if chat else None
+    chat, sam = (None, None) if analyst else (make_chat(config), make_sam(config))
+    form_readers = whatsapp.model_readers(config)
+    pack = seeded_pack(TRY_COUNTRY, config.knowledge_seed)
+
+    async def unseen(_data: bytes) -> bool:
+        return True  # one operator trying files: nothing to dedupe
+
+    sender = whatsapp.Sender(pack.language if pack else LANG, unseen)
+
+    async def try_it(text: str, data: bytes) -> TryForm:
+        media = None
+        if data:
+            media = await whatsapp.read_media(data, form_readers, config, sender)
+            if isinstance(media, str):
+                return TryForm(notice=t(LANG, media))
+            text = media.transcript.text
+        reader = analyst
+        if chat:  # the webhook's analyst: crop reuses the uploaded bytes (D-076)
+            reader = spark_analyst(chat, (), sam, (lambda _ref: media.data) if media else None)
+        # Off the event loop: a real judge or analyst call takes seconds.
+        verdict = await asyncio.to_thread(judge_text, TRY_COUNTRY, text, reader, media)
+        if media is None:
+            return TryForm(text=text, row=VerdictRow.of(verdict, "text", datetime.now(UTC)))
+        row = VerdictRow.of(verdict, media.kind, datetime.now(UTC))
+        # The read is paid too: the row shows the whole case, like the webhook's stages.
+        usd = row.usd + media.transcript.usd
+        row = row.model_copy(update={"tools": _read_steps(media) + row.tools, "usd": usd})
+        return TryForm(row=row, read=text, links=media.transcript.qr_urls)
+
+    return try_it, analyst is None and chat is None
 
 
 app = create_app(settings)

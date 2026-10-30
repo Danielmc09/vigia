@@ -25,7 +25,7 @@ from vigia.domain.case import Case, IncomingMessage
 from vigia.domain.country import CountryPack
 from vigia.domain.gate import Judge
 from vigia.domain.member import Supplier, normalize_contact
-from vigia.domain.reading import Transcriber
+from vigia.domain.reading import Transcriber, Transcript
 from vigia.domain.rejection import Rejection
 from vigia.i18n import t
 from vigia.model.sam import make_sam
@@ -126,17 +126,11 @@ class MediaRead(NamedTuple):
 
     Attributes:
         msg: The message with its ``kind``, ``text`` and checked attachment.
-        data: The checked bytes (the analyst's ``crop`` reuses them).
-        qr_urls: Links decoded from a QR.
-        usd: What the reader cost.
-        refused: The model's content filter refused to read it (T-09b).
+        media: The checked bytes (the analyst's ``crop`` reuses them) and their transcript.
     """
 
     msg: IncomingMessage
-    data: bytes
-    qr_urls: tuple[str, ...]
-    usd: float
-    refused: bool = False
+    media: "Media"
 
 
 async def _read_media(
@@ -150,28 +144,76 @@ async def _read_media(
     if isinstance(data, Rejection):
         too_large = data.error_code == "TOO_LARGE"
         return t(language, "attachment.too_large" if too_large else "attachment.unavailable")
+    read = await read_media(data, channel.readers, channel.config, Sender(language, first))
+    if isinstance(read, str):
+        return t(language, read)
+    attachment = Attachment(ref=msg.attachments[0].ref, mime=read.mime)
+    update = {"kind": read.kind, "text": read.transcript.text, "attachments": [attachment]}
+    return MediaRead(msg.model_copy(update=update), read)
+
+
+class Media(NamedTuple):
+    """Checked bytes and what their reader made of them.
+
+    Attributes:
+        kind: ``audio``, ``image`` or ``document``, from the magic bytes.
+        mime: MIME of ``data`` (an ogg voice note arrives here as ``audio/wav``).
+        data: The checked bytes.
+        transcript: The reader's text, QR links, cost and refusal.
+    """
+
+    kind: str
+    mime: str
+    data: bytes
+    transcript: Transcript
+
+
+class Sender(NamedTuple):
+    """Who a file comes from, as its reader needs it.
+
+    Attributes:
+        language: Language hint for the reader (Voice's bias).
+        first: Claims the bytes before any reader is paid; a repeat is a duplicate.
+    """
+
+    language: str
+    first: Callable[[bytes], Awaitable[bool]]
+
+
+async def read_media(
+    data: bytes, readers: Mapping[str, Transcriber], config: Settings, sender: Sender
+) -> Media | str:
+    """Turn a file into text, the same for WhatsApp and the panel; a string is an i18n key.
+
+    Args:
+        data: The file, already under the attachment cap.
+        readers: :func:`model_readers` (fakes in tests).
+        config: Settings with the audio and PDF caps.
+        sender: Language and dedupe claim of whoever sent it.
+
+    Returns:
+        The read file, or the i18n key of the reply when it cannot be read.
+    """
     found = sniff(data)
     if found is None:
-        return t(language, "case.unsupported")
+        return "case.unsupported"
     kind, mime = found
     if mime == "audio/ogg":
-        wav = ogg_to_wav(data, channel.config.voice_max_seconds)
+        wav = ogg_to_wav(data, config.voice_max_seconds)
         if isinstance(wav, Rejection):
-            return transcription.reply(wav, language)
+            return transcription.reply_key(wav)
         data, mime = wav, "audio/wav"
     reader_kind = _READER[kind]
-    if reader_kind not in channel.readers:
-        return t(language, f"{reader_kind}.unavailable")
-    if not await first(data):
-        return t(language, "case.duplicate")
-    reader = transcription.checked(reader_kind, channel.readers[reader_kind], channel.config)
-    read = await asyncio.to_thread(reader, data, language)
+    if reader_kind not in readers:
+        return f"{reader_kind}.unavailable"
+    if not await sender.first(data):
+        return "case.duplicate"
+    reader = transcription.checked(reader_kind, readers[reader_kind], config)
+    read = await asyncio.to_thread(reader, data, sender.language)
     if isinstance(read, Rejection):
-        return transcription.reply(read, language, transcription.REPLY_KEYS[reader_kind])
-    attachment = Attachment(ref=msg.attachments[0].ref, mime=mime)
-    update = {"kind": kind, "text": read.text, "attachments": [attachment]}
+        return transcription.reply_key(read, transcription.REPLY_KEYS[reader_kind])
     telemetry.add_usd(read.usd)
-    return MediaRead(msg.model_copy(update=update), data, read.qr_urls, read.usd, read.refused)
+    return Media(kind, mime, data, read)
 
 
 async def process(conn: asyncpg.Connection, channel: Channel, msg: IncomingMessage) -> None:
@@ -201,13 +243,14 @@ async def _process(conn: asyncpg.Connection, channel: Channel, msg: IncomingMess
             await claim.start()
             with telemetry.stage("gate") as cost:
                 read = await _read_media(channel, msg, business.language, first)
-                cost["usd"] = read.usd if not isinstance(read, str) else 0.0
+                cost["usd"] = read.media.transcript.usd if not isinstance(read, str) else 0.0
             if isinstance(read, str):
                 await claim.rollback()  # a refused or failed read can be sent again (D-083)
                 await channel.wazenda.send(sender, read)
                 return
             await claim.commit()
-            msg, media, qr, refused = read.msg, read.data, read.qr_urls, read.refused
+            found = read.media.transcript
+            msg, media, qr, refused = read.msg, read.media.data, found.qr_urls, found.refused
     cases: list[Case] = []
 
     async def capture(case: Case) -> None:

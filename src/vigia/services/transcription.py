@@ -12,7 +12,6 @@ from vigia.domain.attachment import check_image, check_pdf, check_wav
 from vigia.domain.image import QR_PROMPT, Segmenter
 from vigia.domain.reading import Transcriber, Transcript
 from vigia.domain.rejection import Rejection, RejectionCode
-from vigia.i18n import t
 from vigia.signals.qr import qr_urls
 
 if TYPE_CHECKING:
@@ -45,7 +44,7 @@ REPLY_KEYS: dict[str, Mapping[RejectionCode, str]] = {
     "pdf": PDF_REPLY_KEY,
     "image": IMAGE_REPLY_KEY,
 }
-"""The reply keys of each reader kind, for :func:`reply`."""
+"""The reply keys of each reader kind, for :func:`reply_key`."""
 
 
 REFUSED = Transcript(text="", usd=0.0, refused=True)
@@ -185,18 +184,14 @@ def checked(kind: str, reader: Transcriber, config: "Settings") -> Transcriber:
     return lambda data, lang: read_image(data, lang, reader)
 
 
-def reply(
-    rejection: Rejection, language: str, keys: Mapping[RejectionCode, str] = REPLY_KEY
-) -> str:
-    """What the member reads when their voice note, PDF or image could not be read.
+def reply_key(rejection: Rejection, keys: Mapping[RejectionCode, str] = REPLY_KEY) -> str:
+    """The i18n key of what the member reads when an attachment could not be read.
 
     Args:
-        rejection: Output of :func:`transcribe`, :func:`read_pdf` or :func:`read_image`.
-        language: Language of the business.
-        keys: :data:`REPLY_KEY` for audio, :data:`PDF_REPLY_KEY` for PDFs,
-            :data:`IMAGE_REPLY_KEY` for images.
+        rejection: Output of a reader.
+        keys: :data:`REPLY_KEY`, :data:`PDF_REPLY_KEY` or :data:`IMAGE_REPLY_KEY`.
 
     Returns:
-        The i18n message for that rejection; unknown codes read as "unavailable".
+        The key; unknown codes read as "unavailable".
     """
-    return t(language, keys.get(rejection.error_code, keys["MODEL_UNAVAILABLE"]))
+    return keys.get(rejection.error_code, keys["MODEL_UNAVAILABLE"])

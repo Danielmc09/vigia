@@ -172,9 +172,7 @@ def test_every_pdf_rejection_has_a_user_message(code: str, lang: str) -> None:
 
     key = transcription.PDF_REPLY_KEY[rejection.error_code]
     assert key.startswith("pdf.") and has_key(lang, key)
-    assert transcription.reply(rejection, lang, transcription.PDF_REPLY_KEY) == (
-        transcription.t(lang, key)
-    )
+    assert transcription.reply_key(rejection, transcription.PDF_REPLY_KEY) == key
 
 
 # --- eval wiring (tools/measure.py) -------------------------------------------------------

@@ -13,7 +13,7 @@ from vigia.config import Settings
 from vigia.domain.attachment import MAX_ATTACHMENT_BYTES, check_wav
 from vigia.domain.reading import Transcript
 from vigia.domain.rejection import Rejection
-from vigia.i18n import LANGUAGES, has_key
+from vigia.i18n import LANGUAGES, has_key, t
 from vigia.model.voice import PRICE_HOUR, VoiceClient, make_voice
 from vigia.services import transcription
 
@@ -177,7 +177,7 @@ def test_every_audio_rejection_has_a_user_message(code: str, lang: str) -> None:
     rejection = Rejection(error_code=code, message="x")  # type: ignore[arg-type]
 
     assert has_key(lang, transcription.REPLY_KEY[rejection.error_code])
-    assert transcription.reply(rejection, lang)
+    assert t(lang, transcription.reply_key(rejection))
 
 
 # --- eval wiring (tools/measure.py) -------------------------------------------------------

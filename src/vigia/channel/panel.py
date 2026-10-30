@@ -92,11 +92,17 @@ class TryForm(NamedTuple):
         text: Text just tried, put back in the form.
         row: Its verdict, shown above the table.
         rules_only: True when no model is configured: the verdict comes from rules alone.
+        notice: Why an uploaded file could not be read.
+        read: What the reader made of an uploaded file.
+        links: Links decoded from its QR.
     """
 
     text: str = ""
     row: VerdictRow | None = None
     rules_only: bool = False
+    notice: str = ""
+    read: str = ""
+    links: tuple[str, ...] = ()
 
 
 def _try(head: str, form: TryForm) -> str:
@@ -109,12 +115,20 @@ def _try(head: str, form: TryForm) -> str:
     row = form.row
     result = row and f'<table class="tried"><thead><tr>{head}</tr></thead>{_row(row)}</table>'
     scope = form.rules_only and f"<p>{escape(t(LANG, 'panel.try.rules_only'))}</p>"
+    notes = (
+        (form.notice, form.notice),
+        (form.read, f"{t(LANG, 'panel.try.read')}: {form.read}"),
+        (form.links, f"{t(LANG, 'panel.try.links')}: {' '.join(form.links)}"),
+    )
+    shown = "".join(f"<p>{escape(note)}</p>" for present, note in notes if present)
     return (
         f"<h2>{escape(t(LANG, 'panel.try.title'))}</h2>{scope or ''}"
-        '<form method="post" action="/panel">'
-        f'<textarea name="text" rows="3" required>{escape(form.text)}</textarea>'
+        '<form method="post" action="/panel" enctype="multipart/form-data">'
+        f'<textarea name="text" rows="3">{escape(form.text)}</textarea>'
+        f"<label>{escape(t(LANG, 'panel.try.file'))} "
+        '<input type="file" name="file" accept="audio/*,image/*,application/pdf"></label>'
         f"<button>{escape(t(LANG, 'panel.try.button'))}</button></form>"
-        f'<form method="post" action="/panel">{examples}</form>{result or ""}'
+        f'<form method="post" action="/panel">{examples}</form>{shown}{result or ""}'
     )
 
 

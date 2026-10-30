@@ -10,13 +10,19 @@ import asyncpg
 import pytest
 from fastapi.testclient import TestClient
 
+from tests.test_imagen import _qr, _screenshot
+from tests.test_wazenda import opus
 from vigia.app import MAX_CASE_CHARS, PANEL_ROWS, create_app
 from vigia.channel.panel import TryForm, render_panel
 from vigia.config import Settings
+from vigia.domain.attachment import MAX_ATTACHMENT_BYTES
 from vigia.domain.case import Case
 from vigia.domain.member import Business
+from vigia.domain.reading import Transcriber, Transcript
 from vigia.domain.signal import Signal
 from vigia.domain.verdict import Verdict, VerdictRow
+from vigia.services import whatsapp
+from vigia.services.transcription import image_reader
 from vigia.store import postgres as store
 from vigia.store.crypto import Keyring
 
@@ -208,7 +214,10 @@ async def _source() -> tuple[list[VerdictRow], dict[str, int]]:
 
 
 def _client(
-    token: str | None, metrics: Path | None = None, model_key: str = "", analyst: object = None
+    token: str | None,
+    metrics: Path | None = None,
+    model_key: str = "",
+    analyst: object = None,
 ) -> TestClient:
     # MODEL_API_KEY="" (unset, D-087): a key in the shell must never reach real Spark here.
     values: dict[str, object] = {"VIGIA_PANEL_TOKEN": token, "MODEL_API_KEY": model_key}
@@ -402,3 +411,99 @@ def test_a_case_longer_than_the_cap_is_refused() -> None:
     response = _client(TOKEN).post("/caso", json={"country": "CO", "text": too_long})
 
     assert response.status_code == 422
+
+
+def _uploader(monkeypatch: pytest.MonkeyPatch, readers: dict[str, Transcriber]) -> TestClient:
+    monkeypatch.setattr(whatsapp, "model_readers", lambda _config: readers)
+    client = _client(TOKEN)
+    client.cookies.set("vigia_panel", TOKEN)
+    return client
+
+
+def _voice(data: bytes, language: str) -> Transcript:
+    assert data.startswith(b"RIFF")  # the ogg reached Voice as wav, like the webhook
+    return Transcript(text="Hola, le habla el banco, digame la clave que le llego", usd=0.0)
+
+
+def test_a_voice_note_upload_shows_its_transcript_and_the_transcribe_step(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """T-22f: the video's Voice scene, through the same reader as the webhook."""
+    response = _uploader(monkeypatch, {"audio": _voice}).post(
+        "/panel", files={"file": ("nota.ogg", opus(), "audio/ogg")}
+    )
+
+    assert response.status_code == 200
+    assert "Hola, le habla el banco, digame la clave que le llego" in response.text
+    assert "transcribe" in response.text
+
+
+def test_a_screenshot_upload_shows_the_decoded_qr_link(monkeypatch: pytest.MonkeyPatch) -> None:
+    """T-22f: the QR is decoded in code (zxing) before any model reads the picture."""
+
+    def read(data: bytes, language: str) -> Transcript:
+        return Transcript(text="Escanee para pagar su multa", usd=0.0)
+
+    shot = _screenshot(_qr("https://pagos-simit-co.top/multa"))
+    response = _uploader(monkeypatch, {"image": image_reader(read, None)}).post(
+        "/panel", files={"file": ("captura.png", shot, "image/png")}
+    )
+
+    assert "https://pagos-simit-co.top/multa" in response.text
+    assert "decode_qr" in response.text
+
+
+def test_inc_try_read_cost(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Incident inc-try-read-cost: a real screenshot read by Spark showed 0.0000 USD on the row.
+
+    Hypothesis: the row only carried the verdict's cost; the read is paid too, like the webhook.
+    """
+
+    def read(data: bytes, language: str) -> Transcript:
+        return Transcript(text="Escanee para pagar su multa", usd=0.0123)
+
+    shot = _screenshot(_qr("https://pagos-simit-co.top/multa"))
+    response = _uploader(monkeypatch, {"image": image_reader(read, None)}).post(
+        "/panel", files={"file": ("captura.png", shot, "image/png")}
+    )
+
+    assert "0.0123" in response.text
+
+
+def test_an_upload_without_its_reader_says_it_cannot_read_it(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    response = _uploader(monkeypatch, {}).post(
+        "/panel", files={"file": ("nota.ogg", opus(), "audio/ogg")}
+    )
+
+    assert "couldn&#x27;t listen to the voice note" in response.text
+
+
+def test_an_upload_of_an_unknown_file_says_it_is_not_supported(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    response = _uploader(monkeypatch, {}).post(
+        "/panel", files={"file": ("a.zip", b"PK\x03\x04", "x/y")}
+    )
+
+    assert "can&#x27;t check this kind of file" in response.text
+
+
+def test_an_upload_over_the_attachment_cap_is_refused_without_reading_it(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """specs/12 A6: the same 10 MiB cap as a WhatsApp download."""
+    big = b"RIFF" + b"\0" * MAX_ATTACHMENT_BYTES
+    response = _uploader(monkeypatch, {"audio": _voice}).post(
+        "/panel", files={"file": ("big.wav", big, "audio/wav")}
+    )
+
+    assert "over 10 MB" in response.text
+
+
+def test_an_upload_without_the_panel_token_is_refused(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(whatsapp, "model_readers", lambda _config: {"audio": _voice})
+    response = _client(TOKEN).post("/panel", files={"file": ("nota.ogg", opus(), "audio/ogg")})
+
+    assert response.status_code == 401
