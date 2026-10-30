@@ -105,11 +105,15 @@ class Settings(BaseSettings):
             raise ValueError("OPERADOR_TELEFONO must be E.164, e.g. +573000000001")
         return raw
 
-    @field_validator("model_api_key", mode="before")
+    @field_validator("*", mode="before")
     @classmethod
-    def _empty_model_key_is_absent(cls, raw: object) -> object:
-        """``MODEL_API_KEY=`` (as .env.example ships it) means rules-only mode (D-087)."""
-        return raw or None
+    def _empty_is_unset(cls, raw: object) -> object:
+        """``VAR=`` means unset: optional fields become ``None``, required ones fail (D-087).
+
+        .env.example and compose (``${VAR:-}``) ship blanks; ``VIGIA_MODO=`` still fails
+        instead of falling back to ``dev``.
+        """
+        return None if raw == "" else raw
 
     @model_validator(mode="after")
     def _prod_needs_explicit_dsns(self) -> Self:

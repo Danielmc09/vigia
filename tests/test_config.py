@@ -42,19 +42,24 @@ def test_empty_model_api_key_degrades_like_an_absent_one(
 
 
 def test_empty_mode_is_still_rejected(monkeypatch: pytest.MonkeyPatch) -> None:
-    """Only MODEL_API_KEY treats empty as absent: VIGIA_MODO= must not fall back to dev."""
+    """Empty means unset, and VIGIA_MODO has no unset: it must not fall back to dev."""
     monkeypatch.setenv("VIGIA_MODO", "")
 
     with pytest.raises(ValidationError, match="VIGIA_MODO"):
         Settings()
 
 
-def test_empty_panel_token_is_still_rejected(monkeypatch: pytest.MonkeyPatch) -> None:
-    """An empty VIGIA_PANEL_TOKEN stops startup instead of silently closing the panel."""
-    monkeypatch.setenv("VIGIA_PANEL_TOKEN", "")
+def test_every_empty_optional_var_in_env_example_means_unset(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """T-22c incident (clean clone): .env.example ships METRICS_TOKEN= and other blanks."""
+    for name in ("METRICS_TOKEN", "VIGIA_PANEL_TOKEN", "SENTRY_DSN", "JEV_API_KEY"):
+        monkeypatch.setenv(name, "")
 
-    with pytest.raises(ValidationError, match="VIGIA_PANEL_TOKEN"):
-        Settings()
+    config = Settings()
+
+    assert (config.metrics_token, config.panel_token, config.sentry_dsn) == (None, None, None)
+    assert config.jev_api_key is None
 
 
 def test_prod_rejects_the_example_keys(monkeypatch: pytest.MonkeyPatch) -> None:
