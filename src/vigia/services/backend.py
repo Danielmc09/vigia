@@ -9,6 +9,19 @@ from vigia.config import Settings
 from vigia.model.spark import SPARK_OPEN, SparkClient, make_spark
 
 
+def has_chat(config: Settings) -> bool:
+    """Whether :func:`make_chat` would return a client, without building one.
+
+    Args:
+        config: Process settings.
+
+    Returns:
+        ``True`` when the configured backend has its key.
+    """
+    key = config.model_api_key if config.model_backend == "spark" else config.baseten_api_key
+    return key is not None
+
+
 def make_chat(config: Settings) -> SparkClient | None:
     """The chat client for the analyst and the judge, or ``None`` without its key.
 

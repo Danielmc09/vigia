@@ -27,12 +27,17 @@ def _escalation(target: str) -> Escalation:
     return Escalation("AB12CD", uuid4(), "report", target, now)
 
 
-def test_whatsapp_message_includes_explanation_action_and_case_id() -> None:
+def test_whatsapp_message_includes_explanation_action_and_short_case_number() -> None:
     verdict = _verdict()
-    msg = whatsapp_message(verdict, "es")
+    msg = whatsapp_message(verdict, "es", case_ref=14)
     assert "Esto es una estafa." in msg
     assert "no abras el link" in msg
-    assert verdict.case_id in msg
+    assert msg.endswith("caso 14")
+    assert verdict.case_id not in msg
+
+
+def test_whatsapp_message_short_case_number_in_english() -> None:
+    assert whatsapp_message(_verdict(), "en", case_ref=3).endswith("case 3")
 
 
 def test_no_confirm_line_without_an_escalation() -> None:

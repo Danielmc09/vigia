@@ -19,6 +19,7 @@ from vigia.domain.member import (
     normalize_contact,
 )
 from vigia.domain.rejection import Rejection, RejectionCode
+from vigia.domain.text import only_digits
 from vigia.i18n import t
 from vigia.policy import actions as policy
 from vigia.services.commands import Command
@@ -31,6 +32,8 @@ from vigia.store.crypto import Keyring, Vault
 SendEmail = Callable[[str, str], Awaitable[None]]
 
 Fields = Mapping[str, str]
+MIN_PHONE_DIGITS = 11
+"""Country code plus national number: CO and US both have 11 or more (D-092)."""
 _OWNER_ONLY = {"team", "supplier", "transfer", "confirm", "cancel", "scam_confirmed"}
 
 
@@ -152,6 +155,8 @@ async def _team(session: Session, fields: Fields) -> str:
     retry must not tell a free number from another business's (adv-enumeracion-reintento).
     """
     phone, name, email = normalize_contact(fields["phone"]), fields["name"], fields["email"]
+    if len(only_digits(phone)) < MIN_PHONE_DIGITS:  # a local number would enroll +32... (D-092)
+        return session.reply("usage.team")
     received = session.reply("team.request_received", name=name)
     member_id = None  # already enrolled: not added, and no tell of where (D-053)
     if await _taken(session, phone) is None:
@@ -254,15 +259,12 @@ async def _cancel(session: Session, fields: Fields) -> str:
 
 
 async def _scam_confirmed(session: Session, fields: Fields) -> str:
-    """Feed a case's fingerprints to the known campaigns: ``estafa confirmada <id>`` (owner).
+    """Feed a case's fingerprints to the known campaigns: ``estafa confirmada <n>`` (owner).
 
     Only simhash, linked domains and brand leave the business (D-017); the campaign counts
     for other businesses once a second one confirms it (D-082).
     """
-    try:
-        found = await store.case_text(session.conn, session.vault, UUID(fields["id"]))
-    except ValueError:
-        found = None
+    found = await store.case_text(session.conn, session.vault, int(fields["ref"]))
     pack = country_pack(session.business.country)
     if found is None or pack is None:
         return session.reply("scam_confirmed.unknown")

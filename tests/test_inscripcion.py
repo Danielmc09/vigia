@@ -535,3 +535,66 @@ async def test_adv_enumeracion_codigo_senuelo_team_email_leaves_the_owner_withou
     reply = await handle(app_conn, recorder.ports, message(STRANGER, "codigo 000000"))
 
     assert reply == t("es", "email.code_none")
+
+
+# --- Incident inc-equipo-sin-respuesta (T-10b, 30 oct) -----------------------------
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "equipo +573000000703 Luis",
+        "equipo 573000000703 Luis",  # no "+"
+        "equipo ‪+57 300 000 0703‬ Luis",  # bidi marks WhatsApp adds on copy
+        "equipo +57 300 000 0703 Luis",  # non-breaking spaces
+        "Equipo +57 (300) 000-0703 Luis",
+    ],
+)
+async def test_inc_equipo_sin_respuesta_any_phone_shape_enrolls_and_answers(
+    app_conn: asyncpg.Connection, recorder: Recorder, text: str
+) -> None:
+    """Incident inc-equipo-sin-respuesta: the owner's ``equipo`` got no reply, no member."""
+    await _enroll_owner(app_conn, recorder)
+
+    reply = await handle(app_conn, recorder.ports, message(OWNER, text))
+
+    assert reply == t("es", "team.request_received", name="Luis")
+    assert await store.find_member(app_conn, recorder.keyring.hash("+573000000703")) is not None
+    assert recorder.analyzed == []
+
+
+@pytest.mark.parametrize(
+    ("text", "usage"),
+    [
+        ("equipo Luis", "usage.team"),
+        ("equipo +57 321 Luis", "usage.team"),
+        ("equipo 3000000703 Luis", "usage.team"),  # no country code: would enroll +32...
+        ("proveedor Aceros", "usage.supplier"),
+        ("confirmar 14x", "usage.confirm"),
+        ("transferir a Luis", "usage.transfer"),
+        ("estafa confirmada ayer", "usage.scam_confirmed"),
+    ],
+)
+async def test_inc_equipo_sin_respuesta_a_misused_command_gets_its_usage_not_a_case(
+    app_conn: asyncpg.Connection, recorder: Recorder, text: str, usage: str
+) -> None:
+    """Incident inc-equipo-sin-respuesta: a reserved word with a bad format fell to a case."""
+    await _enroll_owner(app_conn, recorder)
+
+    reply = await handle(app_conn, recorder.ports, message(OWNER, text))
+
+    assert reply == t("es", usage)
+    assert recorder.analyzed == []
+    assert await app_conn.fetchval("SELECT count(*) FROM members") == 1
+
+
+async def test_a_long_forward_that_opens_with_a_reserved_word_is_still_a_case(
+    app_conn: asyncpg.Connection, recorder: Recorder
+) -> None:
+    await _enroll_owner(app_conn, recorder)
+    text = "Equipo de seguridad Bancolombia: su cuenta fue bloqueada, valide sus datos hoy mismo"
+
+    reply = await handle(app_conn, recorder.ports, message(OWNER, text))
+
+    assert reply is None
+    assert len(recorder.analyzed) == 1

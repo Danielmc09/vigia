@@ -5,6 +5,7 @@ import io
 import json
 import logging
 import logging.config
+import re
 from pathlib import Path
 from uuid import uuid4
 
@@ -200,3 +201,30 @@ def test_a09_uvicorn_errors_are_json_without_pii() -> None:
     assert "ValueError" in out.getvalue()
     for pii in ("Ana Torres", "+573000000799", "0799"):
         assert pii not in out.getvalue()
+
+
+# --- Rule 10: tests only use synthetic phone numbers (incident inc-numero-real) -----
+
+_CO_MOBILE = re.compile(r"(?:\+?57[\s (]*)?3\d\d[\s ().-]*\d{3}[\s .-]*\d{4}")
+_SYNTHETIC = "300000"  # +57 300 000 xxxx is the only range tests may use
+
+
+def _real_looking_numbers(source: str) -> list[str]:
+    hits = (re.sub(r"\D", "", m) for m in _CO_MOBILE.findall(source))
+    return [d for d in hits if not d.removeprefix("57").startswith(_SYNTHETIC)]
+
+
+def test_rule10_detector_flags_every_phone_shape() -> None:
+    """The detector catches a non-synthetic mobile in every shape WhatsApp produces."""
+    for shape in ("+573999999999", "573999999999", "‪+57 399 999 9999‬", "+57 (399) 999-9999",
+                  "3999999999"):
+        assert _real_looking_numbers(shape), shape
+    assert _real_looking_numbers("+57 300 000 0703 y 3000000703") == []
+
+
+def test_rule10_tests_use_only_synthetic_phone_numbers() -> None:
+    """Incident inc-numero-real: a fixture used the live test member's real number."""
+    tests = Path(__file__).parent
+    others = (p for p in tests.glob("*.py") if p.name != Path(__file__).name)
+    found = {p.name: n for p in others if (n := _real_looking_numbers(p.read_text()))}
+    assert found == {}

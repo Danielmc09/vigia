@@ -24,7 +24,7 @@ from vigia.domain.text import clean_text
 from vigia.domain.urls import extract_urls
 from vigia.i18n import t
 from vigia.services import enrollment
-from vigia.services.commands import Command, parse_command
+from vigia.services.commands import Command, misused_command, parse_command
 from vigia.signals.country_pack import country_pack
 from vigia.signals.sequence import asks_payment, is_trade_word
 from vigia.store import postgres as store
@@ -73,16 +73,19 @@ async def handle(conn: asyncpg.Connection, ports: Ports, msg: IncomingMessage) -
     if _is_command(command):
         session = enrollment.Session(conn, business, vault, member, ports.send_email, msg.origin)
         return await enrollment.run(session, command)
+    if msg.kind == "text" and (tried := misused_command(msg.text)):
+        return t(business.language, f"usage.{tried}")  # a command typed wrong is never a case
     if msg.kind == "text" and not any(c.isalnum() for c in msg.text or ""):
         return t(business.language, "case.empty")  # specs/12 A1: no case, no model
     case = normalize(msg, business)
     if case is None:
         telemetry.count("rejected", "unsupported")
         return t(business.language, "case.unsupported")
-    if not await store.save_case(conn, vault, case):
+    ref = await store.save_case(conn, vault, case)
+    if ref is None:
         telemetry.count("rejected", "duplicate")
         return t(business.language, "case.duplicate")
-    await ports.analyze(case)
+    await ports.analyze(case.model_copy(update={"ref": ref}))
     return None
 
 

@@ -28,7 +28,7 @@ from vigia.model import spark
 from vigia.model.spark import SparkClient
 from vigia.model.spark_judge import SparkJudge
 from vigia.services import analyst_tools, process_case, transcription
-from vigia.services.backend import make_chat
+from vigia.services.backend import has_chat, make_chat
 from vigia.signals.country_pack import country_pack
 
 FIXTURE = Path(__file__).parent / "fixtures" / "meta" / "chat_content_filter.json"
@@ -189,6 +189,15 @@ def test_make_chat_spark_open_uses_baseten_and_its_key() -> None:
     client = make_chat(config)
 
     assert client is not None and client.endpoint == spark.SPARK_OPEN
+
+
+@pytest.mark.parametrize("backend", ["spark", "spark_open"])
+@pytest.mark.parametrize("keys", [{}, {"MODEL_API_KEY": "k"}, {"BASETEN_API_KEY": "b"}])
+def test_has_chat_agrees_with_make_chat(backend: str, keys: dict[str, str]) -> None:
+    """/salud reads has_chat; it must say what make_chat would do (revisor T-10b)."""
+    config = Settings(_env_file=None, MODEL_BACKEND=backend, **keys)
+
+    assert has_chat(config) == (make_chat(config) is not None)
 
 
 def test_make_chat_spark_open_without_its_key_is_none() -> None:

@@ -113,13 +113,13 @@ def test_render_names_the_seller_and_hides_the_member_name() -> None:
 
 
 def test_a_phone_number_sender_does_not_mask_amounts() -> None:
-    # c-0139/c-0140 (juez T-06c v3, BLOQUEANTE): "+57 312 150 4567" masked "150 mil"
-    chat = [("+57 312 150 4567", "el transporte cuesta 150 mil"), ("Yo", "ya le pagué 312 mil")]
+    # c-0139/c-0140 (juez T-06c v3, BLOQUEANTE): a sender "+57 312 150 ..." masked "150 mil"
+    chat = [("+57 300 000 0150", "el transporte cuesta 150 mil"), ("Yo", "ya le pagué 300 mil")]
 
     rendered = render_chat(chat, ASKS, KEEP)
 
-    assert "150 mil" in rendered and "312 mil" in rendered
-    assert "4567" not in rendered
+    assert "150 mil" in rendered and "300 mil" in rendered
+    assert "0150" not in rendered
 
 
 def test_long_chat_keeps_the_last_lines_and_the_ones_with_money() -> None:

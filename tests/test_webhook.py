@@ -361,7 +361,7 @@ async def test_a_scam_gets_a_verdict_a_reply_and_alerts_the_rest_of_the_team(
 
     [reply] = outbox.to(EMPLOYEE)
     assert reply.startswith("Esto es una estafa")
-    assert re.search(r"id: [0-9a-f-]{36}", reply)
+    assert reply.endswith(t("es", "message.id_line", ref="1"))
     [alert] = outbox.to(OWNER)
     assert "Luis" in alert and "Bancolombia" in alert
     assert len(alert) <= 200
@@ -630,9 +630,26 @@ async def test_a_file_refused_by_its_free_check_is_refused_again_not_duplicate(
 
 async def _scam_case_id(conn: asyncpg.Connection, keyring: Keyring, outbox: Outbox) -> str:
     await whatsapp.process(conn, channel(keyring, outbox), incoming("texto", EMPLOYEE))
-    found = re.search(r"id: ([0-9a-f-]{36})", outbox.to(EMPLOYEE)[-1])
+    found = re.search(r"caso (\d+)$", outbox.to(EMPLOYEE)[-1])
     assert found
     return found.group(1)
+
+
+async def test_inc_id_caso_uuid_the_reply_quotes_a_short_case_number(
+    app_conn: asyncpg.Connection, recorder: Recorder, keyring: Keyring
+) -> None:
+    """Incident inc-id-caso-uuid: the reply quoted a 36-char UUID a shopkeeper cannot type."""
+    await team(app_conn, recorder)
+    outbox = Outbox()
+    for n in range(2):
+        msg = incoming("texto", EMPLOYEE, message_id=f"wamid.n{n}")
+        await whatsapp.process(app_conn, channel(keyring, outbox), msg)
+
+    replies = outbox.to(EMPLOYEE)
+    assert [r.splitlines()[-1] for r in replies] == [
+        t("es", "message.id_line", ref=ref) for ref in ("1", "2")
+    ]
+    assert not any(re.search(r"[0-9a-f]{8}-[0-9a-f]{4}", r) for r in replies)
 
 
 async def test_scam_confirmed_feeds_known_campaigns_with_fingerprints_only(
@@ -640,12 +657,14 @@ async def test_scam_confirmed_feeds_known_campaigns_with_fingerprints_only(
 ) -> None:
     await team(app_conn, recorder)
     outbox = Outbox()
-    case_id = await _scam_case_id(app_conn, keyring, outbox)
+    ref = await _scam_case_id(app_conn, keyring, outbox)
 
-    confirm = incoming("texto", OWNER, body=f"estafa confirmada {case_id}", message_id="wamid.c")
+    confirm = incoming("texto", OWNER, body=f"estafa confirmada {ref}", message_id="wamid.c")
     await whatsapp.process(app_conn, channel(keyring, outbox), confirm)
 
     assert outbox.to(OWNER)[-1] == t("es", "scam_confirmed.done")
+    case_id = await app_conn.fetchval("SELECT id::text FROM cases WHERE ref = $1", int(ref))
+    assert case_id is not None
     rows = await app_conn.fetch(
         "SELECT id, country, kind, brand, simhash, domains, source_type, source_url, times_seen"
         " FROM known_campaigns WHERE source_type = 'usuario'"
@@ -657,6 +676,23 @@ async def test_scam_confirmed_feeds_known_campaigns_with_fingerprints_only(
     assert row["simhash"] is not None
     assert row["domains"] == ["bancolombia-seguro.co"]
     assert "0702" not in str(dict(row)) and "bloqueada" not in str(dict(row))
+
+
+async def test_another_business_cannot_confirm_a_case_by_its_number(
+    app_conn: asyncpg.Connection, recorder: Recorder, keyring: Keyring
+) -> None:
+    """Case numbers repeat across businesses (D-091): only RLS keeps ``caso 1`` apart."""
+    await team(app_conn, recorder)
+    outbox = Outbox()
+    ref = await _scam_case_id(app_conn, keyring, outbox)
+    other = "+573000000801"
+    await handle(app_conn, recorder.ports, message(other, "hola Panaderia La Espiga CO"))
+
+    confirm = incoming("texto", other, body=f"estafa confirmada {ref}", message_id="wamid.x")
+    await whatsapp.process(app_conn, channel(keyring, outbox), confirm)
+
+    assert outbox.to(other)[-1] == t("es", "scam_confirmed.unknown")
+    assert not await app_conn.fetchval("SELECT count(*) FROM known_campaigns")
 
 
 async def test_confirming_twice_counts_it_twice(
@@ -696,12 +732,12 @@ async def test_an_unknown_id_or_a_case_without_fingerprint_feeds_nothing(
     outbox = Outbox()
     short = incoming("texto", EMPLOYEE, body="me llamaron raro hoy")
     await whatsapp.process(app_conn, channel(keyring, outbox), short)
-    found = re.search(r"id: ([0-9a-f-]{36})", outbox.to(EMPLOYEE)[-1])
+    found = re.search(r"caso (\d+)$", outbox.to(EMPLOYEE)[-1])
     assert found
 
     tries = [
         (found.group(1), "scam_confirmed.nothing"),
-        ("00000000-0000-4000-8000-0000000000ff", "scam_confirmed.unknown"),
+        ("999", "scam_confirmed.unknown"),
     ]
     for n, (case_id, key) in enumerate(tries):
         confirm = incoming("texto", OWNER, body=f"estafa confirmada {case_id}", message_id=f"c{n}")

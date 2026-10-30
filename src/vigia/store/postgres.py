@@ -313,8 +313,8 @@ async def add_supplier(conn: asyncpg.Connection, vault: Vault, supplier: Supplie
     )
 
 
-async def save_case(conn: asyncpg.Connection, vault: Vault, case: Case) -> bool:
-    """Store a case once per channel message id.
+async def save_case(conn: asyncpg.Connection, vault: Vault, case: Case) -> int | None:
+    """Store a case once per channel message id, with the next number of its business.
 
     Args:
         conn: Connection scoped to the business.
@@ -322,13 +322,18 @@ async def save_case(conn: asyncpg.Connection, vault: Vault, case: Case) -> bool:
         case: Normalized case.
 
     Returns:
-        ``False`` if a case with the same ``message_id`` already exists (dedupe).
+        The case number the member sees (D-091), or ``None`` if a case with the same
+        ``message_id`` already exists (dedupe).
     """
     message_hash = vault.hash(case.message_id) if case.message_id else None
-    status = await conn.execute(
-        "INSERT INTO cases (id, business_id, kind, origin, message_id_hash, text_enc)"
-        " VALUES ($1, $2, $3, $4, $5, $6)"
-        " ON CONFLICT (business_id, message_id_hash) DO NOTHING",
+    # ponytail: a duplicate still bumps the counter (a gap in the numbers, harmless); the
+    # business row stays locked until commit, so one business numbers its cases one by one.
+    ref: int | None = await conn.fetchval(
+        "WITH n AS (UPDATE businesses SET case_seq = case_seq + 1 WHERE id = $2"
+        " RETURNING case_seq)"
+        " INSERT INTO cases (id, business_id, kind, origin, message_id_hash, text_enc, ref)"
+        " SELECT $1, $2, $3, $4, $5, $6, n.case_seq FROM n"
+        " ON CONFLICT (business_id, message_id_hash) DO NOTHING RETURNING ref",
         case.id,
         vault.business_id,
         case.kind,
@@ -336,7 +341,7 @@ async def save_case(conn: asyncpg.Connection, vault: Vault, case: Case) -> bool:
         message_hash,
         vault.seal("cases.text", case.text) if case.text else None,
     )
-    return bool(status == "INSERT 0 1")
+    return ref
 
 
 async def recent_verdicts(conn: asyncpg.Connection, limit: int = 5) -> list[tuple[datetime, Label]]:
@@ -561,22 +566,22 @@ async def last_verdict_at(
 
 
 async def case_text(
-    conn: asyncpg.Connection, vault: Vault, case_id: UUID
+    conn: asyncpg.Connection, vault: Vault, ref: int
 ) -> tuple[str, str | None] | None:
     """Text of a case of the business in context and the brand its verdict named.
 
     Args:
         conn: Connection scoped to the business.
         vault: Open vault of the business.
-        case_id: Case id, as the reply quoted it.
+        ref: Case number, as the reply quoted it (D-091).
 
     Returns:
         ``(text, brand)``; ``None`` when the case is not of this business.
     """
     row = await conn.fetchrow(
         "SELECT c.text_enc, v.brand FROM cases c LEFT JOIN verdicts v ON v.case_id = c.id"
-        " WHERE c.id = $1 ORDER BY v.created_at DESC LIMIT 1",
-        case_id,
+        " WHERE c.ref = $1 ORDER BY v.created_at DESC LIMIT 1",
+        ref,
     )
     if row is None:
         return None

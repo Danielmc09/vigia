@@ -313,7 +313,7 @@ def test_unknown_supplier_or_empty_book_is_silent() -> None:
 
 
 def test_phone_number_is_not_an_account() -> None:
-    text = "Aceros del Norte: cualquier duda me llama al 300 123 4567"
+    text = "Aceros del Norte: cualquier duda me llama al 300 000 4567"
     assert address_book_signals(_case(text), [ACEROS], CO) == []
 
 

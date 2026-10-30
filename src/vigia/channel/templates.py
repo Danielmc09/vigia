@@ -9,7 +9,13 @@ from vigia.i18n import t
 _SCAM = cast(Label, get_args(Label)[0])
 
 
-def whatsapp_message(verdict: Verdict, lang: str, escalation: Escalation | None = None) -> str:
+def whatsapp_message(
+    verdict: Verdict,
+    lang: str,
+    escalation: Escalation | None = None,
+    *,
+    case_ref: int | None = None,
+) -> str:
     """The reply to the member who forwarded the case.
 
     Args:
@@ -17,6 +23,8 @@ def whatsapp_message(verdict: Verdict, lang: str, escalation: Escalation | None 
         lang: Language of the business.
         escalation: Pending escalation for the owner, if the policy raised one; the
             ``confirmar`` line names its own target, and is absent without one.
+        case_ref: Short case number (D-091); the UUID never reaches the member, so a case
+            that was never stored gets no id line.
 
     Returns:
         The message text.
@@ -28,7 +36,8 @@ def whatsapp_message(verdict: Verdict, lang: str, escalation: Escalation | None 
         )
     if escalation:
         lines.append(t(lang, "message.confirm_line", id=escalation.id, target=escalation.target))
-    lines.append(t(lang, "message.id_line", case_id=verdict.case_id))
+    if case_ref is not None:
+        lines.append(t(lang, "message.id_line", ref=str(case_ref)))
     return "\n".join(lines)
 
 

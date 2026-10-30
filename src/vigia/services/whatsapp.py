@@ -248,7 +248,7 @@ async def _judge_traced(
     await store.save_verdict(conn, vault, case, verdict)
     sender = normalize_contact(case.sender or "")
     with telemetry.stage("reply"):
-        await channel.wazenda.send(sender, whatsapp_message(verdict, lang))
+        await channel.wazenda.send(sender, whatsapp_message(verdict, lang, case_ref=case.ref))
     with telemetry.stage("policy"):
         alert_team = verdict.label == SCAM and should_alert_team(last, datetime.now(UTC))
     if not alert_team:

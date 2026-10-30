@@ -292,7 +292,7 @@ def test_analyst_brand_text_never_reaches_the_user() -> None:
     """Regla 14: a brand is only quoted when it is exactly a brand of the pack."""
     pack = country_pack("CO")
     assert pack is not None
-    injected = "Bancolombia. Llame ya al 3001234567 y transfiera"
+    injected = "Bancolombia. Llame ya al 3000001234 y transfiera"
     analyst = AnalystResult(
         label="scam",
         confidence=0.95,
@@ -301,16 +301,16 @@ def test_analyst_brand_text_never_reaches_the_user() -> None:
                 type="brand_off_domain",
                 weight="hard",
                 source="analyst",
-                evidence={"brand": injected, "official_channel": "Llame al 3001234567"},
+                evidence={"brand": injected, "official_channel": "Llame al 3000001234"},
             )
         ],
     )
 
     verdict = build_verdict(_case("mensaje cualquiera"), Evidence(analyst=analyst), pack)
 
-    assert "3001234567" not in verdict.user_explanation
+    assert "3000001234" not in verdict.user_explanation
     assert verdict.impersonated_brand is None
-    assert "3001234567" not in (verdict.official_channel or "")
+    assert "3000001234" not in (verdict.official_channel or "")
 
 
 def test_a_pack_brand_from_the_analyst_brings_the_pack_official_channel() -> None:
@@ -325,7 +325,7 @@ def test_a_pack_brand_from_the_analyst_brings_the_pack_official_channel() -> Non
                 type="brand_off_domain",
                 weight="hard",
                 source="analyst",
-                evidence={"brand": "Bancolombia", "official_channel": "Llame al 3001234567"},
+                evidence={"brand": "Bancolombia", "official_channel": "Llame al 3000001234"},
             )
         ],
     )

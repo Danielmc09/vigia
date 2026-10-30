@@ -1,20 +1,23 @@
 """Enrollment commands recognized in any supported language, with no model (specs/01)."""
 
 import re
-from collections.abc import Mapping
+from collections.abc import Iterator, Mapping
 from dataclasses import dataclass, field
 
-from vigia.domain.text import fold
+from vigia.domain.text import clean_text, fold
+from vigia.domain.urls import extract_urls
 from vigia.i18n import LANGUAGES, t
 
 # What must follow each keyword for the message to be a command and not a case to analyze.
 # The only grammar of each command: handlers read the named groups, never re-parse.
 _EMAIL = r"\S+@\S+\.\S+"
+# With or without "+", spaces, dashes, dots or "(321)"; the handler checks the digit count.
+_PHONE = r"\+?\(?\d[\d\s().-]{6,18}\d"
 _GRAMMAR = {
     # Without name and country it is still ``enroll``: the handler explains how to enroll.
     "enroll": re.compile(r"(?P<name>.+?)\s+(?P<country>[A-Za-z]{2})|.*", re.S),
     "team": re.compile(
-        rf"(?P<phone>\+\d[\d\s-]{{6,18}}\d)\s+(?P<name>[^\d\s+@][^@]*?)(?:\s+(?P<email>{_EMAIL}))?"
+        rf"(?P<phone>{_PHONE})\s+(?P<name>[^\d\s+@][^@]*?)(?:\s+(?P<email>{_EMAIL}))?"
     ),
     "my_email": re.compile(rf"(?P<email>{_EMAIL})"),
     "code": re.compile(r"(?P<code>\d{6})"),
@@ -22,13 +25,17 @@ _GRAMMAR = {
     "history": re.compile(r""),
     "help": re.compile(r""),
     # confirmar/cancelar/transferir (specs/05, specs/12 B7, D-047). The id is the 8 hex
-    # digits the policy quotes, so a forwarded "confirmar compra" is still a case.
+    # digits the policy quotes; a short "confirmar compra" gets the usage reply (D-092).
     "confirm": re.compile(r"(?P<id>[0-9A-Fa-f]{8})"),
     "cancel": re.compile(r"(?P<id>[0-9A-Fa-f]{8})"),
-    "transfer": re.compile(r"(?P<phone>\+\d[\d\s-]{6,18}\d)"),
-    # ``estafa confirmada <case id>``: the full id the reply quotes (specs/10 §4).
-    "scam_confirmed": re.compile(r"(?P<id>[0-9A-Fa-f-]{36})"),
+    "transfer": re.compile(rf"(?P<phone>{_PHONE})"),
+    # ``estafa confirmada <case number>``: the short number the reply quotes (D-091).
+    "scam_confirmed": re.compile(r"(?P<ref>\d{1,9})"),
 }
+# Keywords that take arguments: a short message opening with one is a command typed wrong.
+_WITH_ARGS = [name for name, grammar in _GRAMMAR.items() if grammar.pattern and name != "enroll"]
+USAGE_MAX_WORDS = 6
+"""A message this short that opens with a keyword is a command attempt, not a forward (D-092)."""
 
 
 @dataclass(frozen=True)
@@ -62,16 +69,41 @@ def parse_command(text: str | None) -> Command | None:
     Returns:
         The command, or ``None``.
     """
-    if not text or not text.strip():
+    for name, lang, args in _keywords(text):
+        if match := _GRAMMAR[name].fullmatch(args):
+            return Command(name, args, lang, match.groupdict(default=""))
+    return None
+
+
+def misused_command(text: str | None) -> str | None:
+    """The command a short message opening with its keyword tried and got wrong.
+
+    Call it only after :func:`parse_command` returned ``None``. A long message or one with
+    a link is a forward that happens to open with the word (``Equipo de seguridad...``),
+    and still goes to analysis.
+
+    Args:
+        text: Message body.
+
+    Returns:
+        The command name, whose ``usage.<name>`` reply shows the right format, or ``None``.
+    """
+    if not text or len(text.split()) > USAGE_MAX_WORDS or extract_urls(text):
         return None
+    return next((name for name, _, _ in _keywords(text) if name in _WITH_ARGS), None)
+
+
+def _keywords(text: str | None) -> Iterator[tuple[str, str, str]]:
+    """Every ``(command, language, args)`` whose keyword opens ``text``.
+
+    The text is cleaned first: WhatsApp wraps a copied number in bidi marks and may use
+    non-breaking spaces, which would otherwise keep the grammar from matching.
+    """
+    text = clean_text(text or "").strip()
     for lang in LANGUAGES:
-        for name, grammar in _GRAMMAR.items():
+        for name in _GRAMMAR:
             keyword = t(lang, f"command.{name}")
             words = keyword.count(" ") + 1
-            parts = text.strip().split(maxsplit=words)
-            if fold(" ".join(parts[:words])).lower() != keyword:
-                continue
-            args = parts[words] if len(parts) > words else ""
-            if match := grammar.fullmatch(args):
-                return Command(name, args, lang, match.groupdict(default=""))
-    return None
+            parts = text.split(maxsplit=words)
+            if parts and fold(" ".join(parts[:words])).lower() == keyword:
+                yield name, lang, parts[words] if len(parts) > words else ""

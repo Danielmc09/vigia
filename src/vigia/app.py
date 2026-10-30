@@ -29,7 +29,7 @@ from vigia.domain.member import Business
 from vigia.domain.verdict import Verdict, VerdictRow
 from vigia.model import jev, spark
 from vigia.services import whatsapp
-from vigia.services.backend import make_chat
+from vigia.services.backend import has_chat, make_chat
 from vigia.services.ingest import normalize
 from vigia.services.judge import make_judge
 from vigia.services.process_case import Analyst, judge_case, spark_analyst
@@ -168,7 +168,8 @@ async def _health(api: FastAPI, config: Settings) -> JSONResponse:
     """``GET /salud`` (specs/11 §2): Postgres, and Meta and Jev when this process uses them.
 
     Meta is ``GET /models`` with the key (must be 2xx); Jev is reachability only (any
-    answer below 500), so the check spends no Jev call.
+    answer below 500), so the check spends no Jev call. ``analyst`` says whether
+    :func:`make_chat` builds a chat client (``ok``) or every case runs degraded (``none``).
 
     Args:
         api: The app; ``state.health_http`` is the HTTP client (tests inject a mock).
@@ -193,6 +194,8 @@ async def _health(api: FastAPI, config: Settings) -> JSONResponse:
         "postgres": mark(await _postgres_ok(config)),
         "meta": "skip",
         "jev": "skip",
+        # ``none`` keeps the 200 but tells degraded mode apart (inc-salud-sin-analista)
+        "analyst": "ok" if has_chat(config) else "none",
     }
     if meta_key:
         auth = {"Authorization": f"Bearer {meta_key}"}

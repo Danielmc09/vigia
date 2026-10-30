@@ -212,6 +212,19 @@ async def test_command_is_intercepted_and_creates_no_case(
     assert await app_conn.fetchval("SELECT count(*) FROM cases") == 0
 
 
+async def test_inc_id_caso_uuid_each_business_numbers_its_own_cases(
+    app_conn: asyncpg.Connection, recorder: Recorder
+) -> None:
+    """Incident inc-id-caso-uuid: the member sees a short number, one sequence per business."""
+    await _owner(app_conn, recorder)
+    for text in ("primer mensaje raro", "segundo mensaje raro"):
+        await handle(app_conn, recorder.ports, message(OWNER, text))
+    await handle(app_conn, recorder.ports, message(STRANGER, "hola Tienda Dos CO"))
+    await handle(app_conn, recorder.ports, message(STRANGER, "tercer mensaje raro"))
+
+    assert [c.ref for c in recorder.analyzed] == [1, 2, 1]
+
+
 async def test_hello_with_text_from_member_is_analyzed_as_a_case(
     app_conn: asyncpg.Connection, recorder: Recorder
 ) -> None:

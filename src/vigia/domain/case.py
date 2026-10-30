@@ -76,6 +76,8 @@ class Case(BaseModel):
         context: Extra context from the channel or the eval.
         received_at: When the channel received it.
         model_refused: The model's content filter refused to read its attachment (T-09b).
+        ref: Short number of the case in its business, the one the member sees (D-091);
+            ``None`` until stored, and for eval or local cases that are never stored.
     """
 
     id: UUID
@@ -93,3 +95,4 @@ class Case(BaseModel):
     context: dict[str, Any] = Field(default_factory=dict)
     received_at: datetime
     model_refused: bool = False
+    ref: int | None = None

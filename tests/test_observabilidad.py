@@ -100,7 +100,7 @@ def test_stdlib_exceptions_are_logged_without_pii() -> None:
 
 @pytest.mark.parametrize(
     ("raw", "masked"),
-    [("3001234567", "***4567"), ("(415) 555-0100", "***0100"), ("+57 300 000 0799", "***0799")],
+    [("3000001234", "***1234"), ("(415) 555-0100", "***0100"), ("+57 300 000 0799", "***0799")],
 )
 def test_scrub_masks_local_and_us_phone_formats(raw: str, masked: str) -> None:
     assert telemetry.scrub(f"call {raw} now") == f"call {masked} now"
@@ -234,7 +234,12 @@ def test_health_is_503_when_postgres_is_down() -> None:
     response = TestClient(create_app(Settings(database_url=DOWN))).get("/salud")
 
     assert response.status_code == 503
-    assert response.json()["checks"] == {"postgres": "fail", "meta": "skip", "jev": "skip"}
+    assert response.json()["checks"] == {
+        "postgres": "fail",
+        "meta": "skip",
+        "jev": "skip",
+        "analyst": "none",
+    }
 
 
 def test_health_checks_meta_only_with_a_key_and_fails_on_its_errors() -> None:
@@ -248,7 +253,7 @@ def test_health_checks_meta_only_with_a_key_and_fails_on_its_errors() -> None:
 
     assert ok.status_code == 200 and ok.json() == {
         "status": "ok",
-        "checks": {"postgres": "ok", "meta": "ok", "jev": "skip"},
+        "checks": {"postgres": "ok", "meta": "ok", "jev": "skip", "analyst": "ok"},
     }
     assert down.status_code == 503 and down.json()["checks"]["meta"] == "fail"
 
@@ -260,6 +265,36 @@ def test_health_checks_jev_only_when_the_backend_is_real() -> None:
     response = TestClient(api).get("/salud")
 
     assert response.status_code == 503 and response.json()["checks"]["jev"] == "fail"
+
+
+def test_inc_salud_sin_analista_reports_whether_the_analyst_runs() -> None:
+    """Incident inc-salud-sin-analista: production ran degraded and /salud said ok."""
+    degraded = Settings(MODEL_API_KEY="key-not-real", MODEL_BACKEND="spark_open")
+    api = create_app(degraded)
+    api.state.health_http = _meta(200)
+    none = TestClient(api).get("/salud")
+    api = create_app(Settings(MODEL_API_KEY="key-not-real"))
+    api.state.health_http = _meta(200)
+    ok = TestClient(api).get("/salud")
+
+    assert none.status_code == 200 and none.json()["checks"]["analyst"] == "none"
+    assert ok.json()["checks"]["analyst"] == "ok"
+
+
+def test_salud_checks_the_analyst_without_building_a_client(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Each healthcheck built a SparkClient and leaked its httpx.Client (revisor T-10b)."""
+    api = create_app(Settings(MODEL_API_KEY="key-not-real"))
+    api.state.health_http = _meta(200)
+
+    def no_client(*_: object, **__: object) -> None:
+        raise AssertionError("/salud built a model client")
+
+    monkeypatch.setattr(SparkClient, "__init__", no_client)
+    response = TestClient(api).get("/salud")
+
+    assert response.json()["checks"]["analyst"] == "ok"
 
 
 def test_inc_salud_reuses_its_answer_instead_of_calling_meta_each_time() -> None:
@@ -275,7 +310,7 @@ def test_inc_salud_reuses_its_answer_instead_of_calling_meta_each_time() -> None
     assert first.json() == second.json() and len(calls) == 1
 
 
-@pytest.mark.parametrize("raw", ["3001234567", "+57 300 000 0001", "+0573000000001"])
+@pytest.mark.parametrize("raw", ["3000001234", "+57 300 000 0001", "+0573000000001"])
 def test_inc_operator_phone_must_be_e164(raw: str) -> None:
     with pytest.raises(ValueError, match="E.164"):
         Settings(OPERADOR_TELEFONO=raw)
