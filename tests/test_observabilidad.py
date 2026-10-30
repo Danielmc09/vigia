@@ -119,6 +119,19 @@ def test_scrub_masks_the_panel_token_in_an_access_log_line() -> None:
     assert telemetry.scrub(line) == '127.0.0.1:5 - "GET /panel?token=***&x=1 HTTP/1.1" 303'
 
 
+def test_the_uvicorn_access_log_masks_the_panel_token() -> None:
+    stream = io.StringIO()
+    telemetry.configure_logging(stream)
+    try:
+        logging.getLogger("uvicorn.access").info(
+            '%s - "%s %s"', "1.2.3.4", "GET", "/panel?token=s3cret"
+        )
+    finally:
+        telemetry.reset_logging()
+
+    assert "s3cret" not in stream.getvalue() and "token=***" in stream.getvalue()
+
+
 # --- /metrics (specs/11 §2) --------------------------------------------------------------
 
 
@@ -136,6 +149,11 @@ def test_metrics_need_the_right_token() -> None:
     assert client.get("/metrics").status_code == 401
     wrong = {"Authorization": "Bearer " + "x" * 32}
     assert client.get("/metrics", headers=wrong).status_code == 401
+
+
+def test_metrics_refuse_the_token_in_the_url() -> None:
+    """D-088 trades a ?token= link for a cookie on /panel only; scrapes keep Bearer."""
+    assert _metrics_client().get(f"/metrics?token={TOKEN}").status_code == 401
 
 
 def test_metrics_token_must_be_long() -> None:
@@ -392,7 +410,12 @@ def test_inc_centinela_alias_runs_without_operator() -> None:
     env = {**os.environ, "OPERADOR_TELEFONO": ""}
     run = subprocess.run(  # noqa: S603
         [sys.executable, str(repo / "herramientas" / "centinela.py")],
-        capture_output=True, text=True, env=env, cwd=repo, timeout=60, check=False,
+        capture_output=True,
+        text=True,
+        env=env,
+        cwd=repo,
+        timeout=60,
+        check=False,
     )
 
     assert run.returncode == 3, run.stderr[-500:]

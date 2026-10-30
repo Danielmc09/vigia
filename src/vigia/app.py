@@ -79,11 +79,11 @@ def _db_panel(config: Settings) -> PanelSource:
 
 
 def _presented_token(request: Request) -> str:
-    """The operator token from ``Authorization: Bearer``, a ``?token=`` link or the cookie."""
+    """The operator token from ``Authorization: Bearer`` or the panel cookie, else empty."""
     scheme, _, value = request.headers.get("authorization", "").partition(" ")
     if scheme.lower() == "bearer" and value:
         return value
-    return request.query_params.get("token") or request.cookies.get(PANEL_COOKIE, "")
+    return request.cookies.get(PANEL_COOKIE, "")
 
 
 def _latest_metrics(config: Settings) -> dict[str, Any] | None:
@@ -119,12 +119,16 @@ async def _panel_page(request: Request, config: Settings, source: PanelSource) -
         The page; 404 when no token is configured, 401 without the right one; a
         ``?token=`` link redirects to ``/panel`` with the token as a cookie (D-088).
     """
-    _require_token(request, config.panel_token)
-    if token := request.query_params.get("token"):
+    if (link := request.query_params.get("token")) is not None:
         # A browser cannot send Bearer: trade the link for a cookie, off the URL (D-088).
+        if config.panel_token is None:
+            raise HTTPException(status_code=404)
+        if not hmac.compare_digest(link.encode(), config.panel_token.get_secret_value().encode()):
+            raise HTTPException(status_code=401)
         response = RedirectResponse("/panel", status_code=303, headers=_PANEL_HEADERS)
-        response.set_cookie(PANEL_COOKIE, token, httponly=True, samesite="lax")
+        response.set_cookie(PANEL_COOKIE, link, httponly=True, samesite="lax")
         return response
+    _require_token(request, config.panel_token)
     rows, today = await source()
     page = render_panel(rows, today, _latest_metrics(config))
     return HTMLResponse(page, headers=_PANEL_HEADERS)
