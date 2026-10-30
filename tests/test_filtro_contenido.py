@@ -268,9 +268,7 @@ def test_adv_slug_busqueda_keeps_the_chat_slug() -> None:
             error = {"code": "model_not_found", "type": "invalid_request_error", "message": "no"}
             return httpx.Response(404, json={"error": error})
         models.append(json.loads(request.content)["model"])
-        return httpx.Response(
-            200, json={"choices": [{"message": {"content": "{}"}}], "usage": {}}
-        )
+        return httpx.Response(200, json={"choices": [{"message": {"content": "{}"}}], "usage": {}})
 
     client = _client(spark.SPARK_OPEN, handler)
 

@@ -9,11 +9,13 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 PANEL_TOKEN_MIN = 32
 # Published in .env.example for `make demo` (D-087): never valid in production.
-EXAMPLE_SECRETS = frozenset({
-    "pTcGRKzARxmsAyUaYxMs25qgb/Xati5zTXRNIIj9J/k=",
-    "eeaGR5wgoLPfDH61bGw9BlvANQNsf8r6dXzSozarGT0=",
-    "demo-panel-token-no-usar-en-produccion",
-})
+EXAMPLE_SECRETS = frozenset(
+    {
+        "pTcGRKzARxmsAyUaYxMs25qgb/Xati5zTXRNIIj9J/k=",
+        "eeaGR5wgoLPfDH61bGw9BlvANQNsf8r6dXzSozarGT0=",
+        "demo-panel-token-no-usar-en-produccion",
+    }
+)
 WEBHOOK_CONCURRENCY = 8
 """Webhook messages processed at once; the rest wait their turn (each holds a DB connection)."""
 

@@ -216,8 +216,13 @@ def _real_looking_numbers(source: str) -> list[str]:
 
 def test_rule10_detector_flags_every_phone_shape() -> None:
     """The detector catches a non-synthetic mobile in every shape WhatsApp produces."""
-    for shape in ("+573999999999", "573999999999", "‪+57 399 999 9999‬", "+57 (399) 999-9999",
-                  "3999999999"):
+    for shape in (
+        "+573999999999",
+        "573999999999",
+        "‪+57 399 999 9999‬",
+        "+57 (399) 999-9999",
+        "3999999999",
+    ):
         assert _real_looking_numbers(shape), shape
     assert _real_looking_numbers("+57 300 000 0703 y 3000000703") == []
 

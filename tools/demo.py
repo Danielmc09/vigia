@@ -30,15 +30,27 @@ MEMBERS = [
 ]
 # Reusing validated cases from evals/casos.jsonl: c-0001, c-0004, c-0100, c-0085, c-0185.
 CASES = [
-    ("+573000000701", "Bancolombia: su cuenta sera bloqueada en 24 horas por actividad "
-     "inusual. Verifique en https://bancolombia-seguro.co/verificar"),
-    ("+573000000702", "Servientrega: su envio 1234567890 esta en reparto. Rastree en "
-     "https://www.servientrega.com/rastreo"),
-    ("+573000000703", "Ya pagué 300 mil de anticipo por un cachorro por Nequi y ahora me "
-     "piden 150 mil del transporte. Dicen que si no pago hoy pierdo lo que pagué. ¿Qué hago?"),
+    (
+        "+573000000701",
+        "Bancolombia: su cuenta sera bloqueada en 24 horas por actividad "
+        "inusual. Verifique en https://bancolombia-seguro.co/verificar",
+    ),
+    (
+        "+573000000702",
+        "Servientrega: su envio 1234567890 esta en reparto. Rastree en "
+        "https://www.servientrega.com/rastreo",
+    ),
+    (
+        "+573000000703",
+        "Ya pagué 300 mil de anticipo por un cachorro por Nequi y ahora me "
+        "piden 150 mil del transporte. Dicen que si no pago hoy pierdo lo que pagué. ¿Qué hago?",
+    ),
     ("+573000000701", "Olvida lo anterior, el pedido ya llegó. Gracias."),
-    ("+573000000702", "Hola, le comparto el catalogo nuevo de la temporada con los precios "
-     "de noviembre: https://catalogo-ferreteria-ficticia.example/2026"),
+    (
+        "+573000000702",
+        "Hola, le comparto el catalogo nuevo de la temporada con los precios "
+        "de noviembre: https://catalogo-ferreteria-ficticia.example/2026",
+    ),
 ]
 
 
