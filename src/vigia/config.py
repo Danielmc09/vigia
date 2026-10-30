@@ -8,6 +8,12 @@ from pydantic import Field, SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 PANEL_TOKEN_MIN = 32
+# Published in .env.example for `make demo` (D-087): never valid in production.
+EXAMPLE_SECRETS = frozenset({
+    "pTcGRKzARxmsAyUaYxMs25qgb/Xati5zTXRNIIj9J/k=",
+    "eeaGR5wgoLPfDH61bGw9BlvANQNsf8r6dXzSozarGT0=",
+    "demo-panel-token-no-usar-en-produccion",
+})
 WEBHOOK_CONCURRENCY = 8
 """Webhook messages processed at once; the rest wait their turn (each holds a DB connection)."""
 
@@ -45,6 +51,7 @@ class Settings(BaseSettings):
         metrics_token: Bearer token for ``/metrics`` (specs/11); unset means no endpoint.
         sentry_dsn: Sentry DSN; unset leaves error reporting off (D-084).
         operator_phone: WhatsApp number the sentinel alerts (specs/11 section 4).
+        api_port: Host port compose publishes the API on; `make demo` opens the panel there.
     """
 
     model_config = SettingsConfigDict(populate_by_name=True)
@@ -86,6 +93,7 @@ class Settings(BaseSettings):
     metrics_token: SecretStr | None = Field(None, validation_alias="METRICS_TOKEN")
     sentry_dsn: SecretStr | None = Field(None, validation_alias="SENTRY_DSN")
     operator_phone: str | None = Field(None, validation_alias="OPERADOR_TELEFONO")
+    api_port: int = Field(8000, validation_alias="VIGIA_API_PORT")
 
     @field_validator("operator_phone", mode="before")
     @classmethod
@@ -135,6 +143,16 @@ class Settings(BaseSettings):
             raise ValueError(
                 "JEV_BACKEND=real is a development-only tool; it needs VIGIA_MODO=dev declared"
             )
+        return self
+
+    @model_validator(mode="after")
+    def _no_example_secrets_in_prod(self) -> Self:
+        """Refuse the public demo keys in prod: PII under them would be readable (rule 19)."""
+        secrets = (self.kek, self.pii_hmac_key, self.panel_token)
+        if self.mode == "prod" and any(
+            s is not None and s.get_secret_value() in EXAMPLE_SECRETS for s in secrets
+        ):
+            raise ValueError("prod refuses the .env.example demo keys; generate real ones")
         return self
 
     @model_validator(mode="after")

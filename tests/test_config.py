@@ -55,3 +55,18 @@ def test_empty_panel_token_is_still_rejected(monkeypatch: pytest.MonkeyPatch) ->
 
     with pytest.raises(ValidationError, match="VIGIA_PANEL_TOKEN"):
         Settings()
+
+
+def test_prod_rejects_the_example_keys(monkeypatch: pytest.MonkeyPatch) -> None:
+    """T-22c incident (juez): .env.example keys are public; PII under them is not secret."""
+    monkeypatch.setenv("DATABASE_URL", "postgresql://app@db/vigia")
+    monkeypatch.setenv("MIGRATION_DATABASE_URL", "postgresql://owner@db/vigia")
+    example = dict(
+        line.split("=", 1)
+        for line in open(".env.example").read().splitlines()
+        if line.startswith(("VIGIA_KEK=", "PII_HMAC_KEY="))
+    )
+    monkeypatch.setenv("VIGIA_KEK", example["VIGIA_KEK"])
+
+    with pytest.raises(ValidationError, match="example"):
+        Settings(mode="prod")

@@ -23,7 +23,7 @@ from vigia.store.crypto import Keyring
 
 BUSINESS_NAME = "Ferreteria El Tornillo CO"
 MEMBERS = [
-    ("owner", Contact("+573000000701", "Angel")),
+    ("owner", Contact("+573000000701", "Rosa")),
     ("employee", Contact("+573000000702", "Luis")),
     ("employee", Contact("+573000000703", "Marta")),
 ]
@@ -60,7 +60,9 @@ def demo_channel(keyring: Keyring, config: Settings | None = None) -> whatsapp.C
 
 
 async def seed_business(conn: asyncpg.Connection, keyring: Keyring) -> None:
-    """Create the sample business and its 3 members."""
+    """Create the sample business and its 3 members, unless a previous run already did."""
+    if await store.find_member(conn, keyring.hash(MEMBERS[0][1].phone)):
+        return
     business = Business(id=uuid4(), country="CO", language="es")
     async with conn.transaction():
         vault = await store.create_business(conn, keyring, business, BUSINESS_NAME)
@@ -83,6 +85,11 @@ async def send_samples(conn: asyncpg.Connection, channel: whatsapp.Channel) -> N
             await whatsapp.process(conn, channel, msg)
 
 
+def panel_url(token: str, config: Settings | None = None) -> str:
+    """The panel on the host port compose publishes (``VIGIA_API_PORT``)."""
+    return f"http://localhost:{(config or Settings()).api_port}/panel?token={token}"
+
+
 async def _main() -> None:
     config = Settings()
     if config.model_api_key is None:
@@ -97,7 +104,7 @@ async def _main() -> None:
     finally:
         await conn.close()
     token = config.panel_token.get_secret_value() if config.panel_token else ""
-    url = f"http://localhost:8000/panel?token={token}"
+    url = panel_url(token, config)
     print(f"Listo. Panel: {url}")
     webbrowser.open(url)
 

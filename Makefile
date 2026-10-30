@@ -12,4 +12,4 @@ db: ; docker compose up -d --wait postgres
 run: ; docker compose up --build
 evals: ; uv run --env-file .env python tools/measure.py --max-usd 2.0
 evals-rapido: ; uv run --env-file .env python tools/measure.py --filtro rapido=True --max-usd 1.0
-demo: ; docker compose up -d --build api && uv run --env-file .env python tools/demo.py
+demo: ; docker compose up -d --wait --build api && uv run --env-file .env python tools/demo.py

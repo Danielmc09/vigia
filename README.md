@@ -5,14 +5,15 @@
 ## Run the demo
 
 ```
-git clone <este repo> && cd vigia
-cp .env.example .env   # solo MODEL_API_KEY es opcional; sin ella corre en modo reglas
+git clone <this repo> && cd vigia
+cp .env.example .env   # MODEL_API_KEY is optional; without it the demo runs rules only
 make demo
 ```
 
-Levanta Postgres y la API con Docker Compose, siembra un negocio de ejemplo con 3
-miembros, manda 5 casos de muestra por el canal local, y abre el panel con los
-veredictos. Sin `MODEL_API_KEY` lo dice y sigue en modo reglas (sin analista).
+Starts Postgres and the API with Docker Compose, seeds a sample business with 3
+members, sends 5 sample cases through the local channel, and opens the panel with the
+verdicts. Without `MODEL_API_KEY` it says so and runs rules only (no analyst). The
+`.env.example` keys are public demo keys: `VIGIA_MODO=prod` refuses them.
 
 See `DECLARACION.md` for what was built during the event. Full README written in T-22b.
 

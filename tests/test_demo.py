@@ -46,3 +46,22 @@ async def test_a_sender_not_in_cases_stays_unenrolled(
 
     for sender in senders:
         assert await store.find_member(app_conn, keyring.hash(sender)) is not None
+
+
+@pytest.mark.anyio
+async def test_seed_business_twice_is_idempotent(
+    app_conn: asyncpg.Connection, keyring: Keyring
+) -> None:
+    """T-22c incident (juez): a second `make demo` hit UNIQUE members.phone_hash."""
+    await demo.seed_business(app_conn, keyring)
+
+    await demo.seed_business(app_conn, keyring)
+
+    owner = await store.find_member(app_conn, keyring.hash(demo.MEMBERS[0][1].phone))
+    assert owner is not None
+
+
+def test_panel_url_uses_the_published_port(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("VIGIA_API_PORT", "8010")
+
+    assert demo.panel_url("t").startswith("http://localhost:8010/panel?")
