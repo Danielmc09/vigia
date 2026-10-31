@@ -31,6 +31,8 @@ _CONFUSABLES = str.maketrans(
     | {"с": "c", "у": "y", "х": "x", "і": "i", "ј": "j", "ѕ": "s"}
 )
 _TLS_PORTS = (None, 80, 443)
+_SHORT_LABEL_MAX = 3  # D-100
+_SHORT_PATH = re.compile(r"/[A-Za-z0-9]{4,12}/?")
 
 
 def registrable_domain(host: str) -> str:
@@ -153,20 +155,48 @@ def _host_signals(parts: SplitResult, domain: str, pack: CountryPack) -> list[Si
     return [Signal(type=t, weight=w, source="urls", evidence=e) for t, w, e in found]
 
 
+def _looks_short(parts: SplitResult, domain: str) -> bool:
+    """An unknown shortener by shape (D-100): ``ma.sv/QzZ72Mt``."""
+    return (
+        len(domain_name(domain)) <= _SHORT_LABEL_MAX
+        and not _is_ip(domain)
+        and not parts.query
+        and _SHORT_PATH.fullmatch(parts.path) is not None
+    )
+
+
+def _follow(url: str, resolver: Resolver | None) -> Unrolled | None:
+    """Where a link lands; ``None`` without a resolver or a redirect. Raises on network failure."""
+    landed = resolver(url) if resolver else None
+    return landed if landed and landed.hops else None
+
+
+def _destination(url: str, landed: Unrolled, pack: CountryPack, origin: str) -> list[Signal]:
+    """Signals of where a link landed, with the link and its chain as evidence."""
+    trail = {"via": url, "chain": landed.chain}
+    resolved = url_signals(landed.final_url, pack, None, origin)
+    return [s.model_copy(update={"evidence": s.evidence | trail}) for s in resolved]
+
+
+def _unrolled_by_shape(
+    url: str, pack: CountryPack, resolver: Resolver | None, origin: str
+) -> list[Signal] | None:
+    """Destination signals of a short-looking link that redirects; ``None`` if it does not."""
+    try:
+        landed = _follow(url, resolver)
+    except Exception:  # noqa: BLE001 - not a known shortener: no medium, fall back to the host
+        return None
+    return _destination(url, landed, pack, origin) if landed else None
+
+
 def _shortener(url: str, pack: CountryPack, resolver: Resolver | None, origin: str) -> list[Signal]:
     """A short link is judged by where it goes; if it cannot be followed, it is medium."""
     unresolved = Signal(type="unresolved_shortener", weight="medium", source="urls")
-    if resolver is None:
-        return [unresolved]
     try:
-        landed = resolver(url)
+        landed = _follow(url, resolver)
     except Exception:  # noqa: BLE001 - any network failure is a light signal (specs/04)
         return [unresolved, Signal(type="could_not_verify", weight="light", source="urls")]
-    if not landed.hops:
-        return [unresolved]
-    resolved = url_signals(landed.final_url, pack, None, origin)
-    trail = {"via": url, "chain": landed.chain}
-    return [s.model_copy(update={"evidence": s.evidence | trail}) for s in resolved]
+    return _destination(url, landed, pack, origin) if landed else [unresolved]
 
 
 def url_signals(
@@ -195,6 +225,12 @@ def url_signals(
             signals = [Signal(type="official_domain", weight="light", source="urls")]
         else:
             signals = _host_signals(parts, domain, pack)
+            # Only a clean host may be judged by its destination: the attacker owns a dirty one.
+            clean = all(s.weight == "light" for s in signals)
+            if clean and _looks_short(parts, domain):
+                # `or signals`: an empty destination (unknown domain, no features) falls back
+                # to the host signals too, deliberately (D-100 anexo).
+                signals = _unrolled_by_shape(url, pack, resolver, origin) or signals
         if parts.scheme == "http":
             signals.append(Signal(type="http_without_tls", weight="light", source="urls"))
     except ValueError:  # malformed host or port
@@ -217,9 +253,11 @@ def from_map(links: Mapping[str, Unrolled]) -> Resolver | None:
 
 
 def needs_unrolling(url: str) -> bool:
-    """True for a link on a known shortener: the only links the case pipeline fetches (D-099)."""
+    """True for a known shortener or a short-looking link: the only ones fetched (D-099, D-100)."""
     try:
-        return registrable_domain(split_url(url).netloc) in SHORTENERS
+        parts = split_url(url)
+        domain = registrable_domain(parts.netloc)
+        return domain in SHORTENERS or _looks_short(parts, domain)
     except ValueError:
         return False
 

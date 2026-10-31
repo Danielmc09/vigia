@@ -16,7 +16,7 @@ from vigia.signals.country_pack import country_pack
 from vigia.signals.detector import detect
 from vigia.signals.patterns import pattern_signals
 from vigia.signals.qr import qr_signals
-from vigia.signals.urls import registrable_domain, url_signals
+from vigia.signals.urls import needs_unrolling, registrable_domain, url_signals
 
 CO = country_pack("CO")
 US = country_pack("US")
@@ -206,6 +206,56 @@ def test_resolver_failure_is_a_light_signal_not_an_exception() -> None:
     found = _found(url_signals("bit.ly/abc", CO, resolver=resolver))
     assert ("could_not_verify", "light") in found
     assert ("unresolved_shortener", "medium") in found
+
+
+def test_unknown_short_link_that_redirects_is_judged_by_its_destination() -> None:
+    signals = url_signals(
+        "https://ma.sv/QzZ72Mt", CO, resolver=_landing("https://www.cruzverde.com.co/p")
+    )
+    assert _found(signals) == {("official_domain", "light")}
+    assert signals[0].evidence["via"] == "https://ma.sv/QzZ72Mt"
+
+
+@pytest.mark.parametrize(
+    ("url", "landing"),
+    [
+        ("https://tcc.top/AbCd1234", "https://www.bancolombia.com/x"),
+        ("https://etb.co/AbCd1234", "https://www.etb.com/"),
+        ("https://abc.xyz/AbCd1234", "https://www.cruzverde.com.co/"),
+    ],
+)
+def test_short_attacker_domain_keeps_its_host_signals_when_it_redirects(
+    url: str, landing: str
+) -> None:
+    """D-098/D-100 (c-0218, c-0219): unrolling never drops the raw host's medium or hard."""
+    raw = {f for f in _found(url_signals(url, CO)) if f[1] != "light"}
+    assert raw
+    assert raw <= _found(url_signals(url, CO, resolver=_landing(landing)))
+
+
+@pytest.mark.parametrize("resolver", [_landing(), {}.__getitem__], ids=["no-redirect", "failed"])
+def test_unknown_short_link_that_does_not_redirect_has_no_medium(
+    resolver: Callable[[str], Unrolled],
+) -> None:
+    """D-100: a short domain that does not redirect is not a shortener."""
+    found = _found(url_signals("https://ma.sv/QzZ72Mt", CO, resolver=resolver))
+    assert all(weight == "light" for _, weight in found)
+
+
+@pytest.mark.parametrize(
+    ("url", "expected"),
+    [
+        ("https://ma.sv/QzZ72Mt", True),
+        ("bit.ly/abc", True),
+        ("https://ma.sv/a/b", False),
+        ("https://ma.sv/QzZ72Mt?x=1", False),
+        ("https://ma.sv/abc", False),
+        ("https://tienda.com/QzZ72Mt", False),
+        ("https://1.2.3.4/QzZ72Mt", False),
+    ],
+)
+def test_needs_unrolling_known_shorteners_and_short_links(url: str, expected: bool) -> None:
+    assert needs_unrolling(url) is expected
 
 
 def test_resolver_is_not_called_for_regular_links() -> None:
