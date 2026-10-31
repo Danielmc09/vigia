@@ -279,12 +279,39 @@ class Wazenda:
             ``True`` once Wazenda accepted it; ``False`` after the retries or on any error.
         """
         body = {"line_id": self.line_id, "number": number, "message": text[:MAX_MESSAGE_CHARS]}
+        return await self._post("/messages", body, number)
+
+    async def send_template(
+        self, number: str, template: str, language: str, params: list[str]
+    ) -> bool:
+        """Send an approved Meta template, the only way past the 24 h window (D-097).
+
+        Args:
+            number: Recipient phone.
+            template: Approved template name.
+            language: Template language code (``es``, ``en_US``).
+            params: Body parameters in order, code-built (rule 14).
+
+        Returns:
+            ``True`` once Wazenda accepted it; ``False`` after the retries or on any error.
+        """
+        body = {
+            "line_id": self.line_id,
+            "number": number,
+            "template_name": template,
+            "language": language,
+            "body_params": params,
+        }
+        return await self._post("/templates", body, number)
+
+    async def _post(self, path: str, body: dict[str, object], number: str) -> bool:
+        """POST to Wazenda, retrying 429 with backoff; log failures with the phone masked."""
         headers = {"X-API-Key": self.api_key}
         for attempt in range(RETRIES + 1):
             await self._under_cap()
             try:
                 response = await self.http.post(
-                    f"{self.base_url}/messages", json=body, headers=headers
+                    f"{self.base_url}{path}", json=body, headers=headers
                 )
             except httpx.HTTPError as exc:
                 log.warning(

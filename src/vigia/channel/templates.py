@@ -115,3 +115,31 @@ def team_alert_message(lang: str, reporter: str, verdict: Verdict, case: Case) -
             + t(lang, "team_alert.disarmed")
         )
     return "\n".join(lines)
+
+
+# ponytail: only es/en exist today; a new lang in i18n needs an entry here too (KeyError otherwise).
+_TEMPLATE_LANGUAGE = {"es": "es", "en": "en_US"}
+
+
+def team_alert_params(
+    lang: str, names: tuple[str, str], verdict: Verdict, case: Case
+) -> tuple[str, list[str]]:
+    """Body params of the approved template ``alerta_equipo_estafa`` (T-18b, D-097).
+
+    Meta rejects empty or multiline params, so each one is a single code-built line.
+
+    Args:
+        lang: Language of the business.
+        names: Business name and the name of who forwarded it.
+        verdict: The scam verdict; only its deterministic hook is used.
+        case: The case, read for its kind and short number.
+
+    Returns:
+        The template language code and the params: business, reporter, summary, case number.
+    """
+    hook = _hook(lang, verdict)
+    if hook:
+        summary = t(lang, "team_alert.hook", hook=hook)
+    else:
+        summary = t(lang, "team_alert.came_as", kind=t(lang, f"team_alert.kind.{case.kind}"))
+    return _TEMPLATE_LANGUAGE[lang], [*names, summary, str(case.ref)]

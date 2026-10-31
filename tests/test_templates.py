@@ -6,7 +6,7 @@ from uuid import uuid4
 
 import pytest
 
-from vigia.channel.templates import team_alert_message, whatsapp_message
+from vigia.channel.templates import team_alert_message, team_alert_params, whatsapp_message
 from vigia.domain.case import Case, EmailMeta
 from vigia.domain.escalation import Escalation
 from vigia.domain.signal import Signal
@@ -221,3 +221,28 @@ def test_t10d_a_short_plus_number_is_not_shown_as_a_phone() -> None:
     msg = team_alert_message("es", "Ana", _verdict(signals=_NO_LINK), case)
 
     assert "***" not in msg
+
+
+@pytest.mark.parametrize(("lang", "language"), [("es", "es"), ("en", "en_US")])
+def test_t18b_template_params_are_one_line_each_and_carry_the_hook(
+    lang: str, language: str
+) -> None:
+    """alerta_equipo_estafa: business, reporter, one-sentence summary, case number."""
+    case = _scam_case().model_copy(update={"ref": 14})
+    got, params = team_alert_params(lang, ("Ferreteria El Tornillo", "Ana"), _scam_verdict(), case)
+
+    assert got == language
+    assert params == [
+        "Ferreteria El Tornillo",
+        "Ana",
+        t(lang, "team_alert.hook", hook=t(lang, "signal.brand_off_domain")),
+        "14",
+    ]
+
+
+def test_t18b_without_a_hook_the_summary_says_how_it_came() -> None:
+    case = _scam_case("Mamá, cambié de número", urls=[]).model_copy(update={"ref": 2})
+    _, params = team_alert_params("es", ("Negocio", "Ana"), _verdict(signals=[]), case)
+
+    assert params[2] == t("es", "team_alert.came_as", kind=t("es", "team_alert.kind.text"))
+    assert all(p and "\n" not in p for p in params)  # Meta rejects empty or multiline params

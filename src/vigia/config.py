@@ -50,6 +50,8 @@ class Settings(BaseSettings):
         wazenda_line_id: WhatsApp line VIGIA sends from.
         wazenda_webhook_secret: HMAC key of ``X-Wazenda-Signature``; unset refuses every
             webhook (specs/01).
+        wazenda_alert_template: Approved Meta template for team alerts outside the 24 h
+            window; unset means those alerts are recorded as ``TEMPLATE_PENDING``.
         metrics_token: Bearer token for ``/metrics`` (specs/11); unset means no endpoint.
         sentry_dsn: Sentry DSN; unset leaves error reporting off (D-084).
         operator_phone: WhatsApp number the sentinel alerts (specs/11 section 4).
@@ -91,6 +93,7 @@ class Settings(BaseSettings):
     wazenda_webhook_secret: SecretStr | None = Field(
         None, validation_alias="WAZENDA_WEBHOOK_SECRET"
     )
+    wazenda_alert_template: str | None = Field(None, validation_alias="WAZENDA_ALERT_TEMPLATE")
 
     metrics_token: SecretStr | None = Field(None, validation_alias="METRICS_TOKEN")
     sentry_dsn: SecretStr | None = Field(None, validation_alias="SENTRY_DSN")

@@ -78,7 +78,7 @@ def _row(row: VerdictRow) -> str:
         f'<span class="tag l-{label}">{escape(t(LANG, f"verdict.label.{row.label}"))}</span>',
         "" if row.confidence is None else f"{row.confidence:.2f}",
         _chips(row.signal_types),
-        _chips(row.tools),
+        _chips([*row.tools, *row.alert_rejections]),
         f"{row.usd:.4f}",
         str(row.latency_ms),
     )

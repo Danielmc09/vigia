@@ -200,6 +200,11 @@ def test_the_page_shows_the_columns_counters_and_metrics() -> None:
     assert "1280px" in page
 
 
+def test_t18b_an_alert_that_could_not_go_out_is_visible() -> None:
+    row = _row().model_copy(update={"alert_rejections": ["TEMPLATE_PENDING"]})
+    assert "TEMPLATE_PENDING" in render_panel([row], {"scam": 1}, None)
+
+
 def test_an_empty_panel_still_renders() -> None:
     page = render_panel([], {}, None)
 

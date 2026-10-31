@@ -17,21 +17,21 @@ import asyncpg
 import httpx
 
 from vigia import telemetry
-from vigia.channel.templates import team_alert_message, whatsapp_message
+from vigia.channel.templates import team_alert_message, team_alert_params, whatsapp_message
 from vigia.channel.wazenda import HTTP_TIMEOUT_S, Wazenda, ogg_to_wav
 from vigia.config import Settings
 from vigia.domain.attachment import Attachment, sniff
 from vigia.domain.case import Case, IncomingMessage
 from vigia.domain.country import CountryPack
 from vigia.domain.gate import Judge
-from vigia.domain.member import Supplier, normalize_contact
+from vigia.domain.member import Contact, Supplier, normalize_contact
 from vigia.domain.reading import Transcriber, Transcript
 from vigia.domain.rejection import Rejection
 from vigia.i18n import t
 from vigia.model.sam import make_sam
 from vigia.model.spark import make_spark
 from vigia.model.voice import make_voice
-from vigia.policy.actions import should_alert_team
+from vigia.policy.actions import alert_route, should_alert_team
 from vigia.services import ingest, transcription
 from vigia.services.backend import make_chat
 from vigia.services.judge import make_judge
@@ -302,17 +302,58 @@ async def _judge_traced(
         return
     team = await store.team(conn, vault)
     reporter = next((c.name for c in team if c.phone == sender and c.name), None)
-    alert = team_alert_message(
-        lang,
-        reporter or t(lang, "team_alert.someone"),
-        verdict,
-        case,
-    )
+    reporter = reporter or t(lang, "team_alert.someone")
+    alert = team_alert_message(lang, reporter, verdict, case)
+    template = None
+    if name := channel.config.wazenda_alert_template:  # one lookup, not one per member
+        names = (await store.business_name(conn, vault), reporter)
+        template = (name, *team_alert_params(lang, names, verdict, case))
+    others = [c for c in team if c.phone != sender]
     with telemetry.stage("reply"):
-        for contact in team:
-            if contact.phone != sender:
-                await channel.wazenda.send(contact.phone, alert)
-    log.info("team_alerted from=%s members=%d", telemetry.mask_phone(sender), len(team) - 1)
+        rejected = await _alert_team(channel.wazenda, others, alert, template)
+    if rejected:
+        await store.save_alert_rejections(conn, case.id, rejected)
+    log.info(
+        "team_alerted from=%s members=%d rejected=%d",
+        telemetry.mask_phone(sender),
+        len(others) - len(rejected),
+        len(rejected),
+    )
+
+
+async def _alert_team(
+    wazenda: Wazenda,
+    members: list[Contact],
+    alert: str,
+    template: tuple[str, str, list[str]] | None,
+) -> list[str]:
+    """Alert each member by the route Meta's 24 h window allows (D-097).
+
+    Args:
+        wazenda: Channel to send through.
+        members: Everyone to alert (the reporter already left out).
+        alert: Free-text alert, for members inside the window.
+        template: Approved template name, language and params, if configured.
+
+    Returns:
+        Rejection codes of the members who could not be alerted, for the panel.
+    """
+    now = datetime.now(UTC)
+    rejected: list[str] = []
+    for contact in members:
+        route = alert_route(contact.last_inbound_at, now, template and template[0])
+        if isinstance(route, Rejection):
+            rejected.append(route.error_code)
+            continue
+        if route == "text":
+            sent = await wazenda.send(contact.phone, alert)
+        elif route == "template" and template:  # narrows the type: alert_route checked it
+            sent = await wazenda.send_template(contact.phone, *template)
+        else:
+            continue  # never wrote: nobody is alerted from a number that did not accept
+        if not sent:
+            rejected.append("CHANNEL_UNAVAILABLE")
+    return rejected
 
 
 def model_readers(config: Settings) -> dict[str, Transcriber]:

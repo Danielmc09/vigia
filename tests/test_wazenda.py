@@ -228,6 +228,27 @@ async def test_a_network_error_is_a_rejection_not_an_exception() -> None:
 # --- sending (specs/01 Salida) --------------------------------------------------------
 
 
+async def test_t18b_send_template_posts_name_language_and_params() -> None:
+    seen: list[httpx.Request] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        seen.append(request)
+        return httpx.Response(200, json={"ok": True})
+
+    wazenda, _ = client(handler)
+    params = ["Ferreteria", "Luis", "Cómo reconocerla: link falso.", "3"]
+    assert await wazenda.send_template("+573000000001", "alerta_equipo_estafa", "es", params)
+    assert str(seen[0].url) == f"{BASE}/templates"
+    assert seen[0].headers["X-API-Key"] == "key-not-real"
+    assert json.loads(seen[0].content) == {
+        "line_id": LINE,
+        "number": "+573000000001",
+        "template_name": "alerta_equipo_estafa",
+        "language": "es",
+        "body_params": params,
+    }
+
+
 async def test_send_posts_line_number_and_message() -> None:
     seen: list[httpx.Request] = []
 

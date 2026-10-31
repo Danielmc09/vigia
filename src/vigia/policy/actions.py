@@ -140,6 +140,33 @@ def _check_owner_and_pending(escalation: Escalation, requester_is_owner: bool) -
     return None
 
 
+ALERT_WINDOW = timedelta(hours=24)
+
+
+def alert_route(
+    last_inbound_at: datetime | None, now: datetime, template: str | None
+) -> Literal["text", "template"] | Rejection | None:
+    """How a team member can be alerted under Meta's 24 h window (D-087, D-097).
+
+    Args:
+        last_inbound_at: When the member last wrote, if ever.
+        now: Current time.
+        template: Approved alert template, if configured.
+
+    Returns:
+        ``None`` for a member who never wrote (nobody is alerted from a number that did
+        not accept), ``"text"`` within the window, ``"template"`` outside it, or a
+        ``TEMPLATE_PENDING`` rejection when there is no template to use.
+    """
+    if last_inbound_at is None:
+        return None
+    if now - last_inbound_at < ALERT_WINDOW:
+        return "text"
+    if template:
+        return "template"
+    return _reject("TEMPLATE_PENDING", "member outside the 24 h window and no approved template")
+
+
 def should_alert_team(last_alert_at: datetime | None, now: datetime) -> bool:
     """Whether a scam about a brand may alert the team again (specs/05 cooldown).
 

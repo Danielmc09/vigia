@@ -10,10 +10,12 @@ from vigia.domain.case import Origin
 from vigia.domain.escalation import Escalation, EscalationAction
 from vigia.domain.rejection import Rejection
 from vigia.policy.actions import (
+    ALERT_WINDOW,
     REVERSIBLE_ACTIONS,
     TEAM_ALERT_COOLDOWN,
     TOOL_GRANTS,
     ReversibleAction,
+    alert_route,
     cancel,
     confirm,
     may_execute,
@@ -128,6 +130,15 @@ def test_should_alert_team_respects_the_six_hour_cooldown() -> None:
     assert should_alert_team(NOW, NOW) is False
     assert should_alert_team(NOW - timedelta(hours=5), NOW) is False
     assert should_alert_team(NOW - timedelta(hours=6), NOW) is True
+
+
+def test_t18b_the_team_alert_follows_meta_24h_window() -> None:
+    """D-087: text inside the window, template outside, nothing to who never wrote."""
+    assert ALERT_WINDOW == timedelta(hours=24)
+    assert alert_route(None, NOW, "alerta_equipo_estafa") is None
+    assert alert_route(NOW - timedelta(hours=23), NOW, None) == "text"
+    assert alert_route(NOW - timedelta(hours=24), NOW, "alerta_equipo_estafa") == "template"
+    assert alert_route(NOW - timedelta(hours=25), NOW, None) == _code("TEMPLATE_PENDING")
 
 
 def _code(code: str) -> object:

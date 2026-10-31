@@ -95,6 +95,7 @@ class VerdictRow(BaseModel, frozen=True):
         tools: Distinct tool and model names the case used.
         usd: Spend of the case.
         latency_ms: End-to-end time of the case.
+        alert_rejections: Why a team alert could not go out (``TEMPLATE_PENDING``).
     """
 
     created_at: datetime
@@ -106,6 +107,7 @@ class VerdictRow(BaseModel, frozen=True):
     tools: list[str] = Field(default_factory=list)
     usd: float = 0.0
     latency_ms: int = 0
+    alert_rejections: list[str] = Field(default_factory=list)
 
     @classmethod
     def of(cls, verdict: Verdict, kind: str | None, created_at: datetime) -> "VerdictRow":

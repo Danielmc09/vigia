@@ -304,7 +304,9 @@ class Outbox:
         self.media = media
         self.listing = listing or []
         self.sent: list[tuple[str, str]] = []
+        self.templates: list[dict[str, Any]] = []
         self.downloads = 0
+        self.templates_fail = False
 
     def __call__(self, request: httpx.Request) -> httpx.Response:
         if request.method == "GET" and request.url.path.endswith("/messages"):
@@ -313,6 +315,9 @@ class Outbox:
             self.downloads += 1
             return httpx.Response(200, content=self.media)
         body = json.loads(request.content)
+        if request.url.path.endswith("/templates"):
+            self.templates.append(body)
+            return httpx.Response(500 if self.templates_fail else 200, json={"ok": True})
         self.sent.append((body["number"], body["message"]))
         return httpx.Response(200, json={"ok": True})
 
@@ -321,13 +326,16 @@ class Outbox:
 
 
 def channel(
-    keyring: Keyring, outbox: Outbox, readers: dict[str, Transcriber] | None = None
+    keyring: Keyring,
+    outbox: Outbox,
+    readers: dict[str, Transcriber] | None = None,
+    config: Settings | None = None,
 ) -> whatsapp.Channel:
     http = httpx.AsyncClient(transport=httpx.MockTransport(outbox))
     return whatsapp.Channel(
         keyring=keyring,
         wazenda=Wazenda(BASE, "key-not-real", LINE, http),
-        config=Settings(),
+        config=config or Settings(),
         readers=readers or {},
         analyst=lambda suppliers, media: None,
         judge=make_dev_judge(Settings()),
@@ -397,6 +405,81 @@ async def test_a_second_scam_of_the_same_brand_does_not_alert_again(
 
     assert len(outbox.to(EMPLOYEE)) == 2
     assert len(outbox.to(OWNER)) == 1  # specs/05: 6 h cooldown per brand
+
+
+QUIET = "+573000000703"
+
+
+async def test_t18b_nobody_is_alerted_from_a_number_that_never_wrote(
+    app_conn: asyncpg.Connection, recorder: Recorder, keyring: Keyring
+) -> None:
+    """D-087: Marta was enrolled by the owner but never wrote; Meta would not deliver."""
+    await team(app_conn, recorder)
+    await handle(app_conn, recorder.ports, message(OWNER, "equipo +57 300 000 0703 Marta"))
+    outbox = Outbox()
+
+    await whatsapp.process(app_conn, channel(keyring, outbox), incoming("texto", EMPLOYEE))
+
+    assert len(outbox.to(OWNER)) == 1
+    assert outbox.to(QUIET) == [] and outbox.templates == []
+
+
+async def _owner_out_of_window(admin_conn: asyncpg.Connection) -> None:
+    await admin_conn.execute(
+        "UPDATE members SET last_inbound_at = now() - interval '25 hours'"
+        " WHERE last_inbound_at IS NOT NULL AND role = 'owner'"
+    )
+
+
+async def test_t18b_out_of_window_without_template_leaves_a_visible_rejection(
+    admin_conn: asyncpg.Connection, recorder: Recorder, keyring: Keyring
+) -> None:
+    """Never silence: the panel shows why the owner got no alert."""
+    await team(admin_conn, recorder)
+    await _owner_out_of_window(admin_conn)
+    outbox = Outbox()
+
+    await whatsapp.process(admin_conn, channel(keyring, outbox), incoming("texto", EMPLOYEE))
+
+    assert outbox.to(OWNER) == [] and outbox.templates == []
+    newest, *_ = await store.panel_verdicts(admin_conn, 5)  # superuser: RLS does not narrow
+    assert newest.alert_rejections == ["TEMPLATE_PENDING"]
+
+
+async def test_t18b_out_of_window_with_template_sends_the_approved_template(
+    admin_conn: asyncpg.Connection, recorder: Recorder, keyring: Keyring
+) -> None:
+    await team(admin_conn, recorder)
+    await _owner_out_of_window(admin_conn)
+    outbox = Outbox()
+    config = Settings(WAZENDA_ALERT_TEMPLATE="alerta_equipo_estafa")
+    ch = channel(keyring, outbox, config=config)
+
+    await whatsapp.process(admin_conn, ch, incoming("texto", EMPLOYEE))
+
+    assert outbox.to(OWNER) == []
+    [sent] = outbox.templates
+    assert sent["number"] == OWNER and sent["template_name"] == "alerta_equipo_estafa"
+    assert sent["language"] == "es"
+    assert sent["body_params"][:2] == ["Ferreteria El Tornillo", "Luis"]
+
+
+async def test_t18b_a_template_wazenda_refused_is_visible_too(
+    admin_conn: asyncpg.Connection, recorder: Recorder, keyring: Keyring
+) -> None:
+    """Never silence: a send that fails is a rejection on the verdict, not a log line."""
+    await team(admin_conn, recorder)
+    await _owner_out_of_window(admin_conn)
+    outbox = Outbox()
+    outbox.templates_fail = True
+    config = Settings(WAZENDA_ALERT_TEMPLATE="alerta_equipo_estafa")
+
+    await whatsapp.process(
+        admin_conn, channel(keyring, outbox, config=config), incoming("texto", EMPLOYEE)
+    )
+
+    newest, *_ = await store.panel_verdicts(admin_conn, 5)
+    assert newest.alert_rejections == ["CHANNEL_UNAVAILABLE"]
 
 
 async def test_a_command_is_answered_over_whatsapp(

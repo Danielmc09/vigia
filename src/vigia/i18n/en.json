@@ -128,6 +128,7 @@
   "command.scam_confirmed": "scam confirmed",
   "team_alert.scam_unbranded": "⚠️ {reporter} reported a scam ({kind}). If it reaches you, don't open it. VIGIA",
   "team_alert.hook": "How to spot it: {hook}.",
+  "team_alert.came_as": "It came as a {kind}.",
   "team_alert.indicator": "It comes from: {indicator}",
   "team_alert.disarmed": "(disarmed on purpose, don't open or dial it)",
   "team_alert.someone": "Someone on the team",

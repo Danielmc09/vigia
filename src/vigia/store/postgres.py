@@ -508,14 +508,58 @@ async def team(conn: asyncpg.Connection, vault: Vault) -> list[Contact]:
     Returns:
         Their contacts, oldest member first.
     """
-    rows = await conn.fetch("SELECT phone_enc, name_enc FROM members ORDER BY created_at")
+    rows = await conn.fetch(
+        "SELECT phone_enc, name_enc, last_inbound_at FROM members"
+        " WHERE business_id = $1 ORDER BY created_at",
+        vault.business_id,
+    )
     return [
         Contact(
             vault.open("members.phone", r["phone_enc"]),
             vault.open("members.name", r["name_enc"]) if r["name_enc"] else None,
+            r["last_inbound_at"],
         )
         for r in rows
     ]
+
+
+async def touch_member(conn: asyncpg.Connection, sender_hash: Hashed) -> None:
+    """Record that a member just wrote: Meta's 24 h window opens again (D-097).
+
+    Args:
+        conn: Connection scoped to the member's business.
+        sender_hash: Keyed hash of the member's phone.
+    """
+    await conn.execute(
+        "UPDATE members SET last_inbound_at = now() WHERE phone_hash = $1", sender_hash
+    )
+
+
+async def business_name(conn: asyncpg.Connection, vault: Vault) -> str:
+    """The name of the business in context, opened.
+
+    Args:
+        conn: Connection scoped to the business.
+        vault: Open vault of the business.
+
+    Returns:
+        The name the owner enrolled with.
+    """
+    sealed = await conn.fetchval("SELECT name_enc FROM businesses WHERE id = $1", vault.business_id)
+    return vault.open("businesses.name", sealed)
+
+
+async def save_alert_rejections(conn: asyncpg.Connection, case_id: UUID, codes: list[str]) -> None:
+    """Keep on the verdict why some team alerts could not go out, for the panel.
+
+    Args:
+        conn: Connection scoped to the business.
+        case_id: The case whose verdict it is.
+        codes: Rejection codes, one per member left without alert.
+    """
+    await conn.execute(
+        "UPDATE verdicts SET alert_rejections = $2 WHERE case_id = $1", case_id, codes
+    )
 
 
 async def suppliers(conn: asyncpg.Connection, vault: Vault) -> list[Supplier]:

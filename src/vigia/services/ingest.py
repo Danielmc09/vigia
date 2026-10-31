@@ -65,11 +65,15 @@ async def handle(conn: asyncpg.Connection, ports: Ports, msg: IncomingMessage) -
     member = await store.find_member(conn, sender_hash)
     if member is None:
         if command and command.name == "enroll" and msg.origin != "email":
-            return await enrollment.enroll(conn, ports.keyring, sender, command)
+            reply = await enrollment.enroll(conn, ports.keyring, sender, command)
+            await store.touch_member(conn, sender_hash)  # the owner just wrote: window open
+            return reply
         await store.record_rejection(conn, sender_hash, msg.origin)
         telemetry.count("rejected", "not_member")
         return None
     business, vault = await store.open_business(conn, ports.keyring, member.business_id)
+    if msg.origin == "wazenda":
+        await store.touch_member(conn, sender_hash)  # opens Meta's 24 h window (T-18b)
     if _is_command(command):
         session = enrollment.Session(conn, business, vault, member, ports.send_email, msg.origin)
         return await enrollment.run(session, command)

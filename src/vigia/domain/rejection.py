@@ -28,6 +28,8 @@ RejectionCode = Literal[
     "CHANNEL_UNAVAILABLE",
     # T-10e: a webhook attachment without media_url had no single match in the listing.
     "MEDIA_MATCH_FAILED",
+    # T-18b: a member outside Meta's 24 h window and no approved alert template.
+    "TEMPLATE_PENDING",
 ]
 
 

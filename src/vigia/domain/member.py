@@ -1,6 +1,7 @@
 """Businesses, their members and suppliers, and how contacts are normalized (domain)."""
 
 from dataclasses import dataclass
+from datetime import datetime
 from typing import Literal
 from uuid import UUID
 
@@ -46,10 +47,12 @@ class Contact:
     Attributes:
         phone: E.164 phone number.
         name: Display name, if known.
+        last_inbound_at: When they last wrote to VIGIA; ``None`` if they never did.
     """
 
     phone: str
     name: str | None = None
+    last_inbound_at: datetime | None = None
 
 
 @dataclass(frozen=True)
