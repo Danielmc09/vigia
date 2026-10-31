@@ -246,6 +246,14 @@ def test_incident_31oct_unlisted_or_capitalized_tld_is_extracted(text: str, url:
         "le mandé la factura.xlsx/csv al correo",  # c-0236
         "va el archivo.pdf/jpg como pidió",
         "la foto.jpeg/png del recibo",
+        "pago por bancolombia.ahorros/corriente, como prefiera",  # c-0237
+        "le pagué por nequi.daviplata/efectivo",  # c-0238
+        "la declaración de renta.dian/2025 ya salió",  # c-0239
+        "pay via chase.checking/savings as usual",  # c-0240
+        "the irs.refund/2025 file is in the drive",
+        "el informe.final/v2 de la DIAN",
+        "juan.perez/compras y ventas.norte/sur",
+        "db.local:5432",
     ],
 )
 def test_incident_31oct_prose_after_a_period_stays_prose(text: str) -> None:
