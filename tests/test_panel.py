@@ -205,6 +205,34 @@ def test_t18b_an_alert_that_could_not_go_out_is_visible() -> None:
     assert "TEMPLATE_PENDING" in render_panel([row], {"scam": 1}, None)
 
 
+def test_the_try_form_and_the_verdicts_come_before_the_metrics() -> None:
+    metrics = {"fecha": "2026-10-28", "metricas": {"recall_estafa": 0.95}}
+
+    page = render_panel([_row()], {"scam": 1}, metrics)
+
+    assert page.index('class="panel try"') < page.index("<table><thead>")
+    assert page.index("<table><thead>") < page.index("recall_estafa")
+
+
+def test_signals_tools_and_rejected_alerts_are_told_apart() -> None:
+    row = _row().model_copy(update={"alert_rejections": ["TEMPLATE_PENDING"]})
+
+    page = render_panel([row], {}, None)
+
+    assert '<span class="chip sig">brand_off_domain</span>' in page
+    assert '<span class="chip tool">read_pdf</span>' in page
+    assert '<span class="chip warn">TEMPLATE_PENDING</span>' in page
+
+
+def test_numbers_align_and_labels_read_without_color() -> None:
+    page = render_panel([_row()], {}, None)
+
+    assert '<td class="c-usd">0.0042</td>' in page
+    assert "position:sticky" in page
+    assert "grid-template-columns:minmax(0,1fr)" in page  # wide table scrolls, page does not
+    assert ".l-scam::before" in page and ".l-doubtful{" in page and "dashed" in page
+
+
 def test_an_empty_panel_still_renders() -> None:
     page = render_panel([], {}, None)
 
