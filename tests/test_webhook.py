@@ -6,6 +6,7 @@ import json
 import logging
 import re
 import time
+import zlib
 from collections.abc import Callable
 from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
@@ -299,12 +300,15 @@ async def test_the_app_role_cannot_read_webhook_events(app_conn: asyncpg.Connect
 class Outbox:
     """Fake Wazenda: serves one media file and records what VIGIA sends."""
 
-    def __init__(self, media: bytes = b"") -> None:
+    def __init__(self, media: bytes = b"", listing: list[dict[str, Any]] | None = None) -> None:
         self.media = media
+        self.listing = listing or []
         self.sent: list[tuple[str, str]] = []
         self.downloads = 0
 
     def __call__(self, request: httpx.Request) -> httpx.Response:
+        if request.method == "GET" and request.url.path.endswith("/messages"):
+            return httpx.Response(200, json=self.listing)
         if request.method == "GET":
             self.downloads += 1
             return httpx.Response(200, content=self.media)
@@ -786,3 +790,87 @@ def test_received_at_is_kept_from_the_channel() -> None:
     assert msg.received_at == datetime(2026, 10, 28, 14, 3, 11, tzinfo=UTC)
     assert datetime.now(UTC) - msg.received_at > timedelta(0)
     assert Path(__file__).exists()
+
+
+# --- T-10e: attachments without media_url, found by listing --------------------------
+
+
+def _listed(*kinds: str) -> list[dict[str, Any]]:
+    """Inbound media items from EMPLOYEE, one second after the webhook (newest first)."""
+    item = fixture("mensajes_media")["response"][0] | {"contact_number": EMPLOYEE[1:]}
+    ids = ("00000000-0000-4000-8000-00000000b001", "00000000-0000-4000-8000-00000000b009")
+    return [item | {"media_type": k, "id": i} for k, i in zip(kinds, ids, strict=False)]
+
+
+def _bomb() -> bytes:
+    """A tiny real PNG whose header declares a 13000×13000 canvas (CRC recomputed)."""
+    buf = io.BytesIO()
+    Image.new("L", (1, 1), 255).save(buf, "PNG")
+    png = bytearray(buf.getvalue())
+    png[16:24] = (13000).to_bytes(4, "big") * 2
+    png[29:33] = zlib.crc32(bytes(png[12:29])).to_bytes(4, "big")
+    return bytes(png)
+
+
+async def test_t10e_a_voice_note_without_url_is_read_and_judged(
+    app_conn: asyncpg.Connection, recorder: Recorder, keyring: Keyring
+) -> None:
+    """T-10e incident: the real webhook brought `[audio]` and was judged as text."""
+    await team(app_conn, recorder)
+    outbox, fake = Outbox(opus(), _listed("audio")), FakeReader()
+
+    ch = channel(keyring, outbox, {"audio": fake})
+    await whatsapp.process(app_conn, ch, incoming("audio_sin_url", EMPLOYEE))
+
+    [read] = fake.calls
+    assert isinstance(check_wav(read, 120), float)
+    assert outbox.to(EMPLOYEE)[0].startswith("Esto es una estafa")
+    rows = await app_conn.fetch("SELECT kind, label FROM verdicts")
+    assert [(r["kind"], r["label"]) for r in rows] == [("audio", "scam")]
+
+
+@pytest.mark.parametrize(
+    "listing", [[], _listed("audio", "image")], ids=["nothing-listed", "two-attachments"]
+)
+async def test_t10e_an_unclear_match_is_said_never_guessed(
+    app_conn: asyncpg.Connection,
+    recorder: Recorder,
+    keyring: Keyring,
+    listing: list[dict[str, Any]],
+) -> None:
+    await team(app_conn, recorder)
+    outbox, fake = Outbox(opus(), listing), FakeReader()
+
+    ch = channel(keyring, outbox, {"audio": fake, "image": fake})
+    await whatsapp.process(app_conn, ch, incoming("audio_sin_url", EMPLOYEE))
+
+    assert outbox.to(EMPLOYEE) == [t("es", "attachment.unmatched")]
+    assert fake.calls == [] and outbox.downloads == 0
+    assert await app_conn.fetch("SELECT 1 FROM verdicts") == []
+
+
+@pytest.mark.parametrize(
+    "unreadable",
+    [
+        (_bomb(), "image.too_large"),
+        (b"PK\x03\x04 a zip", "case.unsupported"),
+        (b"\0" * (MAX_ATTACHMENT_BYTES + 1), "attachment.too_large"),
+    ],
+    ids=["pixel-bomb", "real-type-by-bytes", "too-large"],
+)
+async def test_t10e_listed_media_gets_the_same_checks_as_caso(
+    app_conn: asyncpg.Connection,
+    recorder: Recorder,
+    keyring: Keyring,
+    unreadable: tuple[bytes, str],
+) -> None:
+    media, key = unreadable
+    await team(app_conn, recorder)
+    outbox, fake = Outbox(media, _listed("image")), FakeReader()
+
+    ch = channel(keyring, outbox, {"image": fake})
+    await whatsapp.process(app_conn, ch, incoming("audio_sin_url", EMPLOYEE, body="[image]"))
+
+    assert outbox.to(EMPLOYEE) == [t("es", key)]
+    assert fake.calls == []
+    assert await app_conn.fetch("SELECT 1 FROM verdicts") == []

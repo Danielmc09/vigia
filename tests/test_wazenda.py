@@ -316,3 +316,128 @@ def test_a_long_voice_note_stops_decoding_at_the_cap() -> None:
 def test_a_broken_ogg_is_unsupported_audio() -> None:
     result = ogg_to_wav(b"OggS" + b"\0" * 100, max_seconds=120)
     assert isinstance(result, Rejection) and result.error_code == "UNSUPPORTED_AUDIO"
+
+
+# --- T-10e: media by listing (specs/01, "Descarga de adjuntos", 31 oct) ---------------
+
+WAMID = "wamid.SYNTHETIC0007"
+VOICE_ID = "00000000-0000-4000-8000-00000000b001"
+
+
+@pytest.mark.parametrize("body", ["[audio]", "[image]", "[document]"])
+def test_t10e_a_placeholder_body_is_media_not_text(body: str) -> None:
+    """T-10e incident: the real media webhook brings `[audio]` and no media_url."""
+    msg = to_message(fixture("audio_sin_url") | {"body": body})
+    assert msg is not None
+    assert msg.kind == "unknown" and msg.text is None
+    assert [a.ref for a in msg.attachments] == [""]  # empty ref: fetch it by listing
+
+
+def test_t10e_a_media_type_alone_is_media() -> None:
+    msg = to_message(fixture("texto") | {"body": None, "media_type": "audio"})
+    assert msg is not None and msg.kind == "unknown" and len(msg.attachments) == 1
+
+
+def _listing(items: list[dict[str, Any]], media: bytes = b"", status: int = 200) -> Any:
+    seen: list[httpx.Request] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        seen.append(request)
+        if request.url.path.endswith("/messages"):
+            return httpx.Response(status, json=items)
+        return httpx.Response(200, content=media)
+
+    return handler, seen
+
+
+def _webhook_time() -> Any:
+    msg = to_message(fixture("audio_sin_url"))
+    assert msg is not None
+    return msg.received_at
+
+
+async def test_t10e_the_attachment_is_found_by_listing_and_fetched_by_uuid() -> None:
+    """T-10e incident: the webhook sends a wamid, the media endpoint wants Wazenda's uuid."""
+    voice = opus()
+    handler, seen = _listing(fixture("mensajes_media")["response"], voice)
+    wazenda, _ = client(handler)
+
+    assert await wazenda.latest_media("+573000000001", _webhook_time()) == voice
+    listing, media = seen
+    assert listing.url.params["contact"] == "573000000001"  # digits, as contact_number
+    assert listing.url.params["line_id"] == LINE
+    assert str(media.url) == f"{BASE}/messages/{VOICE_ID}/media"
+    assert media.headers["X-API-Key"] == "key-not-real"
+    assert all(WAMID not in str(r.url) for r in seen)
+
+
+def _voice(**over: Any) -> dict[str, Any]:
+    item: dict[str, Any] = fixture("mensajes_media")["response"][0]
+    return item | over
+
+
+@pytest.mark.parametrize(
+    "items",
+    [
+        [],
+        [_voice(), _voice(id="00000000-0000-4000-8000-00000000b009")],
+        [_voice(created_at="2026-10-31T13:50:00Z")],
+        [_voice(contact_number="573000000002")],
+        [_voice(direction="outbound")],
+        [_voice(id="wamid.SYNTHETIC0007")],
+        [_voice(media_type=None)],
+    ],
+    ids=["none", "two", "too-old", "other-contact", "outbound", "not-a-uuid", "text"],
+)
+async def test_t10e_without_a_clear_match_nothing_is_guessed(items: list[dict[str, Any]]) -> None:
+    handler, seen = _listing(items, opus())
+    wazenda, _ = client(handler)
+
+    result = await wazenda.latest_media("+573000000001", _webhook_time())
+    assert isinstance(result, Rejection) and result.error_code == "MEDIA_MATCH_FAILED"
+    assert len(seen) == 1  # the listing only; no media is fetched
+
+
+async def test_t10e_a_listing_that_is_not_a_list_does_not_match() -> None:
+    handler, _ = _listing({"detail": "x"})  # type: ignore[arg-type]
+    wazenda, _ = client(handler)
+    result = await wazenda.latest_media("+573000000001", _webhook_time())
+    assert isinstance(result, Rejection) and result.error_code == "MEDIA_MATCH_FAILED"
+
+
+async def test_t10e_a_failed_listing_is_retryable() -> None:
+    handler, _ = _listing([], status=500)
+    wazenda, _ = client(handler)
+    result = await wazenda.latest_media("+573000000001", _webhook_time())
+    assert isinstance(result, Rejection) and result.error_code == "CHANNEL_UNAVAILABLE"
+    assert result.retryable
+
+
+async def test_t10e_old_media_502_is_retryable() -> None:
+    """Provider doc: media older than its retention answers 502."""
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        if request.url.path.endswith("/messages"):
+            return httpx.Response(200, json=fixture("mensajes_media")["response"])
+        return httpx.Response(502)
+
+    wazenda, _ = client(handler)
+    result = await wazenda.latest_media("+573000000001", _webhook_time())
+    assert isinstance(result, Rejection) and result.error_code == "CHANNEL_UNAVAILABLE"
+
+
+async def test_t10e_a_huge_attachment_stops_at_10_mb() -> None:
+    chunk = b"\0" * 1024 * 1024
+
+    async def endless() -> Any:
+        for _ in range(MAX_ATTACHMENT_BYTES // len(chunk) + 5):
+            yield chunk
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        if request.url.path.endswith("/messages"):
+            return httpx.Response(200, json=fixture("mensajes_media")["response"])
+        return httpx.Response(200, content=endless())
+
+    wazenda, _ = client(handler)
+    result = await wazenda.latest_media("+573000000001", _webhook_time())
+    assert isinstance(result, Rejection) and result.error_code == "TOO_LARGE"

@@ -1,0 +1,49 @@
+{
+  "_note": "Shape of the real GET /messages (listado.json, 31 oct); the media item is synthetic: no attachment existed when it was probed.",
+  "request": {"method": "GET", "path": "/messages", "params": {"line_id": "00000000-0000-4000-8000-000000000001", "contact": "573000000001", "limit": 5}},
+  "status": 200,
+  "response": [
+    {
+      "id": "00000000-0000-4000-8000-00000000b001",
+      "line_id": "00000000-0000-4000-8000-000000000001",
+      "direction": "inbound",
+      "contact_number": "573000000001",
+      "body": "[audio]",
+      "media_type": "audio",
+      "status": null,
+      "status_updated_at": null,
+      "error": null,
+      "sent_by": null,
+      "created_at": "2026-10-31T14:03:12.104233Z",
+      "media_url": "https://wazenda.com/media/00000000-0000-4000-8000-00000000b001?<signed>"
+    },
+    {
+      "id": "00000000-0000-4000-8000-00000000b002",
+      "line_id": "00000000-0000-4000-8000-000000000001",
+      "direction": "outbound",
+      "contact_number": "573000000001",
+      "body": "<redacted>",
+      "media_type": null,
+      "status": "read",
+      "status_updated_at": "2026-10-31T13:40:09.431903Z",
+      "error": null,
+      "sent_by": null,
+      "created_at": "2026-10-31T13:40:07.309047Z",
+      "media_url": null
+    },
+    {
+      "id": "00000000-0000-4000-8000-00000000b003",
+      "line_id": "00000000-0000-4000-8000-000000000001",
+      "direction": "inbound",
+      "contact_number": "573000000001",
+      "body": "[image]",
+      "media_type": "image",
+      "status": null,
+      "status_updated_at": null,
+      "error": null,
+      "sent_by": null,
+      "created_at": "2026-10-31T13:39:52.575312Z",
+      "media_url": null
+    }
+  ]
+}
