@@ -10,6 +10,7 @@ from pathlib import Path
 from uuid import uuid4
 
 import asyncpg
+import measure
 import pytest
 import structlog
 import uvicorn.config
@@ -18,7 +19,11 @@ from structlog.testing import capture_logs
 
 from vigia import telemetry
 from vigia.app import create_app
+from vigia.channel.templates import team_alert_message, whatsapp_message
 from vigia.config import Settings
+from vigia.domain.gate import mock_judge
+from vigia.services.process_case import judge_case
+from vigia.signals.knowledge import seeded_pack
 from vigia.store.db import set_business
 
 SRC = Path(__file__).parents[1] / "src" / "vigia"
@@ -158,6 +163,36 @@ def test_a05_no_api_docs_in_prod(path: str) -> None:
     client = TestClient(create_app(prod))
 
     assert client.get(path).status_code == 404
+
+
+def test_a05_public_texts_never_name_internal_signals() -> None:
+    """WhatsApp replies and the team alert hide the signal taxonomy (specs/10 §7, D-111).
+
+    The panel and ``/caso`` are out of scope: operator token and tool contract.
+    """
+    verdicts = []
+    for raw in measure.load(measure.EVALS / "casos.jsonl", None):
+        if measure.needs_reading(raw):
+            continue
+        case = measure.to_case(raw)
+        pack = seeded_pack(case.country, measure.KNOWLEDGE)
+        if pack is not None:
+            verdicts.append((case, pack.language, judge_case(case, pack, mock_judge, None)))
+    # One-word types (urgency, prize) are plain English the i18n explanation uses on
+    # purpose; only compound identifiers give the taxonomy away.
+    taxonomy = {s.type for _, _, v in verdicts for s in v.signals if "_" in s.type}
+    taxonomy.add("MODEL_API_KEY")
+    forbidden = re.compile(r"\b(" + "|".join(map(re.escape, sorted(taxonomy))) + r")\b")
+
+    leaks = []
+    for case, lang, verdict in verdicts:
+        texts = [whatsapp_message(verdict, lang)]
+        if verdict.label == "scam":
+            texts.append(team_alert_message(lang, "Ana", verdict, case))
+        leaks += [(case.text[:40], m) for text in texts for m in forbidden.findall(text)]
+
+    assert len(verdicts) > 50
+    assert leaks == []
 
 
 # --- A09 Logging failures: every case event is traceable and carries no PII --------
