@@ -22,7 +22,7 @@ from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 from pydantic import BaseModel, Field, SecretStr
 
 from vigia import telemetry
-from vigia.channel.panel import LANG, TryForm, render_panel
+from vigia.channel.panel import LANG, PANEL_JS, TryForm, render_panel
 from vigia.channel.wazenda import signed_payload, to_message
 from vigia.config import WEBHOOK_CONCURRENCY, Settings, settings
 from vigia.domain.attachment import MAX_ATTACHMENT_BYTES, Attachment, read_capped
@@ -45,7 +45,9 @@ from vigia.store import postgres as store
 
 _SECURITY_HEADERS = {"X-Content-Type-Options": "nosniff", "X-Frame-Options": "DENY"}
 _PANEL_HEADERS = {
-    "Content-Security-Policy": "default-src 'none'; style-src 'unsafe-inline'",
+    "Content-Security-Policy": (
+        "default-src 'none'; style-src 'unsafe-inline'; script-src 'self'; connect-src 'self'"
+    ),
     "Cache-Control": "no-store",
     "Referrer-Policy": "no-referrer",
 }
@@ -367,11 +369,17 @@ def _panel(config: Settings, source: PanelSource, try_it: TryIt, rules_only: boo
         """Operator panel: latest verdicts without PII."""
         return await _panel_page(request, config, source, blank)
 
+    @router.get("/panel.js")
+    async def panel_js(request: Request) -> Response:
+        """The panel's own progressive-enhancement script, same origin only (D-110)."""
+        _require_token(_presented_token(request), config.panel_token)
+        return Response(PANEL_JS, media_type="text/javascript", headers=_PANEL_HEADERS)
+
     @router.post("/panel", response_class=HTMLResponse)
     async def try_text(request: Request) -> Response:
         """A pasted text or an uploaded file judged like a forwarded one, above the table.
 
-        A plain form post, so the panel keeps its script-free CSP; the ``SameSite=Lax``
+        A plain form post that works without JS; panel.js reuses it (D-110). The ``SameSite=Lax``
         cookie never rides a cross-site post.
         """
         _require_token(_presented_token(request), config.panel_token)

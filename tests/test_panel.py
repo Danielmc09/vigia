@@ -217,18 +217,30 @@ def test_the_try_form_and_the_verdicts_come_before_the_metrics() -> None:
 def test_the_try_button_sets_the_wait_expectation_without_js() -> None:
     page = render_panel([_row()], {}, None)
 
-    assert "<script" not in page
+    # Same-origin, external script only (progressive enhancement, D-110): no inline
+    # script. panel.js's own strings come from i18n via data-* on the section
+    # (rule 16), so they survive the section being replaced.
+    assert '<script src="/panel.js" defer></script>' in page
+    assert "<script>" not in page
     assert "takes a few seconds" in page
-    # No button text swap on submit (":Analyzing..."): with no JS there is no
-    # reliable way to clear it back to normal once the result page loads, so
-    # the wait state stays a plain text line instead.
-    assert "Analyzing" not in page
+    assert 'data-busy="Analyzing…"' in page
+    assert 'data-error="Could not analyze it. Try again."' in page
+    assert "reloads" not in page
 
 
-def test_the_result_is_announced_and_anchored_for_the_browser_to_jump_to() -> None:
+def test_panel_js_has_no_user_text_of_its_own() -> None:
+    from vigia.channel.panel import PANEL_JS
+
+    assert "Analyzing" not in PANEL_JS
+    assert "Could not reach" not in PANEL_JS
+
+
+def test_the_result_is_announced_without_jumping_the_page() -> None:
     page = render_panel([_row()], {}, None, TryForm(row=_row()))
 
-    assert 'action="/panel#resultado"' in page
+    # No #resultado anchor on the form action: the page stays on the Try it card
+    # instead of jumping down to the result row (Angel: the jump hurt more than helped).
+    assert 'action="/panel#resultado"' not in page
     assert 'id="resultado"' in page
     # the verdict's own time (Colombia-local), in the heading, not only in the table
     assert '<h3 class="result-head">Result · 09:05</h3>' in page
@@ -389,7 +401,7 @@ def test_the_image_ships_the_eval_result_the_panel_reads() -> None:
 def test_the_page_offers_a_try_form_with_three_examples() -> None:
     page = render_panel([], {}, None)
 
-    assert '<form method="post" action="/panel#resultado"' in page
+    assert '<form method="post" action="/panel"' in page
     assert page.count('name="text" value=') == 3
 
 
@@ -409,6 +421,32 @@ def test_the_try_form_judges_a_pasted_text_and_shows_the_verdict() -> None:
     assert response.status_code == 200
     assert "brand_off_domain" in response.text
     assert "default-src 'none'" in response.headers["content-security-policy"]
+
+
+def test_the_csp_allows_only_the_panels_own_script_and_fetch() -> None:
+    """D-110: panel.js is same-origin and nothing else — no CDN, no inline, no third party."""
+    client = _client(TOKEN)
+    client.cookies.set("vigia_panel", TOKEN)
+
+    csp = client.get("/panel").headers["content-security-policy"]
+
+    assert "script-src 'self'" in csp
+    assert "connect-src 'self'" in csp
+
+
+def test_panel_js_is_served_same_origin_behind_the_panel_token() -> None:
+    client = _client(TOKEN)
+    client.cookies.set("vigia_panel", TOKEN)
+
+    response = client.get("/panel.js")
+
+    assert response.status_code == 200
+    assert response.headers["content-type"].startswith("text/javascript")
+    assert "fetch(" in response.text
+
+
+def test_panel_js_refuses_a_missing_or_wrong_token() -> None:
+    assert _client(TOKEN).get("/panel.js").status_code == 401
 
 
 def test_the_try_form_needs_the_panel_token() -> None:

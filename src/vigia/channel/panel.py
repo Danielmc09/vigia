@@ -7,11 +7,13 @@ ship a ``default-src 'none'`` CSP. User-facing labels come from ``i18n`` (``pane
 from collections.abc import Mapping, Sequence
 from datetime import timedelta, timezone
 from html import escape
+from pathlib import Path
 from typing import Any, NamedTuple, get_args
 
 from vigia.domain.verdict import Label, VerdictRow
 from vigia.i18n import t
 
+PANEL_JS = Path(__file__).with_name("panel.js").read_text(encoding="utf-8")
 LANG = "en"  # ponytail: one operator, one language; per-operator language with T-17b
 COLOMBIA = timezone(timedelta(hours=-5))  # no DST in Colombia
 EXAMPLES = ("bank", "courier", "legit")
@@ -47,7 +49,13 @@ label{color:var(--muted);font-size:13px}
 input[type=file]{display:block;margin-top:4px;font:inherit;font-size:13px;color:var(--muted)}
 button{font:inherit;cursor:pointer;min-height:40px;border-radius:8px}
 .primary{background:var(--accent);color:var(--on-accent);border:0;padding:8px 28px;
-font-weight:600}
+font-weight:600;position:relative}
+.primary.busy{padding-right:48px}
+.primary.busy::after{content:"";position:absolute;right:14px;top:50%;width:16px;height:16px;
+margin-top:-8px;border:2px solid var(--on-accent);border-right-color:transparent;
+border-radius:50%;animation:vigia-spin .6s linear infinite}
+@keyframes vigia-spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion: reduce){.primary.busy::after{animation:none}}
 .examples{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:16px;
 padding-top:16px;border-top:1px solid var(--line)}
 .examples span{color:var(--muted);font-size:13px}
@@ -194,15 +202,17 @@ def _try(head: str, form: TryForm) -> str:
     )
     shown = "".join(f'<p class="note">{escape(note)}</p>' for present, note in notes if present)
     return (
-        f'<section class="panel try"><h2>{escape(t(LANG, "panel.try.title"))}</h2>'
-        '<form method="post" action="/panel#resultado" enctype="multipart/form-data">'
+        f'<section class="panel try" data-busy="{escape(t(LANG, "panel.try.busy"))}"'
+        f' data-error="{escape(t(LANG, "panel.try.error"))}">'
+        f'<h2>{escape(t(LANG, "panel.try.title"))}</h2>'
+        '<form method="post" action="/panel" enctype="multipart/form-data">'
         f'<textarea name="text" rows="3">{escape(form.text)}</textarea><div class="actions">'
         f"<label>{escape(t(LANG, 'panel.try.file'))} "
         '<input type="file" name="file" accept="audio/*,image/*,application/pdf"></label>'
         f'<button class="primary" type="submit">{escape(t(LANG, "panel.try.button"))}</button>'
         "</div>"
         f'<p class="note">{escape(t(LANG, "panel.try.wait"))}</p></form>'
-        f'<form class="examples" method="post" action="/panel#resultado">'
+        f'<form class="examples" method="post" action="/panel">'
         f"<span>{escape(t(LANG, 'panel.try.examples'))}</span>{examples}</form>"
         f"{scope or ''}{shown}{result or ''}</section>"
     )
@@ -236,7 +246,8 @@ def render_panel(
     return (
         f'<!doctype html><html lang="{LANG}"><head><meta charset="utf-8">'
         f'<meta name="viewport" content="width=device-width,initial-scale=1">'
-        f"<title>{title}</title><style>{_STYLE}</style></head><body><main>"
+        f"<title>{title}</title><style>{_STYLE}</style>"
+        '<script src="/panel.js" defer></script></head><body><main>'
         f'<header class="top"><h1>{title}</h1><div class="today">'
         f"{escape(t(LANG, 'panel.today'))}{counters}</div></header>"
         f"{_try(head, form or TryForm())}"
