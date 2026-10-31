@@ -86,6 +86,10 @@ SIMIT = (
 )
 
 
+QUOTE_MAX = 120  # the fixed cut the alert promises
+SIMIT_QUOTE = "Multa pendiente SIMIT. Pague hoy en simit-pagos[.]click o llame al +57 300 ***"
+
+
 def _scam_case(text: str = SIMIT, **over: object) -> Case:
     base: dict[str, object] = {
         "id": uuid4(),
@@ -138,8 +142,8 @@ def test_t10d_team_alert_carries_the_hook_and_the_disarmed_indicator(lang: str) 
     # the hook is the strongest deterministic signal, phrased by code, never the analyst's
     assert t(lang, "signal.brand_off_domain") in msg
     assert t(lang, "signal.credentials_request") not in msg
-    # nothing the reporter or the scammer wrote, nothing clickable, nobody's number
-    assert "Multa pendiente" not in msg and "doc=123" not in msg
+    # the scammer's words only as a quote; nothing clickable, nobody's number
+    assert "doc=123" not in msg
     assert not re.search(r"https?://|www\.|\w\.(click|com|co)\b", msg)
     assert "000 1234" not in msg
     assert REPORTER not in msg and "0001" not in msg
@@ -163,7 +167,6 @@ def test_t10d_without_link_or_number_the_alert_has_no_indicator_line() -> None:
     msg = team_alert_message("es", "Ana", _verdict(signals=_NO_LINK), case)
 
     assert t("es", "team_alert.disarmed") not in msg
-    assert "cambié de número" not in msg
 
 
 def test_t10d_the_indicator_never_points_at_the_official_domain() -> None:
@@ -193,7 +196,8 @@ def test_t10d_an_account_number_is_not_shown_as_a_phone() -> None:
     case = _scam_case(text="Nueva cuenta para el pago: 0123-4567-8901", urls=[])
     msg = team_alert_message("es", "Ana", _verdict(signals=_NO_LINK), case)
 
-    assert "***" not in msg
+    assert t("es", "team_alert.disarmed") not in msg  # no indicator line
+    assert "4567" not in msg  # and the quote masks it
 
 
 @pytest.mark.parametrize(
@@ -241,11 +245,11 @@ def test_t10d_a_short_plus_number_is_not_shown_as_a_phone() -> None:
     case = _scam_case(text="Código +12 345 678", urls=[])
     msg = team_alert_message("es", "Ana", _verdict(signals=_NO_LINK), case)
 
-    assert "***" not in msg
+    assert t("es", "team_alert.disarmed") not in msg
 
 
 @pytest.mark.parametrize(("lang", "language"), [("es", "es"), ("en", "en_US")])
-def test_t18b_template_params_are_one_line_each_and_carry_the_hook(
+def test_t18b_template_params_are_one_line_each_and_carry_the_quote(
     lang: str, language: str
 ) -> None:
     """alerta_equipo_estafa: business, reporter, one-sentence summary, case number."""
@@ -256,14 +260,89 @@ def test_t18b_template_params_are_one_line_each_and_carry_the_hook(
     assert params == [
         "Ferreteria El Tornillo",
         "Ana",
-        t(lang, "team_alert.hook", hook=t(lang, "signal.brand_off_domain")),
+        t(lang, "team_alert.quote", quote=SIMIT_QUOTE),
         "14",
     ]
 
 
 def test_t18b_without_a_hook_the_summary_says_how_it_came() -> None:
-    case = _scam_case("Mamá, cambié de número", urls=[]).model_copy(update={"ref": 2})
+    case = _scam_case("Mamá, cambié de número", urls=[], kind="image")
+    case = case.model_copy(update={"ref": 2})
     _, params = team_alert_params("es", ("Negocio", "Ana"), _verdict(signals=[]), case)
 
-    assert params[2] == t("es", "team_alert.came_as", kind=t("es", "team_alert.kind.text"))
+    assert params[2] == "Llegó en una captura."
     assert all(p and "\n" not in p for p in params)  # Meta rejects empty or multiline params
+
+
+def test_incident_the_alert_quotes_what_arrived_with_link_and_number_disarmed() -> None:
+    """Incident 31 oct: the alert said why it was flagged, never what arrived."""
+    msg = team_alert_message("es", "Ana", _scam_verdict(), _scam_case())
+
+    assert f"Dice: “{SIMIT_QUOTE}”" in msg.splitlines()
+    assert "simit-pagos.click" not in msg and "doc=123" not in msg
+    assert "1234" not in msg
+    # the quote replaces the system's criterion, it does not pile on top of it
+    assert t("es", "signal.brand_off_domain") not in msg
+
+
+def test_incident_the_kind_reads_inside_the_sentence() -> None:
+    """Incident 31 oct: "(mensaje)" in parentheses read like a form field."""
+    for kind, phrase in [
+        ("text", "un mensaje de texto"),
+        ("audio", "una nota de voz"),
+        ("image", "una captura"),
+        ("pdf", "un PDF"),
+    ]:
+        first = team_alert_message("es", "Ana", _scam_verdict(), _scam_case(kind=kind))
+        first = first.splitlines()[0]
+        assert f"estafa de SIMIT que llegó en {phrase}." in first
+        assert "(" not in first
+
+
+def test_incident_a_long_message_is_cut_at_a_whole_word() -> None:
+    words = "Estimado cliente su cuenta presenta un bloqueo preventivo por seguridad " * 4
+    msg = team_alert_message("es", "Ana", _verdict(signals=_NO_LINK), _scam_case(words, urls=[]))
+    quote = next(line for line in msg.splitlines() if line.startswith("Dice: “"))
+    body = quote.removeprefix("Dice: “").removesuffix("…”")
+
+    assert quote.endswith("…”")
+    assert len(body) <= QUOTE_MAX
+    assert words.startswith(body + " ")  # ends on a whole word
+
+
+def test_incident_accounts_ids_codes_and_emails_are_masked_in_the_quote() -> None:
+    text = (
+        "Consigne $1.500.000 a la cuenta 0123-4567-8901, cédula 1.020.304.050,"
+        " código 482913, y escriba a pagos@proveedor-falso.co"
+    )
+    msg = team_alert_message("es", "Ana", _verdict(signals=_NO_LINK), _scam_case(text, urls=[]))
+
+    assert "Dice: “" in msg
+    for leak in ("0123", "4567", "8901", "020", "304", "482913", "proveedor-falso.co"):
+        assert leak not in msg
+    assert "proveedor-falso[.]co" in msg
+    assert "$1.500.000" in msg  # an amount is how the scam reads, not who it is
+
+
+def test_incident_a_quote_with_nothing_readable_falls_back_to_the_hook() -> None:
+    case = _scam_case("https://simit-pagos.click/pago?doc=123 3000001234")
+    msg = team_alert_message("es", "Ana", _scam_verdict(), case)
+
+    assert "Dice:" not in msg
+    assert t("es", "team_alert.hook", hook=t("es", "signal.brand_off_domain")) in msg
+
+
+@pytest.mark.parametrize("kind", ["image", "pdf", "conversation"])
+def test_incident_model_read_or_chat_text_is_never_quoted(kind: str) -> None:
+    """Rule 14: a screenshot's or PDF's text was written by Spark, not by the scammer."""
+    msg = team_alert_message("es", "Ana", _scam_verdict(), _scam_case(kind=kind))
+
+    assert "Dice:" not in msg and "Multa pendiente" not in msg
+    assert t("es", "signal.brand_off_domain") in msg
+
+
+def test_incident_the_template_summary_quotes_on_one_line() -> None:
+    case = _scam_case("Su paquete está retenido.\nPague el envío hoy mismo", urls=[])
+    _, params = team_alert_params("es", ("Negocio", "Ana"), _verdict(signals=[]), case)
+
+    assert params[2] == "Dice: “Su paquete está retenido. Pague el envío hoy mismo”"
