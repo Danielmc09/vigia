@@ -6,7 +6,8 @@ acknowledged quickly.
 
 ## Reporting a vulnerability
 
-Email **vigia-security@proton.me** with a description of the issue, the steps
+Use GitHub's private vulnerability reporting (the repo's **Security** tab →
+**Report a vulnerability**) with a description of the issue, the steps
 to reproduce it, and, if you have one, the smallest proof of concept that
 shows the problem. Do not open a public GitHub issue for a vulnerability that
 has not been fixed yet — this repo is public from its first commit (AGENTS.md
