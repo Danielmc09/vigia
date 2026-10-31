@@ -164,5 +164,16 @@
   "usage.transfer": "Para pasarle el negocio a alguien de tu equipo escribe: transferir +57 300 000 0000",
   "usage.confirm": "Para confirmar una acción escribe: confirmar <id>, con el id de 8 caracteres que te envié.",
   "usage.cancel": "Para cancelar una acción escribe: cancelar <id>, con el id de 8 caracteres que te envié.",
-  "usage.scam_confirmed": "Para confirmar una estafa escribe: estafa confirmada <número de caso>, por ejemplo: estafa confirmada 14"
+  "usage.scam_confirmed": "Para confirmar una estafa escribe: estafa confirmada <número de caso>, por ejemplo: estafa confirmada 14",
+  "metric.casos": "Casos",
+  "metric.exactitud": "Exactitud",
+  "metric.recall_estafa": "Estafas detectadas",
+  "metric.fp_legitimo": "Falsas alarmas",
+  "metric.dudosos": "Dudosos",
+  "metric.manipulacion_legitimo": "Manipulación en legítimos",
+  "metric.mediana_ms": "Mediana de latencia (ms)",
+  "metric.usd_total": "Costo total (USD)",
+  "metric.tokens_total": "Tokens totales",
+  "metric.degradados": "Degradados",
+  "metric.hipotesis_confirmadas": "Hipótesis confirmadas"
 }

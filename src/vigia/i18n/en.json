@@ -164,5 +164,16 @@
   "usage.transfer": "To hand the business to someone on your team, write: transfer +1 202 555 0100",
   "usage.confirm": "To confirm an action, write: confirm <id>, with the 8-character id I sent you.",
   "usage.cancel": "To cancel an action, write: cancel <id>, with the 8-character id I sent you.",
-  "usage.scam_confirmed": "To confirm a scam, write: scam confirmed <case number>, for example: scam confirmed 14"
+  "usage.scam_confirmed": "To confirm a scam, write: scam confirmed <case number>, for example: scam confirmed 14",
+  "metric.casos": "Cases",
+  "metric.exactitud": "Accuracy",
+  "metric.recall_estafa": "Scam recall",
+  "metric.fp_legitimo": "False alarms",
+  "metric.dudosos": "Unclear",
+  "metric.manipulacion_legitimo": "Manipulation on legit",
+  "metric.mediana_ms": "Median ms",
+  "metric.usd_total": "Total USD",
+  "metric.tokens_total": "Total tokens",
+  "metric.degradados": "Degraded",
+  "metric.hipotesis_confirmadas": "Hypotheses confirmed"
 }

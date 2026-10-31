@@ -195,9 +195,17 @@ def test_the_page_shows_the_columns_counters_and_metrics() -> None:
 
     for text in ("Bancolombia", "brand_off_domain", "read_pdf", "0.90", "5300", "pdf"):
         assert text in page
-    assert "recall_estafa" in page and "0.95" in page
+    assert "Scam recall" in page and "0.95" in page
     assert "prefers-color-scheme: dark" in page
     assert "1280px" in page
+
+
+def test_incident_a_metric_without_a_label_shows_its_key_instead_of_crashing() -> None:
+    # hypothesis: a metric key without an i18n entry (adversarial run's "atrapados")
+    # raised KeyError and turned /panel into a 500.
+    page = render_panel([_row()], {}, {"metricas": {"atrapados": 1}})
+
+    assert "atrapados" in page
 
 
 def test_t18b_an_alert_that_could_not_go_out_is_visible() -> None:
@@ -211,7 +219,7 @@ def test_the_try_form_and_the_verdicts_come_before_the_metrics() -> None:
     page = render_panel([_row()], {"scam": 1}, metrics)
 
     assert page.index('class="panel try"') < page.index("<table><thead>")
-    assert page.index("<table><thead>") < page.index("recall_estafa")
+    assert page.index("<table><thead>") < page.index("Scam recall")
 
 
 def test_the_try_button_sets_the_wait_expectation_without_js() -> None:

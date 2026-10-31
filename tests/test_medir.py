@@ -256,7 +256,7 @@ def test_adversarial_run_reports_caught_and_passes_when_all_expectations_hold(
     assert by_id["adv-1"]["marcados"] == [True] and by_id["adv-1"]["etiqueta"] != "legit"
     assert by_id["adv-sys"]["paso"] is None and by_id["adv-sys"]["test"]
     out = capsys.readouterr().out
-    assert "atrapados=1/1" in out and "adv-sys" in out
+    assert "caught=1/1" in out and "adv-sys" in out
 
 
 def test_adversarial_run_fails_when_an_expectation_does_not_hold(tmp_path: Path) -> None:

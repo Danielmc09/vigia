@@ -489,7 +489,7 @@ def _adversarial(path: Path, json_out: Path | None, out_dir: Path) -> int:
         _write(result, json_out)
     _write(result, out_dir / f"{result['fecha']}.adversarios.resultado.json")
     print(f"mode=adversarios sequences={metrics['secuencias']} passed={metrics['pasan']}")
-    print(f"  atrapados={metrics['atrapados']}/{metrics['manipulaciones']} usd_total=0.000")
+    print(f"  caught={metrics['atrapados']}/{metrics['manipulaciones']} total_usd=0.000")
     for r in records:
         if r["paso"] is None:
             print(f"  PYTEST {r['id']} -> {r['test']}")
@@ -551,6 +551,24 @@ def _save(result: dict[str, Any], code: int, json_out: Path | None, out_dir: Pat
         _write(result, out_dir / f"ultimo{suffix}.resultado.json")
 
 
+METRIC_LABELS = {  # display names only (English, D-114); the JSON keys above stay Spanish
+    "casos": "cases",
+    "exactitud": "accuracy",
+    "recall_estafa": "scam recall",
+    "fp_legitimo": "false alarms",
+    "dudosos": "unclear",
+    "manipulacion_legitimo": "manipulation on legit",
+    "mediana_ms": "median ms",
+    "usd_total": "total usd",
+    "tokens_total": "total tokens",
+    "degradados": "degraded",
+    "hipotesis_confirmadas": "hypotheses confirmed",
+    "por_tipo": "by type",
+    "por_pais": "by country",
+    "por_categoria": "by category",
+}
+
+
 def _report(result: dict[str, Any]) -> None:
     """Print the summary table and the failed cases."""
     metrics = result["metricas"]
@@ -558,9 +576,10 @@ def _report(result: dict[str, Any]) -> None:
     for key, value in metrics.items():
         if not isinstance(value, dict):
             shown = f"{value:.3f}" if isinstance(value, float) else value
-            print(f"  {key:<22} {shown}")
+            print(f"  {METRIC_LABELS.get(key, key):<22} {shown}")
     for key in ("por_tipo", "por_pais", "por_categoria"):
-        print(f"  {key:<22} " + " ".join(f"{k}={v:.2f}" for k, v in metrics[key].items()))
+        label = METRIC_LABELS[key]
+        print(f"  {label:<22} " + " ".join(f"{k}={v:.2f}" for k, v in metrics[key].items()))
     for case in result["casos"]:
         if not case["paso"]:
             got = case["obtenido"]

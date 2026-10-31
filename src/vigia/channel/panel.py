@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import Any, NamedTuple, get_args
 
 from vigia.domain.verdict import Label, VerdictRow
-from vigia.i18n import t
+from vigia.i18n import has_key, t
 
 PANEL_JS = Path(__file__).with_name("panel.js").read_text(encoding="utf-8")
 LANG = "en"  # ponytail: one operator, one language; per-operator language with T-17b
@@ -118,6 +118,11 @@ def _metric(value: object) -> str:
     return f"{value:.3f}" if isinstance(value, float) else str(value)
 
 
+def _metric_label(name: str) -> str:
+    key = f"metric.{name}"
+    return t(LANG, key) if has_key(LANG, key) else name
+
+
 def _metrics(result: Mapping[str, Any] | None) -> str:
     """Cards with the scalar metrics of the latest eval result, or a note if there is none."""
     if not result:
@@ -128,7 +133,9 @@ def _metrics(result: Mapping[str, Any] | None) -> str:
         if isinstance(value, int | float | str)
     }
     date = f" · {escape(str(result['fecha']))}" if result.get("fecha") else ""
-    cards = "".join(_card(name, _metric(value)) for name, value in scalars.items())
+    cards = "".join(
+        _card(_metric_label(name), _metric(value)) for name, value in scalars.items()
+    )
     return (
         f'<section class="metrics"><h2>{escape(t(LANG, "panel.metrics"))}{date}</h2>'
         f'<div class="cards">{cards}</div></section>'

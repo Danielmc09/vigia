@@ -56,7 +56,7 @@ CASES = [
 
 def _printed_send(request: httpx.Request) -> httpx.Response:
     body = json.loads(request.content)
-    print(f"  -> WhatsApp a {body['number']}: {body['message'][:90]}")
+    print(f"  -> WhatsApp to {body['number']}: {body['message'][:90]}")
     return httpx.Response(200, json={"ok": True})
 
 
@@ -106,19 +106,19 @@ def panel_url(token: str, config: Settings | None = None) -> str:
 async def _main() -> None:
     config = Settings()
     if config.model_api_key is None:
-        print("Sin MODEL_API_KEY: corriendo en modo reglas (sin analista ni lectores).")
+        print("No MODEL_API_KEY: running in rules-only mode (no analyst, no readers).")
     keyring = Keyring.from_settings(config)
     conn = await asyncpg.connect(config.database_url)
     try:
-        print(f"Sembrando '{BUSINESS_NAME}' con {len(MEMBERS)} miembros...")
+        print(f"Seeding '{BUSINESS_NAME}' with {len(MEMBERS)} members...")
         await seed_business(conn, keyring)
-        print(f"Enviando {len(CASES)} casos de muestra...")
+        print(f"Sending {len(CASES)} sample cases...")
         await send_samples(conn, demo_channel(keyring, config))
     finally:
         await conn.close()
     token = config.panel_token.get_secret_value() if config.panel_token else ""
     url = panel_url(token, config)
-    print(f"Listo. Panel: {url}")
+    print(f"Done. Panel: {url}")
     webbrowser.open(url)
 
 
