@@ -665,7 +665,7 @@ async def test_the_analyst_gets_the_business_address_book_and_the_media(
 async def test_adv_media_repetida(
     app_conn: asyncpg.Connection, recorder: Recorder, keyring: Keyring
 ) -> None:
-    """The same file forwarded again (new message id) is a duplicate before any reader pays."""
+    """Incident 31 oct: a forwarded file (new message id) repeats its verdict, unpaid."""
     await team(app_conn, recorder)
     outbox, fake = Outbox(_png()), FakeReader()
     ch = channel(keyring, outbox, {"image": fake})
@@ -676,8 +676,44 @@ async def test_adv_media_repetida(
 
     assert len(fake.calls) == 1
     assert outbox.downloads == 3  # the bytes decide, so each copy is downloaded once
-    assert outbox.to(EMPLOYEE)[1:] == [t("es", "case.duplicate")] * 2
+    first, *repeats = outbox.to(EMPLOYEE)
+    for repeat in repeats:
+        assert repeat.startswith("Ya lo revisé el ")
+        assert repeat.endswith("\n" + first)  # same verdict, signals, action and case number
     assert len(await app_conn.fetch("SELECT 1 FROM verdicts")) == 1
+
+
+async def test_inc_reenvio_texto_repeats_the_verdict_without_the_model(
+    app_conn: asyncpg.Connection, recorder: Recorder, keyring: Keyring
+) -> None:
+    """Incident 31 oct: the same text forwarded again (new message id) is not paid twice."""
+    await team(app_conn, recorder)
+    outbox = Outbox()
+    ch = channel(keyring, outbox)
+
+    for n in range(2):
+        await whatsapp.process(app_conn, ch, incoming("texto", EMPLOYEE, message_id=f"wamid.t{n}"))
+
+    first, repeat = outbox.to(EMPLOYEE)
+    assert repeat.startswith("Ya lo revisé el ") and repeat.endswith("\n" + first)
+    assert len(await app_conn.fetch("SELECT 1 FROM verdicts")) == 1
+
+
+async def test_inc_reenvio_viejo_an_old_verdict_is_analyzed_again(
+    admin_conn: asyncpg.Connection, recorder: Recorder, keyring: Keyring
+) -> None:
+    """Incident 31 oct (case 11): an old verdict may predate a fix, so it is not repeated."""
+    await team(admin_conn, recorder)
+    outbox, fake = Outbox(_png()), FakeReader()
+    ch = channel(keyring, outbox, {"image": fake})
+
+    await whatsapp.process(admin_conn, ch, incoming("imagen", EMPLOYEE, message_id="wamid.o0"))
+    await admin_conn.execute("UPDATE verdicts SET created_at = created_at - interval '2 days'")
+    await whatsapp.process(admin_conn, ch, incoming("imagen", EMPLOYEE, message_id="wamid.o1"))
+
+    assert len(fake.calls) == 2
+    assert not outbox.to(EMPLOYEE)[1].startswith("Ya lo revisé")
+    assert len(await admin_conn.fetch("SELECT 1 FROM verdicts")) == 2
 
 
 async def test_a_failed_read_releases_the_media_claim(
