@@ -98,7 +98,7 @@ def _edits(a: str, b: str) -> int:
 def _lookalike(domain: str, pack: CountryPack) -> str | None:
     """The official domain this one imitates, if any."""
     seen = _skeleton(domain)
-    for official in sorted(pack.official_domains()):
+    for official in sorted(pack.official_domains() | pack.user_content_domains()):
         target = _skeleton(official)
         # Incident c-0187: also the name without its suffix (bancolornbia.com.co).
         edits = min(_edits(seen, target), _edits(domain_name(seen), domain_name(target)))
@@ -221,6 +221,8 @@ def url_signals(
         domain = registrable_domain(parts.netloc)
         if domain in SHORTENERS:
             signals = _shortener(url, pack, resolver, origin)
+        elif domain in pack.user_content_domains():
+            signals = []  # D-105: a real host, but the page is anyone's
         elif domain in pack.official_domains():
             signals = [Signal(type="official_domain", weight="light", source="urls")]
         else:

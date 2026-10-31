@@ -19,6 +19,8 @@ class Brand(BaseModel):
         source_url: Official page where the domains were verified.
         ambiguous: Its name is also a common word ("claro", "dale"), so all-lowercase
             text does not name it (D-104).
+        user_content: Its domains where anyone publishes (profiles, group invites): a link
+            there is the brand's host but not the brand speaking (D-105).
     """
 
     model_config = ConfigDict(frozen=True)
@@ -29,6 +31,7 @@ class Brand(BaseModel):
     kind: str | None = Field(default=None, alias="tipo")
     source_url: str = Field(alias="fuente_url")
     ambiguous: bool = Field(default=False, alias="ambigua")
+    user_content: tuple[str, ...] = Field(default=(), alias="contenido_de_usuarios")
 
 
 class ReportTo(BaseModel):
@@ -88,5 +91,9 @@ class CountryPack(BaseModel):
     campaigns: tuple[KnownCampaign, ...] = ()
 
     def official_domains(self) -> frozenset[str]:
-        """Every official registrable domain of every brand in the pack."""
-        return frozenset(d for brand in self.brands for d in brand.domains)
+        """Every registrable domain where only the brand publishes, of every brand in the pack."""
+        return frozenset(d for b in self.brands for d in b.domains) - self.user_content_domains()
+
+    def user_content_domains(self) -> frozenset[str]:
+        """Brand domains where anyone publishes: neither official nor off-domain (D-105)."""
+        return frozenset(d for brand in self.brands for d in brand.user_content)

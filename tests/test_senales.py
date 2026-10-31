@@ -442,6 +442,24 @@ def test_detector_official_link_keeps_credentials_light() -> None:
     assert ("credentials_request", "light") in _found(signals)
 
 
+@pytest.mark.parametrize("pack", [CO, US])
+def test_user_content_host_is_neither_official_nor_off_domain(pack: CountryPack) -> None:
+    # D-105: anyone can publish under instagram.com or chat.whatsapp.com.
+    for url in ("https://www.instagram.com/tienda.ofertas.co", "https://chat.whatsapp.com/AbC"):
+        assert url_signals(url, pack) == []
+    assert "instagram.com" not in pack.official_domains()
+    assert _found(url_signals("https://www.metamail.com/x", pack)) == {("official_domain", "light")}
+
+
+def test_user_content_domain_still_has_lookalikes() -> None:
+    assert ("lookalike_domain", "hard") in _found(url_signals("https://instagrarn.com/login", CO))
+
+
+def test_detector_user_content_link_keeps_credentials_hard() -> None:
+    text = "Mira el catalogo en https://www.instagram.com/tienda.ofertas.co y envianos tu clave"
+    assert ("credentials_request", "hard") in _found(detect(_case(text), CO))
+
+
 def test_detector_uses_the_address_book() -> None:
     text = "Aceros del Norte: nueva cuenta 987-654321-00"
     assert ("account_differs_from_known", "hard") in _found(detect(_case(text), CO, [ACEROS]))

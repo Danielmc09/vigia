@@ -514,6 +514,56 @@
    "canal_oficial": "app oficial o https://www.cruzverde.com.co",
    "tipo": "comercio",
    "fuente_url": "https://www.cruzverde.com.co/"
+  },
+  {
+   "marca": "WhatsApp",
+   "dominios": [
+    "whatsapp.com"
+   ],
+   "canal_oficial": "solo la cuenta 'WhatsApp Support' con insignia verificada dentro de la app o correos que terminan en @support.whatsapp.com; nunca pide tu código de 6 dígitos ni tu PIN",
+   "tipo": "plataforma",
+   "fuente_url": "https://faq.whatsapp.com/854037192262196",
+   "contenido_de_usuarios": [
+    "whatsapp.com"
+   ]
+  },
+  {
+   "marca": "Meta",
+   "ambigua": true,
+   "dominios": [
+    "meta.com",
+    "metamail.com"
+   ],
+   "canal_oficial": "correos de meta.com o metamail.com; el resto solo dentro de la app oficial",
+   "tipo": "plataforma",
+   "fuente_url": "https://www.meta.com/gb/account-recovery-support/"
+  },
+  {
+   "marca": "Facebook",
+   "dominios": [
+    "facebook.com",
+    "fb.com",
+    "facebookmail.com"
+   ],
+   "canal_oficial": "app oficial o https://www.facebook.com",
+   "tipo": "plataforma",
+   "fuente_url": "https://www.facebook.com/help/1634546593478660",
+   "contenido_de_usuarios": [
+    "facebook.com",
+    "fb.com"
+   ]
+  },
+  {
+   "marca": "Instagram",
+   "dominios": [
+    "instagram.com"
+   ],
+   "canal_oficial": "app oficial o https://www.instagram.com",
+   "tipo": "plataforma",
+   "fuente_url": "https://www.meta.com/gb/account-recovery-support/",
+   "contenido_de_usuarios": [
+    "instagram.com"
+   ]
   }
  ],
  "patrones": {

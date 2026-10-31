@@ -141,6 +141,56 @@
    "canal_oficial": "official app or https://www.ssa.gov",
    "tipo": "estado",
    "fuente_url": "https://www.ssa.gov/"
+  },
+  {
+   "marca": "WhatsApp",
+   "dominios": [
+    "whatsapp.com"
+   ],
+   "canal_oficial": "only the in-app 'WhatsApp Support' account with the verified badge, or email ending in @support.whatsapp.com; it never asks for your 6-digit code or PIN",
+   "tipo": "plataforma",
+   "fuente_url": "https://faq.whatsapp.com/854037192262196",
+   "contenido_de_usuarios": [
+    "whatsapp.com"
+   ]
+  },
+  {
+   "marca": "Meta",
+   "ambigua": true,
+   "dominios": [
+    "meta.com",
+    "metamail.com"
+   ],
+   "canal_oficial": "email from meta.com or metamail.com; anything else only inside the official app",
+   "tipo": "plataforma",
+   "fuente_url": "https://www.meta.com/gb/account-recovery-support/"
+  },
+  {
+   "marca": "Facebook",
+   "dominios": [
+    "facebook.com",
+    "fb.com",
+    "facebookmail.com"
+   ],
+   "canal_oficial": "official app or https://www.facebook.com",
+   "tipo": "plataforma",
+   "fuente_url": "https://www.facebook.com/help/1634546593478660",
+   "contenido_de_usuarios": [
+    "facebook.com",
+    "fb.com"
+   ]
+  },
+  {
+   "marca": "Instagram",
+   "dominios": [
+    "instagram.com"
+   ],
+   "canal_oficial": "official app or https://www.instagram.com",
+   "tipo": "plataforma",
+   "fuente_url": "https://www.meta.com/gb/account-recovery-support/",
+   "contenido_de_usuarios": [
+    "instagram.com"
+   ]
   }
  ],
  "patrones": {
