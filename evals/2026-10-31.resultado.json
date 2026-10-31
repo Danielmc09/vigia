@@ -1,0 +1,6141 @@
+{
+ "fecha": "2026-10-31",
+ "modo": "completo",
+ "filtro": null,
+ "metricas": {
+  "casos": 205,
+  "exactitud": 0.9170731707317074,
+  "recall_estafa": 0.9823008849557522,
+  "fp_legitimo": 0.022727272727272728,
+  "dudosos": 0.08292682926829269,
+  "manipulacion_legitimo": 0.0,
+  "por_categoria": {
+   "banco": 1.0,
+   "billetera": 0.8,
+   "estado": 1.0,
+   "legitimo_transportadora": 1.0,
+   "transportadora": 1.0,
+   "familiar": 1.0,
+   "legitimo_banco": 1.0,
+   "legitimo_otro": 0.8461538461538461,
+   "telco": 1.0,
+   "premio": 1.0,
+   "bec_proveedor": 1.0,
+   "bec_jefe": 1.0,
+   "compraventa": 0.8461538461538461,
+   "comercio": 1.0,
+   "legitimo_proveedor": 0.7692307692307693
+  },
+  "por_tipo": {
+   "texto": 0.8918918918918919,
+   "conversacion": 0.9090909090909091,
+   "audio": 1.0,
+   "pdf": 1.0,
+   "imagen": 1.0
+  },
+  "por_pais": {
+   "CO": 0.9096774193548387,
+   "US": 0.94
+  },
+  "mediana_ms": 3087.7,
+  "usd_total": 0.7496856500000001,
+  "tokens_total": 479463,
+  "degradados": 80,
+  "hipotesis_confirmadas": 188
+ },
+ "gate": [],
+ "regresiones": [
+  "exactitud",
+  "dudosos"
+ ],
+ "omitidos": [],
+ "casos": [
+  {
+   "id": "c-0001",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "banco",
+   "pais": "CO",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [
+    "brand_off_domain",
+    "urgency"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 3179.1,
+   "usd": 0.00212625,
+   "tokens": 705,
+   "error": null
+  },
+  {
+   "id": "c-0002",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "billetera",
+   "pais": "CO",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.8,
+   "senales": [
+    "unresolved_shortener",
+    "prize",
+    "personal_payment"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 1694.2,
+   "usd": 0.0017507500000000001,
+   "tokens": 611,
+   "error": null
+  },
+  {
+   "id": "c-0003",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "estado",
+   "pais": "CO",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [
+    "personal_payment_release"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 1389.3,
+   "usd": 0.0014947499999999996,
+   "tokens": 555,
+   "error": null
+  },
+  {
+   "id": "c-0004",
+   "esperado": "legitimo",
+   "tipo": "texto",
+   "categoria": "legitimo_transportadora",
+   "pais": "CO",
+   "obtenido": "legitimo",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [
+    "official_domain",
+    "official_domain"
+   ],
+   "herramientas_usadas": [
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1337,
+     "usd": 0.0025065
+    },
+    {
+     "name": "check_country",
+     "ms": 0,
+     "usd": 0.0
+    },
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1035,
+     "usd": 0.00262675
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 5106.7,
+   "usd": 0.0070705,
+   "tokens": 4358,
+   "error": null
+  },
+  {
+   "id": "c-0005",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "transportadora",
+   "pais": "CO",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [
+    "brand_off_domain",
+    "suspicious_tld"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 2300.5,
+   "usd": 0.0016714999999999994,
+   "tokens": 598,
+   "error": null
+  },
+  {
+   "id": "c-0006",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "familiar",
+   "pais": "CO",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.88,
+   "senales": [
+    "family",
+    "family_impersonation",
+    "new_number_claim",
+    "urgency",
+    "cannot_call_evasion"
+   ],
+   "herramientas_usadas": [
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1279,
+     "usd": 0.00103015
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 2627.8,
+   "usd": 0.002723900000000003,
+   "tokens": 2416,
+   "error": null
+  },
+  {
+   "id": "c-0007",
+   "esperado": "legitimo",
+   "tipo": "texto",
+   "categoria": "legitimo_banco",
+   "pais": "CO",
+   "obtenido": "legitimo",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.85,
+   "senales": [
+    "official_phone_match",
+    "no_url",
+    "no_credential_request"
+   ],
+   "herramientas_usadas": [
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1120,
+     "usd": 0.0008811
+    },
+    {
+     "name": "check_country",
+     "ms": 1,
+     "usd": 0.0
+    },
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1879,
+     "usd": 0.00330375
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 4902.1,
+   "usd": 0.006192749999999997,
+   "tokens": 4659,
+   "error": null
+  },
+  {
+   "id": "c-0008",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "transportadora",
+   "pais": "US",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [
+    "brand_off_domain",
+    "suspicious_tld"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 1005.0,
+   "usd": 0.001344500000000002,
+   "tokens": 514,
+   "error": null
+  },
+  {
+   "id": "c-0009",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "banco",
+   "pais": "CO",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [
+    "credentials_request",
+    "suspicious_tld",
+    "http_without_tls"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": true,
+   "ms": 8.2,
+   "usd": 0.0,
+   "tokens": 0,
+   "error": null
+  },
+  {
+   "id": "c-0010",
+   "esperado": "legitimo",
+   "tipo": "texto",
+   "categoria": "legitimo_otro",
+   "pais": "CO",
+   "obtenido": "legitimo",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [
+    "official_domain",
+    "official_domain"
+   ],
+   "herramientas_usadas": [
+    {
+     "name": "muse-spark-1.3",
+     "ms": 828,
+     "usd": 0.00243525
+    },
+    {
+     "name": "check_country",
+     "ms": 0,
+     "usd": 0.0
+    },
+    {
+     "name": "muse-spark-1.3",
+     "ms": 990,
+     "usd": 0.0026155
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 3574.9,
+   "usd": 0.006964750000000002,
+   "tokens": 4319,
+   "error": null
+  },
+  {
+   "id": "c-0011",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "banco",
+   "pais": "CO",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [
+    "brand_off_domain",
+    "credentials_request"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 1320.7,
+   "usd": 0.0012934,
+   "tokens": 570,
+   "error": null
+  },
+  {
+   "id": "c-0012",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "banco",
+   "pais": "CO",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.92,
+   "senales": [
+    "credentials_request",
+    "bank_impersonation",
+    "otp_request",
+    "unauthorized_access_pretext"
+   ],
+   "herramientas_usadas": [
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1740,
+     "usd": 0.00349425
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 3166.0,
+   "usd": 0.005192749999999996,
+   "tokens": 2623,
+   "error": null
+  },
+  {
+   "id": "c-0013",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "banco",
+   "pais": "CO",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.8,
+   "senales": [
+    "ip_or_port",
+    "urgency",
+    "http_without_tls"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 1240.3,
+   "usd": 0.0014834999999999987,
+   "tokens": 558,
+   "error": null
+  },
+  {
+   "id": "c-0014",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "billetera",
+   "pais": "CO",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [
+    "brand_off_domain",
+    "credentials_request",
+    "suspicious_tld",
+    "prize",
+    "personal_payment"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 1205.3,
+   "usd": 0.0015767500000000018,
+   "tokens": 575,
+   "error": null
+  },
+  {
+   "id": "c-0015",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "billetera",
+   "pais": "CO",
+   "obtenido": "dudoso",
+   "paso": false,
+   "hipotesis_confirmada": false,
+   "confianza": 0.5,
+   "senales": [
+    "personal_payment",
+    "mistaken_transfer_claim",
+    "refund_to_same_number",
+    "emotional_plea"
+   ],
+   "herramientas_usadas": [
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1782,
+     "usd": 0.00349225
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 3969.2,
+   "usd": 0.005707250000000004,
+   "tokens": 2785,
+   "error": null
+  },
+  {
+   "id": "c-0016",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "estado",
+   "pais": "CO",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [
+    "brand_off_domain",
+    "suspicious_tld",
+    "authority_with_link"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 1487.8,
+   "usd": 0.0014343999999999954,
+   "tokens": 606,
+   "error": null
+  },
+  {
+   "id": "c-0017",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "estado",
+   "pais": "CO",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.8,
+   "senales": [
+    "unresolved_shortener",
+    "authority_with_link"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 1107.2,
+   "usd": 0.0011779999999999985,
+   "tokens": 484,
+   "error": null
+  },
+  {
+   "id": "c-0018",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "estado",
+   "pais": "CO",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [
+    "lookalike_domain",
+    "brand_off_domain",
+    "suspicious_tld",
+    "prize"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 1450.3,
+   "usd": 0.001401400000000004,
+   "tokens": 594,
+   "error": null
+  },
+  {
+   "id": "c-0019",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "estado",
+   "pais": "CO",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [
+    "brand_off_domain",
+    "credentials_request",
+    "suspicious_tld",
+    "authority_with_link"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 1393.9,
+   "usd": 0.0014423999999999965,
+   "tokens": 610,
+   "error": null
+  },
+  {
+   "id": "c-0020",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "transportadora",
+   "pais": "CO",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [
+    "brand_off_domain"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 1128.8,
+   "usd": 0.0016795000000000004,
+   "tokens": 602,
+   "error": null
+  },
+  {
+   "id": "c-0021",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "transportadora",
+   "pais": "CO",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [
+    "personal_payment_release"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 1632.2,
+   "usd": 0.0016601499999999991,
+   "tokens": 657,
+   "error": null
+  },
+  {
+   "id": "c-0022",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "telco",
+   "pais": "CO",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [
+    "brand_off_domain",
+    "suspicious_tld"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 1512.7,
+   "usd": 0.0016469999999999957,
+   "tokens": 588,
+   "error": null
+  },
+  {
+   "id": "c-0023",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "telco",
+   "pais": "CO",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.95,
+   "senales": [
+    "urgency",
+    "service_suspension_threat",
+    "id_document_request",
+    "otp_code_request"
+   ],
+   "herramientas_usadas": [
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1780,
+     "usd": 0.0032385
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 2971.9,
+   "usd": 0.0045836500000000086,
+   "tokens": 2535,
+   "error": null
+  },
+  {
+   "id": "c-0024",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "premio",
+   "pais": "CO",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [
+    "brand_off_domain",
+    "suspicious_tld",
+    "prize"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 1081.1,
+   "usd": 0.0015822500000000073,
+   "tokens": 577,
+   "error": null
+  },
+  {
+   "id": "c-0025",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "familiar",
+   "pais": "CO",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [
+    "personal_payment_release",
+    "family"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 1308.2,
+   "usd": 0.0014779999999999932,
+   "tokens": 556,
+   "error": null
+  },
+  {
+   "id": "c-0026",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "familiar",
+   "pais": "CO",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.85,
+   "senales": [
+    "family",
+    "family_impersonation",
+    "new_number_claim",
+    "money_request"
+   ],
+   "herramientas_usadas": [
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1729,
+     "usd": 0.0020398499999999997
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 3538.4,
+   "usd": 0.004370849999999996,
+   "tokens": 2683,
+   "error": null
+  },
+  {
+   "id": "c-0027",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "bec_proveedor",
+   "pais": "CO",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.92,
+   "senales": [
+    "new_account_request",
+    "third_party_payment",
+    "verification_avoidance"
+   ],
+   "herramientas_usadas": [
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1838,
+     "usd": 0.0020415999999999998
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 3657.8,
+   "usd": 0.0038892500000000108,
+   "tokens": 2625,
+   "error": null
+  },
+  {
+   "id": "c-0028",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "bec_jefe",
+   "pais": "CO",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.96,
+   "senales": [
+    "authority_impersonation",
+    "gift_card_request",
+    "code_request",
+    "urgency"
+   ],
+   "herramientas_usadas": [
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1224,
+     "usd": 0.0015635999999999998
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 2789.7,
+   "usd": 0.0037848499999999924,
+   "tokens": 2531,
+   "error": null
+  },
+  {
+   "id": "c-0029",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "compraventa",
+   "pais": "CO",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.8,
+   "senales": [
+    "advance_before_seeing",
+    "personal_account_only",
+    "verification_evasion",
+    "price_below_market",
+    "personal_payment"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 1970.1,
+   "usd": 0.00188025,
+   "tokens": 657,
+   "error": null
+  },
+  {
+   "id": "c-0030",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "compraventa",
+   "pais": "CO",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [
+    "staggered_charges",
+    "pressure_after_payment",
+    "already_paid"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 1296.9,
+   "usd": 0.0011896500000000004,
+   "tokens": 547,
+   "error": null
+  },
+  {
+   "id": "c-0031",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "estado",
+   "pais": "US",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [
+    "brand_off_domain",
+    "suspicious_tld",
+    "urgency",
+    "prize",
+    "authority_with_link"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 1209.5,
+   "usd": 0.0017187499999999911,
+   "tokens": 607,
+   "error": null
+  },
+  {
+   "id": "c-0032",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "banco",
+   "pais": "US",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.85,
+   "senales": [
+    "personal_payment",
+    "bank_impersonation",
+    "callback_to_unknown_number",
+    "urgency_pressure"
+   ],
+   "herramientas_usadas": [
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1233,
+     "usd": 0.002542
+    },
+    {
+     "name": "check_country",
+     "ms": 0,
+     "usd": 0.0
+    },
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1371,
+     "usd": 0.00313625
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 4168.9,
+   "usd": 0.007345000000000018,
+   "tokens": 4388,
+   "error": null
+  },
+  {
+   "id": "c-0033",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "comercio",
+   "pais": "US",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [
+    "brand_off_domain",
+    "credentials_request"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 1180.7,
+   "usd": 0.0009821499999999872,
+   "tokens": 489,
+   "error": null
+  },
+  {
+   "id": "c-0034",
+   "esperado": "legitimo",
+   "tipo": "texto",
+   "categoria": "legitimo_banco",
+   "pais": "CO",
+   "obtenido": "legitimo",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.92,
+   "senales": [
+    "credentials_request",
+    "otp_notification",
+    "no_url",
+    "anti_phishing_warning"
+   ],
+   "herramientas_usadas": [
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1749,
+     "usd": 0.003263
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 2999.8,
+   "usd": 0.004550000000000012,
+   "tokens": 2452,
+   "error": null
+  },
+  {
+   "id": "c-0035",
+   "esperado": "legitimo",
+   "tipo": "texto",
+   "categoria": "legitimo_banco",
+   "pais": "CO",
+   "obtenido": "legitimo",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [
+    "personal_payment",
+    "ordinary_notification",
+    "no_url_no_request"
+   ],
+   "herramientas_usadas": [
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1814,
+     "usd": 0.00313525
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 3226.8,
+   "usd": 0.004501149999999995,
+   "tokens": 2493,
+   "error": null
+  },
+  {
+   "id": "c-0036",
+   "esperado": "legitimo",
+   "tipo": "texto",
+   "categoria": "legitimo_otro",
+   "pais": "CO",
+   "obtenido": "legitimo",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.95,
+   "senales": [
+    "official_domain",
+    "official_domain"
+   ],
+   "herramientas_usadas": [
+    {
+     "name": "muse-spark-1.3",
+     "ms": 912,
+     "usd": 0.002492
+    },
+    {
+     "name": "check_country",
+     "ms": 1,
+     "usd": 0.0
+    },
+    {
+     "name": "muse-spark-1.3",
+     "ms": 933,
+     "usd": 0.0027585
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 2758.6,
+   "usd": 0.006186250000000004,
+   "tokens": 4157,
+   "error": null
+  },
+  {
+   "id": "c-0037",
+   "esperado": "legitimo",
+   "tipo": "texto",
+   "categoria": "legitimo_transportadora",
+   "pais": "CO",
+   "obtenido": "legitimo",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.75,
+   "senales": [
+    "official_domain",
+    "official_domain"
+   ],
+   "herramientas_usadas": [
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1176,
+     "usd": 0.0027115
+    },
+    {
+     "name": "check_country",
+     "ms": 0,
+     "usd": 0.0
+    },
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1208,
+     "usd": 0.0012376
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 4814.5,
+   "usd": 0.006308850000000005,
+   "tokens": 4691,
+   "error": null
+  },
+  {
+   "id": "c-0038",
+   "esperado": "legitimo",
+   "tipo": "texto",
+   "categoria": "legitimo_otro",
+   "pais": "CO",
+   "obtenido": "legitimo",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [
+    "official_domain",
+    "official_domain"
+   ],
+   "herramientas_usadas": [
+    {
+     "name": "muse-spark-1.3",
+     "ms": 767,
+     "usd": 0.0008126499999999999
+    },
+    {
+     "name": "check_country",
+     "ms": 1,
+     "usd": 0.0
+    },
+    {
+     "name": "muse-spark-1.3",
+     "ms": 799,
+     "usd": 0.00257725
+    },
+    {
+     "name": "check_country",
+     "ms": 1,
+     "usd": 0.0
+    },
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1175,
+     "usd": 0.0011421500000000002
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 3982.0,
+   "usd": 0.005941799999999997,
+   "tokens": 6192,
+   "error": null
+  },
+  {
+   "id": "c-0039",
+   "esperado": "legitimo",
+   "tipo": "texto",
+   "categoria": "legitimo_banco",
+   "pais": "CO",
+   "obtenido": "legitimo",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.75,
+   "senales": [
+    "no_link",
+    "no_credential_request"
+   ],
+   "herramientas_usadas": [
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1324,
+     "usd": 0.0011829000000000002
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 3133.2,
+   "usd": 0.003185550000000009,
+   "tokens": 2575,
+   "error": null
+  },
+  {
+   "id": "c-0040",
+   "esperado": "legitimo",
+   "tipo": "texto",
+   "categoria": "legitimo_otro",
+   "pais": "CO",
+   "obtenido": "legitimo",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [
+    "official_domain",
+    "official_domain"
+   ],
+   "herramientas_usadas": [
+    {
+     "name": "muse-spark-1.3",
+     "ms": 886,
+     "usd": 0.00096315
+    },
+    {
+     "name": "check_country",
+     "ms": 1,
+     "usd": 0.0
+    },
+    {
+     "name": "muse-spark-1.3",
+     "ms": 980,
+     "usd": 0.00287025
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 3260.7,
+   "usd": 0.005150799999999983,
+   "tokens": 4356,
+   "error": null
+  },
+  {
+   "id": "c-0041",
+   "esperado": "legitimo",
+   "tipo": "texto",
+   "categoria": "legitimo_otro",
+   "pais": "CO",
+   "obtenido": "legitimo",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.75,
+   "senales": [],
+   "herramientas_usadas": [
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1444,
+     "usd": 0.0028715
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 4008.0,
+   "usd": 0.0057284999999999975,
+   "tokens": 2706,
+   "error": null
+  },
+  {
+   "id": "c-0042",
+   "esperado": "legitimo",
+   "tipo": "texto",
+   "categoria": "legitimo_proveedor",
+   "pais": "CO",
+   "obtenido": "legitimo",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [],
+   "herramientas_usadas": [
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1166,
+     "usd": 0.00126065
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 2482.0,
+   "usd": 0.002767300000000028,
+   "tokens": 2478,
+   "error": null
+  },
+  {
+   "id": "c-0043",
+   "esperado": "legitimo",
+   "tipo": "texto",
+   "categoria": "legitimo_otro",
+   "pais": "CO",
+   "obtenido": "legitimo",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [],
+   "herramientas_usadas": [
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1105,
+     "usd": 0.00307375
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 2408.9,
+   "usd": 0.0044186499999999684,
+   "tokens": 2463,
+   "error": null
+  },
+  {
+   "id": "c-0044",
+   "esperado": "legitimo",
+   "tipo": "texto",
+   "categoria": "compraventa",
+   "pais": "CO",
+   "obtenido": "legitimo",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.85,
+   "senales": [],
+   "herramientas_usadas": [
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1371,
+     "usd": 0.00117065
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 2585.3,
+   "usd": 0.0029374000000000067,
+   "tokens": 2450,
+   "error": null
+  },
+  {
+   "id": "c-0045",
+   "esperado": "legitimo",
+   "tipo": "texto",
+   "categoria": "legitimo_banco",
+   "pais": "CO",
+   "obtenido": "legitimo",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.85,
+   "senales": [
+    "official_domain",
+    "official_domain"
+   ],
+   "herramientas_usadas": [
+    {
+     "name": "muse-spark-1.3",
+     "ms": 883,
+     "usd": 0.00259275
+    },
+    {
+     "name": "check_country",
+     "ms": 1,
+     "usd": 0.0
+    },
+    {
+     "name": "muse-spark-1.3",
+     "ms": 814,
+     "usd": 0.0008881000000000001
+    },
+    {
+     "name": "analyze_url",
+     "ms": 0,
+     "usd": 0.0
+    },
+    {
+     "name": "muse-spark-1.3",
+     "ms": 970,
+     "usd": 0.003184
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 4626.4,
+   "usd": 0.008671000000000012,
+   "tokens": 6716,
+   "error": null
+  },
+  {
+   "id": "c-0046",
+   "esperado": "legitimo",
+   "tipo": "texto",
+   "categoria": "legitimo_banco",
+   "pais": "US",
+   "obtenido": "legitimo",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.85,
+   "senales": [],
+   "herramientas_usadas": [
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1104,
+     "usd": 0.0018643499999999999
+    },
+    {
+     "name": "check_country",
+     "ms": 1,
+     "usd": 0.0
+    },
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1176,
+     "usd": 0.00181205
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 4752.4,
+   "usd": 0.00622689999999998,
+   "tokens": 4722,
+   "error": null
+  },
+  {
+   "id": "c-0047",
+   "esperado": "legitimo",
+   "tipo": "texto",
+   "categoria": "legitimo_transportadora",
+   "pais": "US",
+   "obtenido": "legitimo",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.85,
+   "senales": [
+    "official_domain",
+    "official_domain",
+    "no_credential_request"
+   ],
+   "herramientas_usadas": [
+    {
+     "name": "muse-spark-1.3",
+     "ms": 866,
+     "usd": 0.0026555
+    },
+    {
+     "name": "check_country",
+     "ms": 0,
+     "usd": 0.0
+    },
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1115,
+     "usd": 0.0014198499999999998
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 3658.8,
+   "usd": 0.005385000000000029,
+   "tokens": 4440,
+   "error": null
+  },
+  {
+   "id": "c-0048",
+   "esperado": "legitimo",
+   "tipo": "texto",
+   "categoria": "legitimo_proveedor",
+   "pais": "CO",
+   "obtenido": "dudoso",
+   "paso": false,
+   "hipotesis_confirmada": false,
+   "confianza": 0.5,
+   "senales": [
+    "brand_in_path",
+    "brand_in_path",
+    "unofficial_payment_domain"
+   ],
+   "herramientas_usadas": [
+    {
+     "name": "muse-spark-1.3",
+     "ms": 753,
+     "usd": 0.00281375
+    },
+    {
+     "name": "check_country",
+     "ms": 1,
+     "usd": 0.0
+    },
+    {
+     "name": "muse-spark-1.3",
+     "ms": 846,
+     "usd": 0.0009968
+    },
+    {
+     "name": "analyze_url",
+     "ms": 9,
+     "usd": 0.0
+    },
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1513,
+     "usd": 0.0031455
+    },
+    {
+     "name": "check_country",
+     "ms": 1,
+     "usd": 0.0
+    },
+    {
+     "name": "muse-spark-1.3",
+     "ms": 2133,
+     "usd": 0.00425225
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 7476.2,
+   "usd": 0.013419699999999979,
+   "tokens": 9634,
+   "error": null
+  },
+  {
+   "id": "c-0049",
+   "esperado": "legitimo",
+   "tipo": "texto",
+   "categoria": "legitimo_otro",
+   "pais": "CO",
+   "obtenido": "dudoso",
+   "paso": false,
+   "hipotesis_confirmada": false,
+   "confianza": 0.5,
+   "senales": [],
+   "herramientas_usadas": [
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1362,
+     "usd": 0.003443
+    },
+    {
+     "name": "analyze_url",
+     "ms": 8,
+     "usd": 0.0
+    },
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1274,
+     "usd": 0.0024188499999999997
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 4897.7,
+   "usd": 0.007419250000000016,
+   "tokens": 4813,
+   "error": null
+  },
+  {
+   "id": "c-0050",
+   "esperado": "legitimo",
+   "tipo": "texto",
+   "categoria": "legitimo_otro",
+   "pais": "US",
+   "obtenido": "legitimo",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.85,
+   "senales": [
+    "official_domain",
+    "official_domain_link"
+   ],
+   "herramientas_usadas": [
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1125,
+     "usd": 0.0009628999999999999
+    },
+    {
+     "name": "check_country",
+     "ms": 1,
+     "usd": 0.0
+    },
+    {
+     "name": "muse-spark-1.3",
+     "ms": 874,
+     "usd": 0.00128535
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 4108.9,
+   "usd": 0.004132150000000001,
+   "tokens": 4529,
+   "error": null
+  },
+  {
+   "id": "c-0051",
+   "esperado": "legitimo",
+   "tipo": "texto",
+   "categoria": "legitimo_banco",
+   "pais": "CO",
+   "obtenido": "legitimo",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.85,
+   "senales": [],
+   "herramientas_usadas": [
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1203,
+     "usd": 0.00286375
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 2342.3,
+   "usd": 0.004270999999999997,
+   "tokens": 2344,
+   "error": null
+  },
+  {
+   "id": "c-0052",
+   "esperado": "legitimo",
+   "tipo": "texto",
+   "categoria": "legitimo_banco",
+   "pais": "CO",
+   "obtenido": "legitimo",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [],
+   "herramientas_usadas": [
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1305,
+     "usd": 0.002888
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 2853.0,
+   "usd": 0.0044964000000000115,
+   "tokens": 2458,
+   "error": null
+  },
+  {
+   "id": "c-0053",
+   "esperado": "legitimo",
+   "tipo": "texto",
+   "categoria": "legitimo_banco",
+   "pais": "US",
+   "obtenido": "legitimo",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [],
+   "herramientas_usadas": [
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1411,
+     "usd": 0.00187935
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 2645.6,
+   "usd": 0.0034248499999999793,
+   "tokens": 2399,
+   "error": null
+  },
+  {
+   "id": "c-0054",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "estado",
+   "pais": "CO",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [
+    "brand_off_domain",
+    "authority_with_link"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 1400.6,
+   "usd": 0.0011169000000000318,
+   "tokens": 520,
+   "error": null
+  },
+  {
+   "id": "c-0055",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "banco",
+   "pais": "US",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [
+    "brand_off_domain"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 755.2,
+   "usd": 0.0009558999999999818,
+   "tokens": 480,
+   "error": null
+  },
+  {
+   "id": "c-0056",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "banco",
+   "pais": "CO",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [
+    "brand_off_domain",
+    "credentials_request"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 1531.5,
+   "usd": 0.0015982499999999955,
+   "tokens": 573,
+   "error": null
+  },
+  {
+   "id": "c-0072",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "banco",
+   "pais": "CO",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [
+    "known_campaign",
+    "suspicious_tld"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 1390.5,
+   "usd": 0.0013463999999999976,
+   "tokens": 598,
+   "error": null
+  },
+  {
+   "id": "c-0073",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "estado",
+   "pais": "CO",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [
+    "known_campaign",
+    "suspicious_tld"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 1357.3,
+   "usd": 0.00156690000000001,
+   "tokens": 640,
+   "error": null
+  },
+  {
+   "id": "c-0074",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "estado",
+   "pais": "US",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [
+    "known_campaign"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 943.7,
+   "usd": 0.0013811499999999977,
+   "tokens": 597,
+   "error": null
+  },
+  {
+   "id": "c-0075",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "estado",
+   "pais": "CO",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [
+    "known_campaign",
+    "brand_off_domain",
+    "authority_with_link"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 2398.6,
+   "usd": 0.002818749999999981,
+   "tokens": 863,
+   "error": null
+  },
+  {
+   "id": "c-0076",
+   "esperado": "legitimo",
+   "tipo": "texto",
+   "categoria": "legitimo_otro",
+   "pais": "CO",
+   "obtenido": "dudoso",
+   "paso": false,
+   "hipotesis_confirmada": false,
+   "confianza": 0.5,
+   "senales": [
+    "known_campaign",
+    "authority_with_link",
+    "official_domain",
+    "official_domain",
+    "warning_about_impersonation",
+    "no_credential_request"
+   ],
+   "herramientas_usadas": [
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1508,
+     "usd": 0.0032165
+    },
+    {
+     "name": "check_country",
+     "ms": 0,
+     "usd": 0.0
+    },
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1531,
+     "usd": 0.0018881500000000001
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 4126.5,
+   "usd": 0.006303549999999991,
+   "tokens": 4839,
+   "error": null
+  },
+  {
+   "id": "c-0077",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "estado",
+   "pais": "CO",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [
+    "known_campaign",
+    "authority_with_link"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 1903.3,
+   "usd": 0.0016544000000000003,
+   "tokens": 650,
+   "error": null
+  },
+  {
+   "id": "c-0078",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "estado",
+   "pais": "CO",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [
+    "known_campaign",
+    "urgency"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 1415.0,
+   "usd": 0.0016669000000000267,
+   "tokens": 648,
+   "error": null
+  },
+  {
+   "id": "c-0079",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "estado",
+   "pais": "US",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [
+    "known_campaign"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 1434.3,
+   "usd": 0.0013402499999999873,
+   "tokens": 513,
+   "error": null
+  },
+  {
+   "id": "c-0080",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "estado",
+   "pais": "CO",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [
+    "known_campaign",
+    "authority_with_link"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 2325.8,
+   "usd": 0.002697900000000003,
+   "tokens": 892,
+   "error": null
+  },
+  {
+   "id": "c-0081",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "estado",
+   "pais": "CO",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [
+    "known_campaign",
+    "authority_with_link"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 1737.6,
+   "usd": 0.0017028999999999794,
+   "tokens": 660,
+   "error": null
+  },
+  {
+   "id": "c-0082",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "estado",
+   "pais": "US",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [
+    "known_campaign"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 2019.8,
+   "usd": 0.0023413999999999935,
+   "tokens": 806,
+   "error": null
+  },
+  {
+   "id": "c-0083",
+   "esperado": "legitimo",
+   "tipo": "texto",
+   "categoria": "legitimo_banco",
+   "pais": "US",
+   "obtenido": "legitimo",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [],
+   "herramientas_usadas": [
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1103,
+     "usd": 0.00106615
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 2415.5,
+   "usd": 0.0026703000000000143,
+   "tokens": 2446,
+   "error": null
+  },
+  {
+   "id": "c-0084",
+   "esperado": "legitimo",
+   "tipo": "texto",
+   "categoria": "legitimo_proveedor",
+   "pais": "CO",
+   "obtenido": "legitimo",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.95,
+   "senales": [],
+   "herramientas_usadas": [
+    {
+     "name": "muse-spark-1.3",
+     "ms": 878,
+     "usd": 0.0009904
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 2469.6,
+   "usd": 0.0029041499999999942,
+   "tokens": 2445,
+   "error": null
+  },
+  {
+   "id": "c-0085",
+   "esperado": "legitimo",
+   "tipo": "texto",
+   "categoria": "legitimo_proveedor",
+   "pais": "CO",
+   "obtenido": "legitimo",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.95,
+   "senales": [],
+   "herramientas_usadas": [
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1114,
+     "usd": 0.0012149
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 3623.6,
+   "usd": 0.004468050000000001,
+   "tokens": 2845,
+   "error": null
+  },
+  {
+   "id": "c-0086",
+   "esperado": "legitimo",
+   "tipo": "texto",
+   "categoria": "legitimo_proveedor",
+   "pais": "US",
+   "obtenido": "legitimo",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.95,
+   "senales": [],
+   "herramientas_usadas": [
+    {
+     "name": "muse-spark-1.3",
+     "ms": 690,
+     "usd": 0.002565
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 2527.7,
+   "usd": 0.004523150000000031,
+   "tokens": 2465,
+   "error": null
+  },
+  {
+   "id": "c-0087",
+   "esperado": "legitimo",
+   "tipo": "texto",
+   "categoria": "legitimo_proveedor",
+   "pais": "CO",
+   "obtenido": "legitimo",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.99,
+   "senales": [],
+   "herramientas_usadas": [
+    {
+     "name": "muse-spark-1.3",
+     "ms": 969,
+     "usd": 0.00256575
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 3179.8,
+   "usd": 0.005247149999999978,
+   "tokens": 2641,
+   "error": null
+  },
+  {
+   "id": "c-0088",
+   "esperado": "legitimo",
+   "tipo": "texto",
+   "categoria": "legitimo_proveedor",
+   "pais": "US",
+   "obtenido": "legitimo",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.95,
+   "senales": [],
+   "herramientas_usadas": [
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1324,
+     "usd": 0.0012084
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 3433.1,
+   "usd": 0.003857049999999973,
+   "tokens": 2709,
+   "error": null
+  },
+  {
+   "id": "c-0089",
+   "esperado": "legitimo",
+   "tipo": "texto",
+   "categoria": "legitimo_proveedor",
+   "pais": "CO",
+   "obtenido": "legitimo",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.99,
+   "senales": [],
+   "herramientas_usadas": [
+    {
+     "name": "muse-spark-1.3",
+     "ms": 992,
+     "usd": 0.00088065
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 1980.3,
+   "usd": 0.0023489000000000426,
+   "tokens": 2296,
+   "error": null
+  },
+  {
+   "id": "c-0090",
+   "esperado": "legitimo",
+   "tipo": "texto",
+   "categoria": "legitimo_proveedor",
+   "pais": "CO",
+   "obtenido": "legitimo",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.95,
+   "senales": [],
+   "herramientas_usadas": [
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1103,
+     "usd": 0.0012546500000000002
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 2148.7,
+   "usd": 0.002731399999999995,
+   "tokens": 2386,
+   "error": null
+  },
+  {
+   "id": "c-0091",
+   "esperado": "legitimo",
+   "tipo": "texto",
+   "categoria": "legitimo_proveedor",
+   "pais": "CO",
+   "obtenido": "legitimo",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.95,
+   "senales": [],
+   "herramientas_usadas": [
+    {
+     "name": "muse-spark-1.3",
+     "ms": 947,
+     "usd": 0.00290275
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 3086.2,
+   "usd": 0.005181650000000038,
+   "tokens": 2627,
+   "error": null
+  },
+  {
+   "id": "c-0092",
+   "esperado": "legitimo",
+   "tipo": "texto",
+   "categoria": "legitimo_proveedor",
+   "pais": "US",
+   "obtenido": "estafa",
+   "paso": false,
+   "hipotesis_confirmada": false,
+   "confianza": 0.9,
+   "senales": [
+    "prompt_injection"
+   ],
+   "herramientas_usadas": [
+    {
+     "name": "muse-spark-1.3",
+     "ms": 2088,
+     "usd": 0.0028519
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 4447.8,
+   "usd": 0.005662399999999956,
+   "tokens": 3070,
+   "error": null
+  },
+  {
+   "id": "c-0093",
+   "esperado": "legitimo",
+   "tipo": "texto",
+   "categoria": "legitimo_proveedor",
+   "pais": "CO",
+   "obtenido": "legitimo",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.95,
+   "senales": [],
+   "herramientas_usadas": [
+    {
+     "name": "muse-spark-1.3",
+     "ms": 828,
+     "usd": 0.00278125
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 4025.3,
+   "usd": 0.006290499999999977,
+   "tokens": 2822,
+   "error": null
+  },
+  {
+   "id": "c-0094",
+   "esperado": "legitimo",
+   "tipo": "texto",
+   "categoria": "legitimo_proveedor",
+   "pais": "US",
+   "obtenido": "legitimo",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [],
+   "herramientas_usadas": [
+    {
+     "name": "muse-spark-1.3",
+     "ms": 773,
+     "usd": 0.0010469000000000001
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 2312.9,
+   "usd": 0.003283299999999989,
+   "tokens": 2574,
+   "error": null
+  },
+  {
+   "id": "c-0095",
+   "esperado": "legitimo",
+   "tipo": "texto",
+   "categoria": "legitimo_proveedor",
+   "pais": "CO",
+   "obtenido": "estafa",
+   "paso": false,
+   "hipotesis_confirmada": false,
+   "confianza": 0.9,
+   "senales": [
+    "prompt_injection",
+    "instruction_override"
+   ],
+   "herramientas_usadas": [
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1729,
+     "usd": 0.0026738499999999998
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 4038.3,
+   "usd": 0.005467,
+   "tokens": 2956,
+   "error": null
+  },
+  {
+   "id": "c-0096",
+   "esperado": "legitimo",
+   "tipo": "texto",
+   "categoria": "legitimo_proveedor",
+   "pais": "CO",
+   "obtenido": "legitimo",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.95,
+   "senales": [],
+   "herramientas_usadas": [
+    {
+     "name": "muse-spark-1.3",
+     "ms": 975,
+     "usd": 0.002805
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 3124.9,
+   "usd": 0.004935149999999999,
+   "tokens": 2569,
+   "error": null
+  },
+  {
+   "id": "c-0097",
+   "esperado": "legitimo",
+   "tipo": "texto",
+   "categoria": "legitimo_proveedor",
+   "pais": "US",
+   "obtenido": "legitimo",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.95,
+   "senales": [],
+   "herramientas_usadas": [
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1455,
+     "usd": 0.0010996500000000002
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 3864.9,
+   "usd": 0.003490800000000016,
+   "tokens": 2620,
+   "error": null
+  },
+  {
+   "id": "c-0098",
+   "esperado": "legitimo",
+   "tipo": "texto",
+   "categoria": "legitimo_proveedor",
+   "pais": "CO",
+   "obtenido": "legitimo",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [],
+   "herramientas_usadas": [
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1937,
+     "usd": 0.0038075
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 4744.4,
+   "usd": 0.006865250000000045,
+   "tokens": 2965,
+   "error": null
+  },
+  {
+   "id": "c-0099",
+   "esperado": "estafa",
+   "tipo": "conversacion",
+   "categoria": "compraventa",
+   "pais": "CO",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [
+    "staggered_charges",
+    "pressure_after_payment",
+    "advance_before_seeing",
+    "personal_account_only",
+    "verification_evasion",
+    "price_below_market",
+    "personal_payment",
+    "already_paid"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 1235.7,
+   "usd": 0.0013001499999999444,
+   "tokens": 681,
+   "error": null
+  },
+  {
+   "id": "c-0100",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "compraventa",
+   "pais": "CO",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [
+    "staggered_charges",
+    "pressure_after_payment",
+    "personal_payment",
+    "already_paid"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 2531.2,
+   "usd": 0.0026781500000000458,
+   "tokens": 905,
+   "error": null
+  },
+  {
+   "id": "c-0101",
+   "esperado": "estafa",
+   "tipo": "conversacion",
+   "categoria": "compraventa",
+   "pais": "CO",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.8,
+   "senales": [
+    "advance_before_seeing",
+    "personal_account_only",
+    "verification_evasion",
+    "identity_mismatch",
+    "price_below_market",
+    "personal_payment"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 1829.3,
+   "usd": 0.0017981499999999428,
+   "tokens": 777,
+   "error": null
+  },
+  {
+   "id": "c-0102",
+   "esperado": "estafa",
+   "tipo": "conversacion",
+   "categoria": "compraventa",
+   "pais": "US",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [
+    "staggered_charges",
+    "pressure_after_payment",
+    "advance_before_seeing",
+    "personal_account_only",
+    "verification_evasion",
+    "price_below_market",
+    "personal_payment",
+    "already_paid"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 1035.0,
+   "usd": 0.0012966500000000103,
+   "tokens": 647,
+   "error": null
+  },
+  {
+   "id": "c-0103",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "compraventa",
+   "pais": "CO",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.8,
+   "senales": [
+    "personal_account_only",
+    "price_below_market",
+    "personal_payment"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 1658.3,
+   "usd": 0.0017381499999999939,
+   "tokens": 681,
+   "error": null
+  },
+  {
+   "id": "c-0104",
+   "esperado": "estafa",
+   "tipo": "conversacion",
+   "categoria": "compraventa",
+   "pais": "CO",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [
+    "extortion",
+    "advance_before_seeing",
+    "personal_account_only",
+    "verification_evasion",
+    "personal_payment",
+    "already_paid"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 1258.1,
+   "usd": 0.001366150000000066,
+   "tokens": 669,
+   "error": null
+  },
+  {
+   "id": "c-0105",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "compraventa",
+   "pais": "US",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.8,
+   "senales": [
+    "advance_before_seeing",
+    "personal_account_only",
+    "verification_evasion",
+    "personal_payment"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 1112.2,
+   "usd": 0.0011851499999999682,
+   "tokens": 553,
+   "error": null
+  },
+  {
+   "id": "c-0106",
+   "esperado": "legitimo",
+   "tipo": "conversacion",
+   "categoria": "compraventa",
+   "pais": "CO",
+   "obtenido": "legitimo",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [],
+   "herramientas_usadas": [
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1160,
+     "usd": 0.0017758499999999998
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 2050.2,
+   "usd": 0.0029994999999999883,
+   "tokens": 2518,
+   "error": null
+  },
+  {
+   "id": "c-0107",
+   "esperado": "legitimo",
+   "tipo": "conversacion",
+   "categoria": "compraventa",
+   "pais": "CO",
+   "obtenido": "legitimo",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [],
+   "herramientas_usadas": [
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1214,
+     "usd": 0.00292225
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 2185.4,
+   "usd": 0.0038211499999999954,
+   "tokens": 2429,
+   "error": null
+  },
+  {
+   "id": "c-0108",
+   "esperado": "legitimo",
+   "tipo": "texto",
+   "categoria": "compraventa",
+   "pais": "US",
+   "obtenido": "legitimo",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.78,
+   "senales": [
+    "no_urls",
+    "in_person_inspection_offer",
+    "no_advance_payment"
+   ],
+   "herramientas_usadas": [
+    {
+     "name": "muse-spark-1.3",
+     "ms": 2115,
+     "usd": 0.0018144
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 3811.8,
+   "usd": 0.003989550000000008,
+   "tokens": 2767,
+   "error": null
+  },
+  {
+   "id": "c-0109",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "banco",
+   "pais": "CO",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [
+    "brand_off_domain",
+    "suspicious_tld",
+    "http_without_tls",
+    "already_paid"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 1609.1,
+   "usd": 0.002074999999999938,
+   "tokens": 688,
+   "error": null
+  },
+  {
+   "id": "c-0119",
+   "esperado": "legitimo",
+   "tipo": "texto",
+   "categoria": "legitimo_proveedor",
+   "pais": "CO",
+   "obtenido": "dudoso",
+   "paso": false,
+   "hipotesis_confirmada": false,
+   "confianza": 0.45,
+   "senales": [
+    "already_paid",
+    "already_paid",
+    "freight_fee_mention"
+   ],
+   "herramientas_usadas": [
+    {
+     "name": "muse-spark-1.3",
+     "ms": 2843,
+     "usd": 0.0028719
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 3947.0,
+   "usd": 0.003973800000000027,
+   "tokens": 2764,
+   "error": null
+  },
+  {
+   "id": "c-0120",
+   "esperado": "legitimo",
+   "tipo": "texto",
+   "categoria": "compraventa",
+   "pais": "CO",
+   "obtenido": "dudoso",
+   "paso": false,
+   "hipotesis_confirmada": false,
+   "confianza": 0.5,
+   "senales": [
+    "already_paid",
+    "in_person_payment",
+    "no_url_or_credential_request"
+   ],
+   "herramientas_usadas": [
+    {
+     "name": "muse-spark-1.3",
+     "ms": 2593,
+     "usd": 0.003952
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 4435.2,
+   "usd": 0.005635150000000033,
+   "tokens": 2769,
+   "error": null
+  },
+  {
+   "id": "c-0121",
+   "esperado": "legitimo",
+   "tipo": "texto",
+   "categoria": "compraventa",
+   "pais": "CO",
+   "obtenido": "legitimo",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.75,
+   "senales": [
+    "already_paid"
+   ],
+   "herramientas_usadas": [
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1710,
+     "usd": 0.0017036500000000001
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 2680.5,
+   "usd": 0.0030341499999999577,
+   "tokens": 2477,
+   "error": null
+  },
+  {
+   "id": "c-0122",
+   "esperado": "legitimo",
+   "tipo": "texto",
+   "categoria": "compraventa",
+   "pais": "CO",
+   "obtenido": "legitimo",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.8,
+   "senales": [
+    "already_paid",
+    "no_url_or_credential_request",
+    "already_paid"
+   ],
+   "herramientas_usadas": [
+    {
+     "name": "muse-spark-1.3",
+     "ms": 2205,
+     "usd": 0.0025584
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 3629.8,
+   "usd": 0.0042448000000000485,
+   "tokens": 2820,
+   "error": null
+  },
+  {
+   "id": "c-0123",
+   "esperado": "legitimo",
+   "tipo": "texto",
+   "categoria": "compraventa",
+   "pais": "CO",
+   "obtenido": "dudoso",
+   "paso": false,
+   "hipotesis_confirmada": false,
+   "confianza": 0.55,
+   "senales": [
+    "advance_payment_request"
+   ],
+   "herramientas_usadas": [
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1861,
+     "usd": 0.00258985
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 3506.0,
+   "usd": 0.004351249999999973,
+   "tokens": 2709,
+   "error": null
+  },
+  {
+   "id": "c-0124",
+   "esperado": "legitimo",
+   "tipo": "texto",
+   "categoria": "compraventa",
+   "pais": "CO",
+   "obtenido": "dudoso",
+   "paso": false,
+   "hipotesis_confirmada": false,
+   "confianza": 0.5,
+   "senales": [
+    "advance_before_seeing",
+    "personal_payment",
+    "advance_before_seeing",
+    "personal_payment"
+   ],
+   "herramientas_usadas": [
+    {
+     "name": "muse-spark-1.3",
+     "ms": 2315,
+     "usd": 0.00215765
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 4144.6,
+   "usd": 0.003917549999999992,
+   "tokens": 2767,
+   "error": null
+  },
+  {
+   "id": "c-0125",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "compraventa",
+   "pais": "CO",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.8,
+   "senales": [
+    "advance_before_seeing",
+    "price_below_market",
+    "personal_payment"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 2375.9,
+   "usd": 0.0020801500000000583,
+   "tokens": 753,
+   "error": null
+  },
+  {
+   "id": "c-0126",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "compraventa",
+   "pais": "US",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.8,
+   "senales": [
+    "advance_before_seeing",
+    "price_below_market",
+    "personal_payment"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 1540.0,
+   "usd": 0.001418150000000007,
+   "tokens": 593,
+   "error": null
+  },
+  {
+   "id": "c-0127",
+   "esperado": "estafa",
+   "tipo": "conversacion",
+   "categoria": "compraventa",
+   "pais": "CO",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [
+    "pressure_after_payment",
+    "advance_before_seeing",
+    "personal_account_only",
+    "verification_evasion",
+    "personal_payment",
+    "already_paid"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 1530.6,
+   "usd": 0.001417899999999972,
+   "tokens": 708,
+   "error": null
+  },
+  {
+   "id": "c-0128",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "compraventa",
+   "pais": "CO",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.8,
+   "senales": [
+    "advance_before_seeing",
+    "verification_evasion",
+    "personal_payment",
+    "already_paid"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 1733.5,
+   "usd": 0.001827650000000014,
+   "tokens": 695,
+   "error": null
+  },
+  {
+   "id": "c-0129",
+   "esperado": "estafa",
+   "tipo": "conversacion",
+   "categoria": "compraventa",
+   "pais": "CO",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.8,
+   "senales": [
+    "advance_before_seeing",
+    "personal_account_only",
+    "verification_evasion",
+    "personal_payment"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 1714.6,
+   "usd": 0.0017168999999999657,
+   "tokens": 712,
+   "error": null
+  },
+  {
+   "id": "c-0130",
+   "esperado": "legitimo",
+   "tipo": "texto",
+   "categoria": "compraventa",
+   "pais": "CO",
+   "obtenido": "legitimo",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.85,
+   "senales": [
+    "already_paid",
+    "already_paid",
+    "no_url",
+    "no_payment_request"
+   ],
+   "herramientas_usadas": [
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1474,
+     "usd": 0.0014899000000000002
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 4439.8,
+   "usd": 0.004217400000000038,
+   "tokens": 2754,
+   "error": null
+  },
+  {
+   "id": "c-0131",
+   "esperado": "legitimo",
+   "tipo": "texto",
+   "categoria": "compraventa",
+   "pais": "CO",
+   "obtenido": "legitimo",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [
+    "already_paid"
+   ],
+   "herramientas_usadas": [
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1744,
+     "usd": 0.00193365
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 4043.2,
+   "usd": 0.004142800000000002,
+   "tokens": 2820,
+   "error": null
+  },
+  {
+   "id": "c-0132",
+   "esperado": "legitimo",
+   "tipo": "texto",
+   "categoria": "compraventa",
+   "pais": "CO",
+   "obtenido": "legitimo",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [
+    "already_paid",
+    "already_paid"
+   ],
+   "herramientas_usadas": [
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1454,
+     "usd": 0.00143865
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 3126.3,
+   "usd": 0.0032122999999999458,
+   "tokens": 2594,
+   "error": null
+  },
+  {
+   "id": "c-0133",
+   "esperado": "legitimo",
+   "tipo": "texto",
+   "categoria": "compraventa",
+   "pais": "US",
+   "obtenido": "dudoso",
+   "paso": false,
+   "hipotesis_confirmada": false,
+   "confianza": 0.5,
+   "senales": [
+    "already_paid",
+    "already_paid"
+   ],
+   "herramientas_usadas": [
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1486,
+     "usd": 0.00335175
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 2275.3,
+   "usd": 0.004191150000000032,
+   "tokens": 2413,
+   "error": null
+  },
+  {
+   "id": "c-0134",
+   "esperado": "legitimo",
+   "tipo": "texto",
+   "categoria": "compraventa",
+   "pais": "US",
+   "obtenido": "legitimo",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.85,
+   "senales": [
+    "already_paid",
+    "ordinary_message_no_request",
+    "already_paid"
+   ],
+   "herramientas_usadas": [
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1583,
+     "usd": 0.00330025
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 2697.7,
+   "usd": 0.004905399999999949,
+   "tokens": 2586,
+   "error": null
+  },
+  {
+   "id": "c-0135",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "compraventa",
+   "pais": "CO",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.8,
+   "senales": [
+    "advance_before_seeing",
+    "verification_evasion",
+    "already_paid"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 1945.6,
+   "usd": 0.0020354000000000205,
+   "tokens": 746,
+   "error": null
+  },
+  {
+   "id": "c-0136",
+   "esperado": "estafa",
+   "tipo": "conversacion",
+   "categoria": "compraventa",
+   "pais": "CO",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.8,
+   "senales": [
+    "advance_before_seeing",
+    "personal_account_only",
+    "verification_evasion",
+    "personal_payment"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 2711.0,
+   "usd": 0.0032021500000000147,
+   "tokens": 1053,
+   "error": null
+  },
+  {
+   "id": "c-0137",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "compraventa",
+   "pais": "CO",
+   "obtenido": "dudoso",
+   "paso": false,
+   "hipotesis_confirmada": false,
+   "confianza": 0.6,
+   "senales": [
+    "payment_to_release",
+    "pet_shipment_fee"
+   ],
+   "herramientas_usadas": [
+    {
+     "name": "muse-spark-1.3",
+     "ms": 3148,
+     "usd": 0.0035626
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 5183.4,
+   "usd": 0.005641000000000007,
+   "tokens": 3064,
+   "error": null
+  },
+  {
+   "id": "c-0138",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "compraventa",
+   "pais": "CO",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.8,
+   "senales": [
+    "advance_before_seeing",
+    "personal_account_only",
+    "personal_payment"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 3459.3,
+   "usd": 0.003236899999999987,
+   "tokens": 1028,
+   "error": null
+  },
+  {
+   "id": "c-0139",
+   "esperado": "estafa",
+   "tipo": "conversacion",
+   "categoria": "compraventa",
+   "pais": "CO",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [
+    "staggered_charges",
+    "already_paid"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 1649.4,
+   "usd": 0.0016881499999999994,
+   "tokens": 677,
+   "error": null
+  },
+  {
+   "id": "c-0140",
+   "esperado": "dudoso",
+   "tipo": "conversacion",
+   "categoria": "compraventa",
+   "pais": "CO",
+   "obtenido": "estafa",
+   "paso": false,
+   "hipotesis_confirmada": false,
+   "confianza": 0.82,
+   "senales": [
+    "price_below_market",
+    "price_below_market",
+    "scarcity_urgency"
+   ],
+   "herramientas_usadas": [
+    {
+     "name": "muse-spark-1.3",
+     "ms": 3215,
+     "usd": 0.0027414
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 5622.3,
+   "usd": 0.005522799999999939,
+   "tokens": 3180,
+   "error": null
+  },
+  {
+   "id": "c-0141",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "compraventa",
+   "pais": "CO",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.82,
+   "senales": [
+    "already_paid",
+    "advance_fee_insurance",
+    "urgency_threat_loss",
+    "already_paid"
+   ],
+   "herramientas_usadas": [
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1582,
+     "usd": 0.00169515
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 3231.3,
+   "usd": 0.003291800000000067,
+   "tokens": 2600,
+   "error": null
+  },
+  {
+   "id": "c-0142",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "compraventa",
+   "pais": "US",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.85,
+   "senales": [
+    "already_paid",
+    "already_paid",
+    "advance_fee_request",
+    "loss_threat"
+   ],
+   "herramientas_usadas": [
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1595,
+     "usd": 0.0014966500000000002
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 3054.4,
+   "usd": 0.002642799999999945,
+   "tokens": 2448,
+   "error": null
+  },
+  {
+   "id": "c-0143",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "compraventa",
+   "pais": "CO",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.8,
+   "senales": [
+    "personal_payment",
+    "already_paid",
+    "already_paid",
+    "advance_fee",
+    "pet_sale_escalation"
+   ],
+   "herramientas_usadas": [
+    {
+     "name": "muse-spark-1.3",
+     "ms": 2391,
+     "usd": 0.0023569
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 3897.7,
+   "usd": 0.0036173000000000455,
+   "tokens": 2702,
+   "error": null
+  },
+  {
+   "id": "c-0144",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "compraventa",
+   "pais": "CO",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [
+    "verification_evasion",
+    "already_paid",
+    "already_paid",
+    "verification_evasion"
+   ],
+   "herramientas_usadas": [
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1315,
+     "usd": 0.0012394
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 3526.2,
+   "usd": 0.0036155499999999674,
+   "tokens": 2691,
+   "error": null
+  },
+  {
+   "id": "c-0145",
+   "esperado": "estafa",
+   "tipo": "audio",
+   "categoria": "banco",
+   "pais": "CO",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.95,
+   "senales": [
+    "credentials_request",
+    "bank_impersonation",
+    "otp_request",
+    "urgency_pressure"
+   ],
+   "herramientas_usadas": [
+    {
+     "name": "transcribe",
+     "ms": 3266.1,
+     "usd": 0.00074
+    },
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1059,
+     "usd": 0.0012889000000000002
+    },
+    {
+     "name": "check_country",
+     "ms": 0,
+     "usd": 0.0
+    },
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1549,
+     "usd": 0.00300125
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 7446.6,
+   "usd": 0.0065810500000000145,
+   "tokens": 4529,
+   "error": null
+  },
+  {
+   "id": "c-0146",
+   "esperado": "estafa",
+   "tipo": "audio",
+   "categoria": "estado",
+   "pais": "CO",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.95,
+   "senales": [
+    "urgency",
+    "personal_payment",
+    "gov_impersonation",
+    "urgency",
+    "personal_payment"
+   ],
+   "herramientas_usadas": [
+    {
+     "name": "transcribe",
+     "ms": 2588.4,
+     "usd": 0.000516
+    },
+    {
+     "name": "muse-spark-1.3",
+     "ms": 722,
+     "usd": 0.0010424000000000002
+    },
+    {
+     "name": "check_country",
+     "ms": 1,
+     "usd": 0.0
+    },
+    {
+     "name": "muse-spark-1.3",
+     "ms": 999,
+     "usd": 0.0014721500000000002
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 6271.9,
+   "usd": 0.00491669999999998,
+   "tokens": 4624,
+   "error": null
+  },
+  {
+   "id": "c-0147",
+   "esperado": "estafa",
+   "tipo": "audio",
+   "categoria": "familiar",
+   "pais": "CO",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.92,
+   "senales": [
+    "family_impersonation",
+    "new_number_claim",
+    "urgent_money_request",
+    "secrecy_request",
+    "third_party_account"
+   ],
+   "herramientas_usadas": [
+    {
+     "name": "transcribe",
+     "ms": 2920.2,
+     "usd": 0.000692
+    },
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1065,
+     "usd": 0.0013684
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 5303.9,
+   "usd": 0.003152050000000047,
+   "tokens": 2441,
+   "error": null
+  },
+  {
+   "id": "c-0148",
+   "esperado": "estafa",
+   "tipo": "audio",
+   "categoria": "transportadora",
+   "pais": "CO",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.88,
+   "senales": [
+    "courier_impersonation",
+    "advance_fee_to_release",
+    "urgency_pressure"
+   ],
+   "herramientas_usadas": [
+    {
+     "name": "transcribe",
+     "ms": 2438.1,
+     "usd": 0.000604
+    },
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1586,
+     "usd": 0.00163565
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 5148.6,
+   "usd": 0.0038280499999999227,
+   "tokens": 2601,
+   "error": null
+  },
+  {
+   "id": "c-0149",
+   "esperado": "estafa",
+   "tipo": "audio",
+   "categoria": "premio",
+   "pais": "CO",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.95,
+   "senales": [
+    "prize_win_claim",
+    "advance_fee_for_shipping",
+    "urgency_deadline"
+   ],
+   "herramientas_usadas": [
+    {
+     "name": "transcribe",
+     "ms": 2183.0,
+     "usd": 0.0004919999999999999
+    },
+    {
+     "name": "muse-spark-1.3",
+     "ms": 893,
+     "usd": 0.0011554
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 4131.0,
+   "usd": 0.002711799999999994,
+   "tokens": 2364,
+   "error": null
+  },
+  {
+   "id": "c-0150",
+   "esperado": "estafa",
+   "tipo": "audio",
+   "categoria": "banco",
+   "pais": "US",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.95,
+   "senales": [
+    "credentials_request",
+    "bank_impersonation",
+    "verification_code_request",
+    "false_urgency"
+   ],
+   "herramientas_usadas": [
+    {
+     "name": "transcribe",
+     "ms": 3147.1,
+     "usd": 0.000628
+    },
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1342,
+     "usd": 0.0013634
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 5648.6,
+   "usd": 0.0031097999999999786,
+   "tokens": 2444,
+   "error": null
+  },
+  {
+   "id": "c-0151",
+   "esperado": "legitimo",
+   "tipo": "audio",
+   "categoria": "legitimo_proveedor",
+   "pais": "CO",
+   "obtenido": "legitimo",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [],
+   "herramientas_usadas": [
+    {
+     "name": "transcribe",
+     "ms": 3075.6,
+     "usd": 0.0006079999999999999
+    },
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1025,
+     "usd": 0.00130115
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 5216.3,
+   "usd": 0.0034223000000000474,
+   "tokens": 2506,
+   "error": null
+  },
+  {
+   "id": "c-0152",
+   "esperado": "legitimo",
+   "tipo": "audio",
+   "categoria": "legitimo_otro",
+   "pais": "CO",
+   "obtenido": "legitimo",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.95,
+   "senales": [],
+   "herramientas_usadas": [
+    {
+     "name": "transcribe",
+     "ms": 2204.7,
+     "usd": 0.000368
+    },
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1342,
+     "usd": 0.00096815
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 5226.8,
+   "usd": 0.003115549999999932,
+   "tokens": 2479,
+   "error": null
+  },
+  {
+   "id": "c-0153",
+   "esperado": "legitimo",
+   "tipo": "audio",
+   "categoria": "legitimo_transportadora",
+   "pais": "CO",
+   "obtenido": "legitimo",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [],
+   "herramientas_usadas": [
+    {
+     "name": "transcribe",
+     "ms": 1868.5,
+     "usd": 0.00039199999999999993
+    },
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1240,
+     "usd": 0.0012344
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 4214.2,
+   "usd": 0.0028645500000000178,
+   "tokens": 2403,
+   "error": null
+  },
+  {
+   "id": "c-0154",
+   "esperado": "legitimo",
+   "tipo": "audio",
+   "categoria": "legitimo_otro",
+   "pais": "US",
+   "obtenido": "legitimo",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.95,
+   "senales": [],
+   "herramientas_usadas": [
+    {
+     "name": "transcribe",
+     "ms": 1828.9,
+     "usd": 0.00042
+    },
+    {
+     "name": "muse-spark-1.3",
+     "ms": 883,
+     "usd": 0.00098115
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 4022.5,
+   "usd": 0.002896049999999952,
+   "tokens": 2401,
+   "error": null
+  },
+  {
+   "id": "c-0155",
+   "esperado": "estafa",
+   "tipo": "pdf",
+   "categoria": "bec_proveedor",
+   "pais": "CO",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [
+    "personal_payment",
+    "new_account_request",
+    "personal_account",
+    "urgency_pressure",
+    "no_call_instruction"
+   ],
+   "herramientas_usadas": [
+    {
+     "name": "read_pdf",
+     "ms": 4089.5,
+     "usd": 0.00168215
+    },
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1170,
+     "usd": 0.0014716
+    },
+    {
+     "name": "check_address_book",
+     "ms": 1,
+     "usd": 0.0
+    },
+    {
+     "name": "muse-spark-1.3",
+     "ms": 2056,
+     "usd": 0.0015568499999999998
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 9110.5,
+   "usd": 0.006017500000000016,
+   "tokens": 4553,
+   "error": null
+  },
+  {
+   "id": "c-0156",
+   "esperado": "estafa",
+   "tipo": "pdf",
+   "categoria": "estado",
+   "pais": "CO",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [
+    "brand_off_domain",
+    "urgency",
+    "authority_with_link"
+   ],
+   "herramientas_usadas": [
+    {
+     "name": "read_pdf",
+     "ms": 3811.4,
+     "usd": 0.0014441500000000002
+    }
+   ],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 5037.4,
+   "usd": 0.0026943000000000054,
+   "tokens": 593,
+   "error": null
+  },
+  {
+   "id": "c-0157",
+   "esperado": "estafa",
+   "tipo": "pdf",
+   "categoria": "transportadora",
+   "pais": "CO",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [
+    "brand_off_domain"
+   ],
+   "herramientas_usadas": [
+    {
+     "name": "read_pdf",
+     "ms": 4308.9,
+     "usd": 0.0011976500000000002
+    }
+   ],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 5484.6,
+   "usd": 0.002335550000000025,
+   "tokens": 556,
+   "error": null
+  },
+  {
+   "id": "c-0158",
+   "esperado": "estafa",
+   "tipo": "pdf",
+   "categoria": "banco",
+   "pais": "CO",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [
+    "brand_off_domain",
+    "credentials_request"
+   ],
+   "herramientas_usadas": [
+    {
+     "name": "read_pdf",
+     "ms": 3369.1,
+     "usd": 0.00122315
+    }
+   ],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 4948.5,
+   "usd": 0.00243704999999999,
+   "tokens": 564,
+   "error": null
+  },
+  {
+   "id": "c-0159",
+   "esperado": "estafa",
+   "tipo": "pdf",
+   "categoria": "bec_proveedor",
+   "pais": "US",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.88,
+   "senales": [
+    "personal_payment",
+    "new_account_request",
+    "beneficiary_mismatch",
+    "urgency_pressure",
+    "no_call_instruction",
+    "unknown_supplier"
+   ],
+   "herramientas_usadas": [
+    {
+     "name": "read_pdf",
+     "ms": 2931.6,
+     "usd": 0.0013251500000000002
+    },
+    {
+     "name": "muse-spark-1.3",
+     "ms": 702,
+     "usd": 0.00085715
+    },
+    {
+     "name": "check_address_book",
+     "ms": 0,
+     "usd": 0.0
+    },
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1515,
+     "usd": 0.0013870999999999998
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 6422.8,
+   "usd": 0.004760049999999964,
+   "tokens": 4420,
+   "error": null
+  },
+  {
+   "id": "c-0160",
+   "esperado": "estafa",
+   "tipo": "pdf",
+   "categoria": "estado",
+   "pais": "US",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [
+    "brand_off_domain",
+    "urgency",
+    "authority_with_link",
+    "personal_payment"
+   ],
+   "herramientas_usadas": [
+    {
+     "name": "read_pdf",
+     "ms": 3040.8,
+     "usd": 0.0014781500000000001
+    }
+   ],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 4087.8,
+   "usd": 0.002474300000000029,
+   "tokens": 517,
+   "error": null
+  },
+  {
+   "id": "c-0161",
+   "esperado": "legitimo",
+   "tipo": "pdf",
+   "categoria": "legitimo_proveedor",
+   "pais": "CO",
+   "obtenido": "legitimo",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [],
+   "herramientas_usadas": [
+    {
+     "name": "read_pdf",
+     "ms": 3067.3,
+     "usd": 0.0013549
+    },
+    {
+     "name": "muse-spark-1.3",
+     "ms": 2291,
+     "usd": 0.0017251500000000002
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 6390.6,
+   "usd": 0.00417319999999994,
+   "tokens": 2562,
+   "error": null
+  },
+  {
+   "id": "c-0162",
+   "esperado": "legitimo",
+   "tipo": "pdf",
+   "categoria": "legitimo_otro",
+   "pais": "CO",
+   "obtenido": "legitimo",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.85,
+   "senales": [],
+   "herramientas_usadas": [
+    {
+     "name": "read_pdf",
+     "ms": 2864.3,
+     "usd": 0.0013379000000000002
+    },
+    {
+     "name": "muse-spark-1.3",
+     "ms": 2186,
+     "usd": 0.00189765
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 6968.3,
+   "usd": 0.00535970000000002,
+   "tokens": 2824,
+   "error": null
+  },
+  {
+   "id": "c-0163",
+   "esperado": "legitimo",
+   "tipo": "pdf",
+   "categoria": "legitimo_otro",
+   "pais": "CO",
+   "obtenido": "legitimo",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.95,
+   "senales": [
+    "official_domain",
+    "official_domain",
+    "no_credential_request",
+    "no_payment_request"
+   ],
+   "herramientas_usadas": [
+    {
+     "name": "read_pdf",
+     "ms": 2293.6,
+     "usd": 0.0010149
+    },
+    {
+     "name": "muse-spark-1.3",
+     "ms": 904,
+     "usd": 0.0009159
+    },
+    {
+     "name": "check_country",
+     "ms": 1,
+     "usd": 0.0
+    },
+    {
+     "name": "muse-spark-1.3",
+     "ms": 855,
+     "usd": 0.0010294000000000002
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 5697.9,
+   "usd": 0.004559600000000012,
+   "tokens": 4412,
+   "error": null
+  },
+  {
+   "id": "c-0164",
+   "esperado": "legitimo",
+   "tipo": "pdf",
+   "categoria": "legitimo_proveedor",
+   "pais": "US",
+   "obtenido": "legitimo",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.92,
+   "senales": [],
+   "herramientas_usadas": [
+    {
+     "name": "read_pdf",
+     "ms": 4336.1,
+     "usd": 0.0011339000000000002
+    },
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1053,
+     "usd": 0.0012944
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 6949.7,
+   "usd": 0.0040482000000000365,
+   "tokens": 2550,
+   "error": null
+  },
+  {
+   "id": "c-0165",
+   "esperado": "legitimo",
+   "tipo": "pdf",
+   "categoria": "legitimo_otro",
+   "pais": "US",
+   "obtenido": "legitimo",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.95,
+   "senales": [
+    "no_credential_request",
+    "no_payment_request",
+    "no_links"
+   ],
+   "herramientas_usadas": [
+    {
+     "name": "read_pdf",
+     "ms": 3000.0,
+     "usd": 0.00096815
+    },
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1797,
+     "usd": 0.0014666500000000001
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 6281.9,
+   "usd": 0.0039026999999999803,
+   "tokens": 2523,
+   "error": null
+  },
+  {
+   "id": "c-0166",
+   "esperado": "estafa",
+   "tipo": "pdf",
+   "categoria": "estado",
+   "pais": "CO",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [
+    "brand_off_domain",
+    "authority_with_link"
+   ],
+   "herramientas_usadas": [
+    {
+     "name": "read_pdf",
+     "ms": 4884.6,
+     "usd": 0.0012274
+    }
+   ],
+   "degradado": true,
+   "manipulacion": true,
+   "ms": 6376.6,
+   "usd": 0.00259705,
+   "tokens": 607,
+   "error": null
+  },
+  {
+   "id": "c-0167",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "banco",
+   "pais": "CO",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [
+    "brand_off_domain",
+    "credentials_request",
+    "urgency"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 1080.1,
+   "usd": 0.0008869000000000238,
+   "tokens": 480,
+   "error": null
+  },
+  {
+   "id": "c-0168",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "estado",
+   "pais": "CO",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [
+    "brand_off_domain",
+    "authority_with_link"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 1535.0,
+   "usd": 0.0013221499999999664,
+   "tokens": 581,
+   "error": null
+  },
+  {
+   "id": "c-0169",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "transportadora",
+   "pais": "CO",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [
+    "personal_payment_release"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 1628.7,
+   "usd": 0.0017801500000000359,
+   "tokens": 693,
+   "error": null
+  },
+  {
+   "id": "c-0170",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "familiar",
+   "pais": "CO",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.88,
+   "senales": [
+    "family",
+    "family_impersonation",
+    "new_number_claim",
+    "urgent_money_request",
+    "third_party_account"
+   ],
+   "herramientas_usadas": [
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1286,
+     "usd": 0.0012316500000000001
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 3107.7,
+   "usd": 0.0030572999999999295,
+   "tokens": 2578,
+   "error": null
+  },
+  {
+   "id": "c-0171",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "billetera",
+   "pais": "CO",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.92,
+   "senales": [
+    "credentials_request",
+    "personal_payment",
+    "credentials_request",
+    "otp_request",
+    "urgency_pressure"
+   ],
+   "herramientas_usadas": [
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1098,
+     "usd": 0.0014176500000000001
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 2359.8,
+   "usd": 0.0028860499999999734,
+   "tokens": 2549,
+   "error": null
+  },
+  {
+   "id": "c-0172",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "banco",
+   "pais": "CO",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [
+    "lookalike_domain"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 1786.0,
+   "usd": 0.0019726500000000202,
+   "tokens": 727,
+   "error": null
+  },
+  {
+   "id": "c-0173",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "transportadora",
+   "pais": "US",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [
+    "brand_off_domain",
+    "urgency"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 1503.8,
+   "usd": 0.001226150000000037,
+   "tokens": 557,
+   "error": null
+  },
+  {
+   "id": "c-0174",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "banco",
+   "pais": "US",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [
+    "brand_off_domain",
+    "credentials_request",
+    "urgency"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 1200.9,
+   "usd": 0.0012364000000000264,
+   "tokens": 558,
+   "error": null
+  },
+  {
+   "id": "c-0175",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "estado",
+   "pais": "US",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.97,
+   "senales": [
+    "personal_payment",
+    "irs_impersonation",
+    "warrant_threat",
+    "zelle_payment_request"
+   ],
+   "herramientas_usadas": [
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1550,
+     "usd": 0.0013304
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 2544.5,
+   "usd": 0.0028492999999999435,
+   "tokens": 2522,
+   "error": null
+  },
+  {
+   "id": "c-0176",
+   "esperado": "legitimo",
+   "tipo": "texto",
+   "categoria": "legitimo_banco",
+   "pais": "CO",
+   "obtenido": "legitimo",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.85,
+   "senales": [
+    "credentials_request",
+    "official_channel_match",
+    "no_link_no_request"
+   ],
+   "herramientas_usadas": [
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1188,
+     "usd": 0.0010323499999999998
+    },
+    {
+     "name": "check_country",
+     "ms": 1,
+     "usd": 0.0
+    },
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1334,
+     "usd": 0.0019200999999999999
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 3980.5,
+   "usd": 0.004592099999999988,
+   "tokens": 4636,
+   "error": null
+  },
+  {
+   "id": "c-0177",
+   "esperado": "legitimo",
+   "tipo": "texto",
+   "categoria": "legitimo_banco",
+   "pais": "CO",
+   "obtenido": "legitimo",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.95,
+   "senales": [
+    "official_domain",
+    "credentials_request",
+    "official_domain",
+    "security_advice_only"
+   ],
+   "herramientas_usadas": [
+    {
+     "name": "muse-spark-1.3",
+     "ms": 705,
+     "usd": 0.00088215
+    },
+    {
+     "name": "check_country",
+     "ms": 0,
+     "usd": 0.0
+    },
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1363,
+     "usd": 0.0012626500000000001
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 3468.1,
+   "usd": 0.003341200000000044,
+   "tokens": 4398,
+   "error": null
+  },
+  {
+   "id": "c-0178",
+   "esperado": "legitimo",
+   "tipo": "texto",
+   "categoria": "legitimo_proveedor",
+   "pais": "CO",
+   "obtenido": "legitimo",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.75,
+   "senales": [
+    "known_account_reference",
+    "no_url_or_qr"
+   ],
+   "herramientas_usadas": [
+    {
+     "name": "muse-spark-1.3",
+     "ms": 621,
+     "usd": 0.00079965
+    },
+    {
+     "name": "check_address_book",
+     "ms": 0,
+     "usd": 0.0
+    },
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1539,
+     "usd": 0.00224985
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 4451.8,
+   "usd": 0.005489149999999943,
+   "tokens": 4629,
+   "error": null
+  },
+  {
+   "id": "c-0179",
+   "esperado": "legitimo",
+   "tipo": "texto",
+   "categoria": "legitimo_proveedor",
+   "pais": "CO",
+   "obtenido": "dudoso",
+   "paso": false,
+   "hipotesis_confirmada": false,
+   "confianza": 0.5,
+   "senales": [
+    "personal_payment",
+    "personal_payment_request"
+   ],
+   "herramientas_usadas": [
+    {
+     "name": "muse-spark-1.3",
+     "ms": 872,
+     "usd": 0.00143665
+    },
+    {
+     "name": "check_address_book",
+     "ms": 0,
+     "usd": 0.0
+    },
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1340,
+     "usd": 0.0009314
+    },
+    {
+     "name": "check_address_book",
+     "ms": 0,
+     "usd": 0.0
+    },
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1759,
+     "usd": 0.0021279000000000003
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 5003.7,
+   "usd": 0.005479350000000105,
+   "tokens": 6475,
+   "error": null
+  },
+  {
+   "id": "c-0180",
+   "esperado": "legitimo",
+   "tipo": "texto",
+   "categoria": "legitimo_otro",
+   "pais": "CO",
+   "obtenido": "legitimo",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.85,
+   "senales": [],
+   "herramientas_usadas": [
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1340,
+     "usd": 0.0010734000000000002
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 3097.8,
+   "usd": 0.003012049999999933,
+   "tokens": 2549,
+   "error": null
+  },
+  {
+   "id": "c-0181",
+   "esperado": "legitimo",
+   "tipo": "texto",
+   "categoria": "legitimo_transportadora",
+   "pais": "CO",
+   "obtenido": "legitimo",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.92,
+   "senales": [],
+   "herramientas_usadas": [
+    {
+     "name": "muse-spark-1.3",
+     "ms": 999,
+     "usd": 0.00100165
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 2423.7,
+   "usd": 0.002355550000000095,
+   "tokens": 2391,
+   "error": null
+  },
+  {
+   "id": "c-0182",
+   "esperado": "legitimo",
+   "tipo": "texto",
+   "categoria": "legitimo_banco",
+   "pais": "US",
+   "obtenido": "legitimo",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.92,
+   "senales": [
+    "credentials_request",
+    "official_channel_guidance",
+    "no_url_no_request"
+   ],
+   "herramientas_usadas": [
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1160,
+     "usd": 0.0014096500000000001
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 2110.3,
+   "usd": 0.0024693000000000076,
+   "tokens": 2446,
+   "error": null
+  },
+  {
+   "id": "c-0183",
+   "esperado": "legitimo",
+   "tipo": "texto",
+   "categoria": "legitimo_transportadora",
+   "pais": "US",
+   "obtenido": "legitimo",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [
+    "official_domain",
+    "official_domain_link"
+   ],
+   "herramientas_usadas": [
+    {
+     "name": "muse-spark-1.3",
+     "ms": 968,
+     "usd": 0.00099815
+    },
+    {
+     "name": "check_country",
+     "ms": 0,
+     "usd": 0.0
+    },
+    {
+     "name": "muse-spark-1.3",
+     "ms": 889,
+     "usd": 0.00106285
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 4201.4,
+   "usd": 0.0044106499999999604,
+   "tokens": 4639,
+   "error": null
+  },
+  {
+   "id": "c-0184",
+   "esperado": "legitimo",
+   "tipo": "texto",
+   "categoria": "legitimo_proveedor",
+   "pais": "US",
+   "obtenido": "dudoso",
+   "paso": false,
+   "hipotesis_confirmada": false,
+   "confianza": 0.55,
+   "senales": [
+    "unknown_supplier"
+   ],
+   "herramientas_usadas": [
+    {
+     "name": "muse-spark-1.3",
+     "ms": 796,
+     "usd": 0.0009163999999999999
+    },
+    {
+     "name": "check_address_book",
+     "ms": 0,
+     "usd": 0.0
+    },
+    {
+     "name": "muse-spark-1.3",
+     "ms": 2453,
+     "usd": 0.00264115
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 4863.4,
+   "usd": 0.005276700000000023,
+   "tokens": 4684,
+   "error": null
+  },
+  {
+   "id": "c-0185",
+   "esperado": "dudoso",
+   "tipo": "texto",
+   "categoria": "legitimo_otro",
+   "pais": "CO",
+   "obtenido": "dudoso",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.5,
+   "senales": [],
+   "herramientas_usadas": [
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1328,
+     "usd": 0.0013309
+    },
+    {
+     "name": "analyze_url",
+     "ms": 7,
+     "usd": 0.0
+    },
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1539,
+     "usd": 0.00155135
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 4427.4,
+   "usd": 0.004368150000000015,
+   "tokens": 4557,
+   "error": null
+  },
+  {
+   "id": "c-0186",
+   "esperado": "dudoso",
+   "tipo": "texto",
+   "categoria": "legitimo_otro",
+   "pais": "CO",
+   "obtenido": "dudoso",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.5,
+   "senales": [
+    "urgency",
+    "urgency_phrasing",
+    "no_url_or_request",
+    "generic_payment_reminder"
+   ],
+   "herramientas_usadas": [
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1494,
+     "usd": 0.0016739
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 2768.4,
+   "usd": 0.003232050000000042,
+   "tokens": 2605,
+   "error": null
+  },
+  {
+   "id": "c-0187",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "banco",
+   "pais": "CO",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [
+    "lookalike_domain"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 1544.5,
+   "usd": 0.0012706499999999288,
+   "tokens": 559,
+   "error": null
+  },
+  {
+   "id": "c-0188",
+   "esperado": "legitimo",
+   "tipo": "texto",
+   "categoria": "legitimo_banco",
+   "pais": "CO",
+   "obtenido": "legitimo",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [
+    "official_domain",
+    "official_domain"
+   ],
+   "herramientas_usadas": [
+    {
+     "name": "muse-spark-1.3",
+     "ms": 526,
+     "usd": 0.0008039
+    },
+    {
+     "name": "check_country",
+     "ms": 0,
+     "usd": 0.0
+    },
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1016,
+     "usd": 0.00114135
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 3505.5,
+   "usd": 0.004015899999999961,
+   "tokens": 4508,
+   "error": null
+  },
+  {
+   "id": "c-0189",
+   "esperado": "estafa",
+   "tipo": "imagen",
+   "categoria": "banco",
+   "pais": "CO",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [
+    "brand_off_domain",
+    "qr_to_unofficial_domain"
+   ],
+   "herramientas_usadas": [
+    {
+     "name": "read_image",
+     "ms": 1184.5,
+     "usd": 0.0018335
+    }
+   ],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 2556.3,
+   "usd": 0.003203900000000105,
+   "tokens": 586,
+   "error": null
+  },
+  {
+   "id": "c-0190",
+   "esperado": "estafa",
+   "tipo": "imagen",
+   "categoria": "estado",
+   "pais": "CO",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [
+    "brand_off_domain",
+    "qr_to_unofficial_domain",
+    "authority_with_link"
+   ],
+   "herramientas_usadas": [
+    {
+     "name": "read_image",
+     "ms": 1395.2,
+     "usd": 0.00167625
+    }
+   ],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 2899.0,
+   "usd": 0.0033116499999999533,
+   "tokens": 654,
+   "error": null
+  },
+  {
+   "id": "c-0191",
+   "esperado": "estafa",
+   "tipo": "imagen",
+   "categoria": "transportadora",
+   "pais": "CO",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [
+    "brand_off_domain",
+    "qr_to_unofficial_domain"
+   ],
+   "herramientas_usadas": [
+    {
+     "name": "read_image",
+     "ms": 900.8,
+     "usd": 0.00147225
+    }
+   ],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 2703.1,
+   "usd": 0.0033309000000000728,
+   "tokens": 703,
+   "error": null
+  },
+  {
+   "id": "c-0192",
+   "esperado": "estafa",
+   "tipo": "imagen",
+   "categoria": "billetera",
+   "pais": "CO",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [
+    "brand_off_domain",
+    "qr_to_unofficial_domain",
+    "prize",
+    "personal_payment"
+   ],
+   "herramientas_usadas": [
+    {
+     "name": "read_image",
+     "ms": 1581.0,
+     "usd": 0.00417625
+    }
+   ],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 2928.8,
+   "usd": 0.005720399999999967,
+   "tokens": 629,
+   "error": null
+  },
+  {
+   "id": "c-0193",
+   "esperado": "estafa",
+   "tipo": "imagen",
+   "categoria": "transportadora",
+   "pais": "US",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [
+    "brand_off_domain",
+    "qr_to_unofficial_domain"
+   ],
+   "herramientas_usadas": [
+    {
+     "name": "read_image",
+     "ms": 903.2,
+     "usd": 0.00156575
+    }
+   ],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 2186.9,
+   "usd": 0.002712149999999992,
+   "tokens": 534,
+   "error": null
+  },
+  {
+   "id": "c-0194",
+   "esperado": "estafa",
+   "tipo": "imagen",
+   "categoria": "banco",
+   "pais": "US",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [
+    "brand_off_domain",
+    "qr_to_unofficial_domain",
+    "urgency"
+   ],
+   "herramientas_usadas": [
+    {
+     "name": "read_image",
+     "ms": 891.6,
+     "usd": 0.00168475
+    }
+   ],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 2251.5,
+   "usd": 0.003450900000000022,
+   "tokens": 677,
+   "error": null
+  },
+  {
+   "id": "c-0195",
+   "esperado": "estafa",
+   "tipo": "imagen",
+   "categoria": "banco",
+   "pais": "CO",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [
+    "brand_off_domain",
+    "credentials_request"
+   ],
+   "herramientas_usadas": [
+    {
+     "name": "read_image",
+     "ms": 2415.7,
+     "usd": 0.00432925
+    }
+   ],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 3751.8,
+   "usd": 0.00550964999999997,
+   "tokens": 542,
+   "error": null
+  },
+  {
+   "id": "c-0196",
+   "esperado": "estafa",
+   "tipo": "imagen",
+   "categoria": "comercio",
+   "pais": "US",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [
+    "brand_off_domain",
+    "prize"
+   ],
+   "herramientas_usadas": [
+    {
+     "name": "read_image",
+     "ms": 2628.1,
+     "usd": 0.003968
+    }
+   ],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 3576.9,
+   "usd": 0.005096149999999995,
+   "tokens": 529,
+   "error": null
+  },
+  {
+   "id": "c-0197",
+   "esperado": "estafa",
+   "tipo": "imagen",
+   "categoria": "familiar",
+   "pais": "CO",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.92,
+   "senales": [
+    "family",
+    "personal_payment",
+    "family_impersonation",
+    "new_number_claim",
+    "urgent_money_request",
+    "personal_payment_request"
+   ],
+   "herramientas_usadas": [
+    {
+     "name": "read_image",
+     "ms": 1692.5,
+     "usd": 0.00433775
+    },
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1302,
+     "usd": 0.0019505999999999998
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 4349.4,
+   "usd": 0.007822000000000077,
+   "tokens": 2625,
+   "error": null
+  },
+  {
+   "id": "c-0198",
+   "esperado": "estafa",
+   "tipo": "imagen",
+   "categoria": "premio",
+   "pais": "US",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.8,
+   "senales": [
+    "suspicious_tld",
+    "qr_to_unofficial_domain",
+    "prize",
+    "personal_payment"
+   ],
+   "herramientas_usadas": [
+    {
+     "name": "read_image",
+     "ms": 754.2,
+     "usd": 0.0017145
+    }
+   ],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 1636.7,
+   "usd": 0.003047149999999935,
+   "tokens": 575,
+   "error": null
+  },
+  {
+   "id": "c-0199",
+   "esperado": "estafa",
+   "tipo": "imagen",
+   "categoria": "telco",
+   "pais": "CO",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [
+    "brand_off_domain"
+   ],
+   "herramientas_usadas": [
+    {
+     "name": "read_image",
+     "ms": 1790.0,
+     "usd": 0.00426125
+    }
+   ],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 3397.7,
+   "usd": 0.005637650000000056,
+   "tokens": 586,
+   "error": null
+  },
+  {
+   "id": "c-0200",
+   "esperado": "legitimo",
+   "tipo": "imagen",
+   "categoria": "legitimo_banco",
+   "pais": "CO",
+   "obtenido": "legitimo",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [
+    "official_domain",
+    "official_domain_link",
+    "no_credential_request"
+   ],
+   "herramientas_usadas": [
+    {
+     "name": "read_image",
+     "ms": 900.4,
+     "usd": 0.0016295
+    },
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1227,
+     "usd": 0.0016760999999999998
+    },
+    {
+     "name": "check_country",
+     "ms": 1,
+     "usd": 0.0
+    },
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1286,
+     "usd": 0.00194485
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 5293.8,
+   "usd": 0.007155599999999978,
+   "tokens": 4688,
+   "error": null
+  },
+  {
+   "id": "c-0201",
+   "esperado": "legitimo",
+   "tipo": "imagen",
+   "categoria": "legitimo_transportadora",
+   "pais": "US",
+   "obtenido": "legitimo",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [
+    "official_domain",
+    "official_domain_qr"
+   ],
+   "herramientas_usadas": [
+    {
+     "name": "read_image",
+     "ms": 684.4,
+     "usd": 0.0017315
+    },
+    {
+     "name": "muse-spark-1.3",
+     "ms": 903,
+     "usd": 0.00161985
+    },
+    {
+     "name": "check_country",
+     "ms": 0,
+     "usd": 0.0
+    },
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1864,
+     "usd": 0.0010321
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 4636.1,
+   "usd": 0.005735350000000031,
+   "tokens": 4475,
+   "error": null
+  },
+  {
+   "id": "c-0202",
+   "esperado": "legitimo",
+   "tipo": "imagen",
+   "categoria": "legitimo_otro",
+   "pais": "CO",
+   "obtenido": "legitimo",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [
+    "official_domain",
+    "official_domain_qr",
+    "no_credential_request"
+   ],
+   "herramientas_usadas": [
+    {
+     "name": "read_image",
+     "ms": 795.7,
+     "usd": 0.0017315
+    },
+    {
+     "name": "muse-spark-1.3",
+     "ms": 703,
+     "usd": 0.0015156
+    },
+    {
+     "name": "check_country",
+     "ms": 1,
+     "usd": 0.0
+    },
+    {
+     "name": "muse-spark-1.3",
+     "ms": 915,
+     "usd": 0.0017710999999999998
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 4899.4,
+   "usd": 0.007390850000000063,
+   "tokens": 4701,
+   "error": null
+  },
+  {
+   "id": "c-0203",
+   "esperado": "legitimo",
+   "tipo": "imagen",
+   "categoria": "legitimo_otro",
+   "pais": "CO",
+   "obtenido": "legitimo",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.95,
+   "senales": [],
+   "herramientas_usadas": [
+    {
+     "name": "read_image",
+     "ms": 2563.3,
+     "usd": 0.0048605
+    },
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1550,
+     "usd": 0.00225435
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 5082.6,
+   "usd": 0.008406749999999973,
+   "tokens": 2593,
+   "error": null
+  },
+  {
+   "id": "c-0204",
+   "esperado": "legitimo",
+   "tipo": "imagen",
+   "categoria": "legitimo_otro",
+   "pais": "US",
+   "obtenido": "legitimo",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.95,
+   "senales": [],
+   "herramientas_usadas": [
+    {
+     "name": "read_image",
+     "ms": 2157.9,
+     "usd": 0.0041465
+    },
+    {
+     "name": "muse-spark-1.3",
+     "ms": 899,
+     "usd": 0.00153785
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 4280.0,
+   "usd": 0.006889500000000051,
+   "tokens": 2380,
+   "error": null
+  },
+  {
+   "id": "c-0205",
+   "esperado": "legitimo",
+   "tipo": "imagen",
+   "categoria": "legitimo_proveedor",
+   "pais": "CO",
+   "obtenido": "legitimo",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [],
+   "herramientas_usadas": [
+    {
+     "name": "read_image",
+     "ms": 2168.8,
+     "usd": 0.00435475
+    },
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1460,
+     "usd": 0.0018640999999999998
+    },
+    {
+     "name": "check_address_book",
+     "ms": 0,
+     "usd": 0.0
+    },
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1430,
+     "usd": 0.0021901
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 5974.4,
+   "usd": 0.009675599999999934,
+   "tokens": 4531,
+   "error": null
+  },
+  {
+   "id": "c-0206",
+   "esperado": "legitimo",
+   "tipo": "imagen",
+   "categoria": "legitimo_proveedor",
+   "pais": "US",
+   "obtenido": "legitimo",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [],
+   "herramientas_usadas": [
+    {
+     "name": "read_image",
+     "ms": 1796.8,
+     "usd": 0.00388725
+    },
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1158,
+     "usd": 0.0018961
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 4276.2,
+   "usd": 0.007358250000000002,
+   "tokens": 2552,
+   "error": null
+  },
+  {
+   "id": "c-0207",
+   "esperado": "legitimo",
+   "tipo": "imagen",
+   "categoria": "legitimo_otro",
+   "pais": "CO",
+   "obtenido": "legitimo",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [],
+   "herramientas_usadas": [
+    {
+     "name": "read_image",
+     "ms": 1777.8,
+     "usd": 0.0039595
+    },
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1372,
+     "usd": 0.0020386
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 4821.2,
+   "usd": 0.007485999999999988,
+   "tokens": 2582,
+   "error": null
+  },
+  {
+   "id": "c-0208",
+   "esperado": "legitimo",
+   "tipo": "imagen",
+   "categoria": "legitimo_otro",
+   "pais": "US",
+   "obtenido": "legitimo",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.95,
+   "senales": [],
+   "herramientas_usadas": [
+    {
+     "name": "read_image",
+     "ms": 1895.1,
+     "usd": 0.00402325
+    },
+    {
+     "name": "muse-spark-1.3",
+     "ms": 946,
+     "usd": 0.0012108499999999999
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 3823.2,
+   "usd": 0.006293499999999918,
+   "tokens": 2433,
+   "error": null
+  },
+  {
+   "id": "c-0209",
+   "esperado": "legitimo",
+   "tipo": "imagen",
+   "categoria": "legitimo_banco",
+   "pais": "US",
+   "obtenido": "legitimo",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.92,
+   "senales": [
+    "official_domain",
+    "official_domain"
+   ],
+   "herramientas_usadas": [
+    {
+     "name": "read_image",
+     "ms": 1209.7,
+     "usd": 0.0016465
+    },
+    {
+     "name": "muse-spark-1.3",
+     "ms": 635,
+     "usd": 0.00086635
+    },
+    {
+     "name": "check_country",
+     "ms": 0,
+     "usd": 0.0
+    },
+    {
+     "name": "muse-spark-1.3",
+     "ms": 717,
+     "usd": 0.0010653499999999998
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 3838.6,
+   "usd": 0.005214849999999998,
+   "tokens": 4541,
+   "error": null
+  },
+  {
+   "id": "c-0210",
+   "esperado": "legitimo",
+   "tipo": "imagen",
+   "categoria": "legitimo_transportadora",
+   "pais": "CO",
+   "obtenido": "legitimo",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [
+    "official_domain",
+    "official_domain_qr",
+    "courier_tracking_invite"
+   ],
+   "herramientas_usadas": [
+    {
+     "name": "read_image",
+     "ms": 1085.9,
+     "usd": 0.0016295
+    },
+    {
+     "name": "muse-spark-1.3",
+     "ms": 800,
+     "usd": 0.00088385
+    },
+    {
+     "name": "check_country",
+     "ms": 1,
+     "usd": 0.0
+    },
+    {
+     "name": "muse-spark-1.3",
+     "ms": 930,
+     "usd": 0.0011175999999999998
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 5193.6,
+   "usd": 0.006101350000000055,
+   "tokens": 4755,
+   "error": null
+  },
+  {
+   "id": "c-0211",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "transportadora",
+   "pais": "CO",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.8,
+   "senales": [
+    "ip_or_port",
+    "urgency",
+    "http_without_tls"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 843.6,
+   "usd": 0.0013041499999999484,
+   "tokens": 581,
+   "error": null
+  },
+  {
+   "id": "c-0212",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "transportadora",
+   "pais": "CO",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.92,
+   "senales": [
+    "ip_or_port",
+    "http_without_tls",
+    "brand_impersonation",
+    "unofficial_url",
+    "ip_or_port",
+    "urgency_threat"
+   ],
+   "herramientas_usadas": [
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1162,
+     "usd": 0.0010516500000000001
+    },
+    {
+     "name": "check_country",
+     "ms": 1,
+     "usd": 0.0
+    },
+    {
+     "name": "muse-spark-1.3",
+     "ms": 534,
+     "usd": 0.0010686500000000002
+    },
+    {
+     "name": "analyze_url",
+     "ms": 3,
+     "usd": 0.0
+    },
+    {
+     "name": "muse-spark-1.3",
+     "ms": 581,
+     "usd": 0.0014129000000000001
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 3345.7,
+   "usd": 0.004468100000000086,
+   "tokens": 6602,
+   "error": null
+  },
+  {
+   "id": "c-0213",
+   "esperado": "legitimo",
+   "tipo": "texto",
+   "categoria": "legitimo_otro",
+   "pais": "CO",
+   "obtenido": "legitimo",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.88,
+   "senales": [
+    "official_domain",
+    "official_domain",
+    "no_credential_request",
+    "no_payment_request"
+   ],
+   "herramientas_usadas": [
+    {
+     "name": "muse-spark-1.3",
+     "ms": 949,
+     "usd": 0.0018406
+    },
+    {
+     "name": "check_country",
+     "ms": 1,
+     "usd": 0.0
+    },
+    {
+     "name": "analyze_url",
+     "ms": 4,
+     "usd": 0.0
+    },
+    {
+     "name": "muse-spark-1.3",
+     "ms": 800,
+     "usd": 0.00219585
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 3040.6,
+   "usd": 0.00576034999999997,
+   "tokens": 4957,
+   "error": null
+  },
+  {
+   "id": "c-0214",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "banco",
+   "pais": "CO",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [
+    "credentials_request",
+    "unresolved_shortener",
+    "official_domain"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 1297.1,
+   "usd": 0.0012951500000000227,
+   "tokens": 569,
+   "error": null
+  },
+  {
+   "id": "c-0215",
+   "esperado": "dudoso",
+   "tipo": "texto",
+   "categoria": "comercio",
+   "pais": "CO",
+   "obtenido": "dudoso",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.5,
+   "senales": [
+    "unresolved_shortener",
+    "unresolved_shortener",
+    "unofficial_link"
+   ],
+   "herramientas_usadas": [
+    {
+     "name": "muse-spark-1.3",
+     "ms": 747,
+     "usd": 0.0018156
+    },
+    {
+     "name": "analyze_url",
+     "ms": 0,
+     "usd": 0.0
+    },
+    {
+     "name": "check_country",
+     "ms": 1,
+     "usd": 0.0
+    },
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1142,
+     "usd": 0.0015891
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 3199.4,
+   "usd": 0.0045376000000000305,
+   "tokens": 4722,
+   "error": null
+  },
+  {
+   "id": "c-0216",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "estado",
+   "pais": "CO",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.8,
+   "senales": [
+    "authority_with_link",
+    "unresolved_shortener",
+    "official_domain"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 1306.1,
+   "usd": 0.0013586500000000168,
+   "tokens": 579,
+   "error": null
+  },
+  {
+   "id": "c-0217",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "compraventa",
+   "pais": "CO",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.8,
+   "senales": [
+    "advance_before_seeing",
+    "unresolved_shortener",
+    "official_domain"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 1240.6,
+   "usd": 0.0012214000000000391,
+   "tokens": 558,
+   "error": null
+  },
+  {
+   "id": "c-0218",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "banco",
+   "pais": "CO",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [
+    "lookalike_domain",
+    "brand_off_domain",
+    "credentials_request",
+    "suspicious_tld"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 1490.4,
+   "usd": 0.0011366499999999613,
+   "tokens": 531,
+   "error": null
+  },
+  {
+   "id": "c-0219",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "telco",
+   "pais": "CO",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [
+    "lookalike_domain",
+    "brand_off_domain"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 1608.0,
+   "usd": 0.0017439000000000204,
+   "tokens": 664,
+   "error": null
+  },
+  {
+   "id": "c-0220",
+   "esperado": "estafa",
+   "tipo": "audio",
+   "categoria": "estado",
+   "pais": "CO",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [
+    "personal_payment",
+    "authority_impersonation",
+    "urgency_threat",
+    "personal_payment"
+   ],
+   "herramientas_usadas": [
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1210,
+     "usd": 0.0010384
+    },
+    {
+     "name": "check_country",
+     "ms": 1,
+     "usd": 0.0
+    },
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1442,
+     "usd": 0.0014426500000000002
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 3711.1,
+   "usd": 0.003678199999999965,
+   "tokens": 4382,
+   "error": null
+  },
+  {
+   "id": "c-0221",
+   "esperado": "estafa",
+   "tipo": "audio",
+   "categoria": "transportadora",
+   "pais": "CO",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.92,
+   "senales": [
+    "ip_or_port",
+    "http_without_tls",
+    "payment_to_release",
+    "ip_url",
+    "http_without_tls",
+    "urgency"
+   ],
+   "herramientas_usadas": [
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1104,
+     "usd": 0.0010609
+    },
+    {
+     "name": "analyze_url",
+     "ms": 5,
+     "usd": 0.0
+    },
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1352,
+     "usd": 0.00162985
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 3753.7,
+   "usd": 0.0040386500000000325,
+   "tokens": 4687,
+   "error": null
+  },
+  {
+   "id": "c-0222",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "comercio",
+   "pais": "CO",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.97,
+   "senales": [
+    "urgency",
+    "otp_code_request",
+    "brand_impersonation",
+    "account_block_threat"
+   ],
+   "herramientas_usadas": [
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1352,
+     "usd": 0.0014231500000000002
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 2787.2,
+   "usd": 0.003410549999999901,
+   "tokens": 2671,
+   "error": null
+  },
+  {
+   "id": "c-0223",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "comercio",
+   "pais": "US",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.95,
+   "senales": [
+    "urgency",
+    "verification_code_request",
+    "impersonation_support",
+    "urgency_lock_threat"
+   ],
+   "herramientas_usadas": [
+    {
+     "name": "muse-spark-1.3",
+     "ms": 886,
+     "usd": 0.00100015
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 2302.3,
+   "usd": 0.0022937999999999015,
+   "tokens": 2392,
+   "error": null
+  },
+  {
+   "id": "c-0224",
+   "esperado": "legitimo",
+   "tipo": "texto",
+   "categoria": "legitimo_otro",
+   "pais": "CO",
+   "obtenido": "dudoso",
+   "paso": false,
+   "hipotesis_confirmada": false,
+   "confianza": 0.5,
+   "senales": [],
+   "herramientas_usadas": [
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1289,
+     "usd": 0.0011815999999999999
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 3288.9,
+   "usd": 0.003119250000000129,
+   "tokens": 2649,
+   "error": null
+  },
+  {
+   "id": "c-0225",
+   "esperado": "legitimo",
+   "tipo": "texto",
+   "categoria": "legitimo_otro",
+   "pais": "US",
+   "obtenido": "legitimo",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.95,
+   "senales": [
+    "official_domain",
+    "official_domain"
+   ],
+   "herramientas_usadas": [
+    {
+     "name": "muse-spark-1.3",
+     "ms": 840,
+     "usd": 0.00087615
+    },
+    {
+     "name": "check_country",
+     "ms": 0,
+     "usd": 0.0
+    },
+    {
+     "name": "muse-spark-1.3",
+     "ms": 956,
+     "usd": 0.00121415
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 3087.7,
+   "usd": 0.0034916999999999865,
+   "tokens": 4360,
+   "error": null
+  },
+  {
+   "id": "c-0226",
+   "esperado": "legitimo",
+   "tipo": "texto",
+   "categoria": "legitimo_otro",
+   "pais": "CO",
+   "obtenido": "dudoso",
+   "paso": false,
+   "hipotesis_confirmada": false,
+   "confianza": 0.5,
+   "senales": [
+    "brand_off_domain",
+    "false_brand_match",
+    "no_credential_request"
+   ],
+   "herramientas_usadas": [
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1237,
+     "usd": 0.0014996500000000002
+    },
+    {
+     "name": "check_country",
+     "ms": 1,
+     "usd": 0.0
+    },
+    {
+     "name": "check_country",
+     "ms": 1,
+     "usd": 0.0
+    },
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1273,
+     "usd": 0.00115635
+    },
+    {
+     "name": "analyze_url",
+     "ms": 5,
+     "usd": 0.0
+    },
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1332,
+     "usd": 0.00153625
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 5113.5,
+   "usd": 0.0056859000000000215,
+   "tokens": 6954,
+   "error": null
+  },
+  {
+   "id": "c-0227",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "telco",
+   "pais": "CO",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.85,
+   "senales": [
+    "brand_off_domain",
+    "brand_off_domain",
+    "urgency_suspension_threat",
+    "unofficial_payment_link"
+   ],
+   "herramientas_usadas": [
+    {
+     "name": "muse-spark-1.3",
+     "ms": 447,
+     "usd": 0.00146985
+    },
+    {
+     "name": "check_country",
+     "ms": 1,
+     "usd": 0.0
+    },
+    {
+     "name": "muse-spark-1.3",
+     "ms": 610,
+     "usd": 0.0016585999999999999
+    },
+    {
+     "name": "analyze_url",
+     "ms": 6,
+     "usd": 0.0
+    },
+    {
+     "name": "muse-spark-1.3",
+     "ms": 880,
+     "usd": 0.00125205
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 3788.2,
+   "usd": 0.006149150000000048,
+   "tokens": 6755,
+   "error": null
+  },
+  {
+   "id": "c-0228",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "transportadora",
+   "pais": "US",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.92,
+   "senales": [
+    "brand_off_domain",
+    "brand_off_domain",
+    "urgency_threat",
+    "advance_fee_request"
+   ],
+   "herramientas_usadas": [
+    {
+     "name": "muse-spark-1.3",
+     "ms": 836,
+     "usd": 0.0009743999999999999
+    },
+    {
+     "name": "check_country",
+     "ms": 0,
+     "usd": 0.0
+    },
+    {
+     "name": "muse-spark-1.3",
+     "ms": 864,
+     "usd": 0.0010373499999999998
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 3446.6,
+   "usd": 0.0035381499999999066,
+   "tokens": 4409,
+   "error": null
+  },
+  {
+   "id": "c-0229",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "banco",
+   "pais": "US",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.95,
+   "senales": [
+    "brand_off_domain",
+    "brand_off_domain",
+    "account_locked_urgency",
+    "credential_request"
+   ],
+   "herramientas_usadas": [
+    {
+     "name": "muse-spark-1.3",
+     "ms": 745,
+     "usd": 0.00266425
+    },
+    {
+     "name": "check_country",
+     "ms": 0,
+     "usd": 0.0
+    },
+    {
+     "name": "muse-spark-1.3",
+     "ms": 674,
+     "usd": 0.00102865
+    },
+    {
+     "name": "analyze_url",
+     "ms": 2,
+     "usd": 0.0
+    },
+    {
+     "name": "muse-spark-1.3",
+     "ms": 612,
+     "usd": 0.0010161
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 3154.6,
+   "usd": 0.006008150000000101,
+   "tokens": 6373,
+   "error": null
+  }
+ ]
+}
