@@ -243,6 +243,9 @@ def test_incident_31oct_unlisted_or_capitalized_tld_is_extracted(text: str, url:
         "Llegó el pago.Help me confirm it",
         "listo.Bancolombia/Davivienda los dos confirmaron",
         "bancolombia-nequi.ayer quedó",
+        "le mandé la factura.xlsx/csv al correo",  # c-0236
+        "va el archivo.pdf/jpg como pidió",
+        "la foto.jpeg/png del recibo",
     ],
 )
 def test_incident_31oct_prose_after_a_period_stays_prose(text: str) -> None:
