@@ -707,16 +707,47 @@ async def test_inc_reenvio_viejo_an_old_verdict_is_analyzed_again(
     outbox, fake = Outbox(_png()), FakeReader()
     ch = channel(keyring, outbox, {"image": fake})
 
+    before = await admin_conn.fetchval("SELECT count(*) FROM verdicts")
     await whatsapp.process(admin_conn, ch, incoming("imagen", EMPLOYEE, message_id="wamid.o0"))
     await admin_conn.execute("UPDATE verdicts SET created_at = created_at - interval '2 days'")
     await whatsapp.process(admin_conn, ch, incoming("imagen", EMPLOYEE, message_id="wamid.o1"))
 
     assert len(fake.calls) == 2
     assert not outbox.to(EMPLOYEE)[1].startswith("Ya lo revisé")
-    assert len(await admin_conn.fetch("SELECT 1 FROM verdicts")) == 2
+    assert await admin_conn.fetchval("SELECT count(*) FROM verdicts") == before + 2
 
 
-async def test_a_failed_read_releases_the_media_claim(
+async def test_inc_reenvio_concurrente_two_copies_at_once_are_read_once(
+    admin_dsn: str, recorder: Recorder, keyring: Keyring
+) -> None:
+    """D-106: a copy arriving while the first is being read waits for its verdict."""
+    conns = [await asyncpg.connect(Settings().database_url) for _ in range(3)]
+    try:
+        async with conns[0].transaction():  # committed: both workers must see the team
+            await team(conns[0], recorder)
+        outbox, fake = Outbox(_png()), FakeReader()
+        ch = channel(keyring, outbox, {"image": fake})
+
+        async def forward(conn: asyncpg.Connection, n: int) -> None:
+            async with conn.transaction():
+                msg = incoming("imagen", EMPLOYEE, message_id=f"wamid.c{n}")
+                await whatsapp.process(conn, ch, msg)
+
+        await asyncio.wait_for(asyncio.gather(forward(conns[1], 0), forward(conns[2], 1)), 5)
+
+        assert len(fake.calls) == 1
+        assert sum(r.startswith("Ya lo revisé el ") for r in outbox.to(EMPLOYEE)) == 1
+    finally:
+        member = await store.find_member(conns[0], keyring.hash(OWNER))
+        admin = await asyncpg.connect(admin_dsn)
+        if member is not None:
+            await admin.execute("DELETE FROM businesses WHERE id = $1", member.business_id)
+        await admin.close()
+        for conn in conns:
+            await conn.close()
+
+
+async def test_a_failed_read_is_read_again(
     app_conn: asyncpg.Connection, recorder: Recorder, keyring: Keyring
 ) -> None:
     """A reader failure is not a duplicate: the same bytes sent again are read again."""
@@ -765,7 +796,8 @@ async def test_inc_id_caso_uuid_the_reply_quotes_a_short_case_number(
     await team(app_conn, recorder)
     outbox = Outbox()
     for n in range(2):
-        msg = incoming("texto", EMPLOYEE, message_id=f"wamid.n{n}")
+        # two different texts: a forwarded copy would repeat case 1 (D-106)
+        msg = incoming("texto", EMPLOYEE, message_id=f"wamid.n{n}", body=f"{SCAM_TEXT} {n}")
         await whatsapp.process(app_conn, channel(keyring, outbox), msg)
 
     replies = outbox.to(EMPLOYEE)

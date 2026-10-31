@@ -37,6 +37,8 @@
   "help.owner": "Only you, as the owner:\n• *team* <number> <name>: enroll someone on your team.\n• *supplier* <name> account=<number>: save a known supplier.\n• *scam confirmed* <case number>: alert the whole team.\n• *transfer* <number>: hand the business to someone else.\n• *confirm* <id> or *cancel* <id>: approve or drop a pending action.",
   "case.empty": "Forward me the suspicious message (text, screenshot, voice note, PDF or email) and I will tell you if it is a scam. Write help to see the commands.",
   "case.duplicate": "I already checked this message.",
+  "case.repeat": "I already checked this on {when}:",
+  "case.repeat_when": "%m/%d at %H:%M",
   "case.unsupported": "I can't check this kind of file yet. Send me text, a screenshot, a voice note, a PDF or an email.",
   "verdict.explanation.signals": "{header} Signals: {signals}.",
   "message.official_channel_line": "If in doubt, use {official_channel}.",

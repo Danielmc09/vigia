@@ -1,8 +1,10 @@
 """WhatsApp texts built from a verdict: only i18n templates, never model text (specs/05)."""
 
 import re
+from datetime import datetime
 from typing import cast, get_args
 
+from vigia.channel.panel import COLOMBIA
 from vigia.domain.case import Case
 from vigia.domain.escalation import Escalation
 from vigia.domain.signal import by_weight
@@ -44,6 +46,27 @@ def whatsapp_message(
     if case_ref is not None:
         lines.append(t(lang, "message.id_line", ref=str(case_ref)))
     return "\n".join(lines)
+
+
+def repeat_message(verdict: Verdict, lang: str, case_ref: int, at: datetime) -> str:
+    """The reply to a forwarded copy: when it was checked, then that same verdict (D-106).
+
+    Args:
+        verdict: The stored verdict of the first copy.
+        lang: Language of the business.
+        case_ref: Short number of the first copy's case.
+        at: When that verdict was given.
+
+    Returns:
+        The message text.
+    """
+    # ponytail: Colombia's clock for every business; a per-business zone when US has members.
+    when = at.astimezone(COLOMBIA).strftime(t(lang, "case.repeat_when"))
+    return (
+        t(lang, "case.repeat", when=when)
+        + "\n"
+        + whatsapp_message(verdict, lang, case_ref=case_ref)
+    )
 
 
 def _hook(lang: str, verdict: Verdict) -> str | None:

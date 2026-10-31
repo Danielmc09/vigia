@@ -21,7 +21,7 @@ from vigia.channel.templates import team_alert_message, team_alert_params, whats
 from vigia.channel.wazenda import HTTP_TIMEOUT_S, Wazenda, ogg_to_wav
 from vigia.config import Settings
 from vigia.domain.attachment import Attachment, sniff
-from vigia.domain.case import Case, IncomingMessage
+from vigia.domain.case import Case, IncomingMessage, media_key
 from vigia.domain.country import CountryPack
 from vigia.domain.gate import Judge
 from vigia.domain.member import Contact, Supplier, normalize_contact
@@ -39,7 +39,7 @@ from vigia.services.process_case import Analyst, judge_case, spark_analyst
 from vigia.signals.knowledge import seeded_pack, with_campaigns
 from vigia.store import knowledge as store_knowledge
 from vigia.store import postgres as store
-from vigia.store.crypto import Hashed, Keyring, Vault
+from vigia.store.crypto import Hashed, Keyring
 from vigia.verdict.fusion import SCAM
 
 log = logging.getLogger(__name__)
@@ -111,16 +111,6 @@ async def business_pack(
     return with_campaigns(pack, merged.values())
 
 
-async def _first_media(conn: asyncpg.Connection, vault: Vault, data: bytes) -> bool:
-    """Claim a file for its business; a copy already claimed is a duplicate (adv-media-repetida).
-
-    The claim commits with the message's transaction, so a concurrent copy waits on it;
-    :func:`process` rolls it back when the read does not produce text.
-    """
-    digest = hashlib.sha256(data).hexdigest()
-    return await store.first_webhook_event(conn, vault.hash(f"media:{vault.business_id}:{digest}"))
-
-
 class MediaRead(NamedTuple):
     """An attachment turned into text.
 
@@ -133,12 +123,17 @@ class MediaRead(NamedTuple):
     media: "Media"
 
 
+Repeated = Callable[[str], Awaitable[str | None]]
+"""The reply repeating a fresh verdict for a content key, if any (D-106)."""
+
+
 async def _read_media(
-    channel: Channel, msg: IncomingMessage, language: str, first: Callable[[bytes], Awaitable[bool]]
+    channel: Channel, msg: IncomingMessage, language: str, repeated: Repeated
 ) -> MediaRead | str:
     """Download the attachment and turn it into text; a string is the reply instead.
 
-    ``first`` claims the bytes before any reader is paid; a repeat is answered as a duplicate.
+    A forwarded copy of a file with a fresh verdict gets that verdict before any reader is
+    paid (D-106); the bytes are hashed as downloaded, before any conversion.
     """
     ref = msg.attachments[0].ref
     wazenda = channel.wazenda
@@ -148,10 +143,13 @@ async def _read_media(
     if isinstance(data, Rejection):
         key = {"TOO_LARGE": "attachment.too_large", "MEDIA_MATCH_FAILED": "attachment.unmatched"}
         return t(language, key.get(data.error_code, "attachment.unavailable"))
-    read = await read_media(data, channel.readers, channel.config, Sender(language, first))
+    digest = hashlib.sha256(data).hexdigest()
+    if reply := await repeated(media_key(digest)):
+        return reply
+    read = await read_media(data, channel.readers, channel.config, language)
     if isinstance(read, str):
         return t(language, read)
-    attachment = Attachment(ref=msg.attachments[0].ref, mime=read.mime)
+    attachment = Attachment(ref=msg.attachments[0].ref, mime=read.mime, sha256=digest)
     update = {"kind": read.kind, "text": read.transcript.text, "attachments": [attachment]}
     return MediaRead(msg.model_copy(update=update), read)
 
@@ -172,20 +170,8 @@ class Media(NamedTuple):
     transcript: Transcript
 
 
-class Sender(NamedTuple):
-    """Who a file comes from, as its reader needs it.
-
-    Attributes:
-        language: Language hint for the reader (Voice's bias).
-        first: Claims the bytes before any reader is paid; a repeat is a duplicate.
-    """
-
-    language: str
-    first: Callable[[bytes], Awaitable[bool]]
-
-
 async def read_media(
-    data: bytes, readers: Mapping[str, Transcriber], config: Settings, sender: Sender
+    data: bytes, readers: Mapping[str, Transcriber], config: Settings, language: str
 ) -> Media | str:
     """Turn a file into text, the same for WhatsApp and the panel; a string is an i18n key.
 
@@ -193,7 +179,7 @@ async def read_media(
         data: The file, already under the attachment cap.
         readers: :func:`model_readers` (fakes in tests).
         config: Settings with the audio and PDF caps.
-        sender: Language and dedupe claim of whoever sent it.
+        language: Language hint for the reader (Voice's bias).
 
     Returns:
         The read file, or the i18n key of the reply when it cannot be read.
@@ -210,10 +196,8 @@ async def read_media(
     reader_kind = _READER[kind]
     if reader_kind not in readers:
         return f"{reader_kind}.unavailable"
-    if not await sender.first(data):
-        return "case.duplicate"
     reader = transcription.checked(reader_kind, readers[reader_kind], config)
-    read = await asyncio.to_thread(reader, data, sender.language)
+    read = await asyncio.to_thread(reader, data, language)
     if isinstance(read, Rejection):
         return transcription.reply_key(read, transcription.REPLY_KEYS[reader_kind])
     telemetry.add_usd(read.usd)
@@ -242,17 +226,14 @@ async def _process(conn: asyncpg.Connection, channel: Channel, msg: IncomingMess
         member = await store.find_member(conn, channel.keyring.hash(sender))
         if member is not None:  # strangers cost no download (ingest drops them below)
             business, vault = await store.open_business(conn, channel.keyring, member.business_id)
-            first = partial(_first_media, conn, vault)
-            claim = conn.transaction()  # savepoint: the media claim lives only if the read does
-            await claim.start()
             with telemetry.stage("gate") as cost:
-                read = await _read_media(channel, msg, business.language, first)
+                lang = business.language
+                repeated = partial(ingest.repeated, conn, vault, lang=lang)
+                read = await _read_media(channel, msg, lang, repeated)
                 cost["usd"] = read.media.transcript.usd if not isinstance(read, str) else 0.0
             if isinstance(read, str):
-                await claim.rollback()  # a refused or failed read can be sent again (D-083)
                 await channel.wazenda.send(sender, read)
                 return
-            await claim.commit()
             found = read.media.transcript
             msg, media, qr, refused = read.msg, read.media.data, found.qr_urls, found.refused
     cases: list[Case] = []

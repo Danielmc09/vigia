@@ -522,15 +522,12 @@ def _try_it(
     form_readers = whatsapp.model_readers(config)
     pack = seeded_pack(TRY_COUNTRY, config.knowledge_seed)
 
-    async def unseen(_data: bytes) -> bool:
-        return True  # one operator trying files: nothing to dedupe
-
-    sender = whatsapp.Sender(pack.language if pack else LANG, unseen)
+    language = pack.language if pack else LANG
 
     async def try_it(text: str, data: bytes) -> TryForm:
         media = None
         if data:
-            media = await whatsapp.read_media(data, form_readers, config, sender)
+            media = await whatsapp.read_media(data, form_readers, config, language)
             if isinstance(media, str):
                 return TryForm(notice=t(LANG, media))
             text = media.transcript.text

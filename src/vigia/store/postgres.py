@@ -6,13 +6,14 @@ set by ``open_business``/``create_business`` (RLS on ``app.business_id``).
 """
 
 import secrets
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
+from typing import NamedTuple
 from uuid import UUID, uuid4
 
 import asyncpg
 
 from vigia.config import settings
-from vigia.domain.case import Case
+from vigia.domain.case import Case, content_key
 from vigia.domain.escalation import Escalation
 from vigia.domain.member import Business, CodeCheck, Contact, Member, Role, Supplier
 from vigia.domain.verdict import Label, Verdict, VerdictRow
@@ -326,13 +327,14 @@ async def save_case(conn: asyncpg.Connection, vault: Vault, case: Case) -> int |
         ``message_id`` already exists (dedupe).
     """
     message_hash = vault.hash(case.message_id) if case.message_id else None
+    content = content_key(case)
     # ponytail: a duplicate still bumps the counter (a gap in the numbers, harmless); the
     # business row stays locked until commit, so one business numbers its cases one by one.
     ref: int | None = await conn.fetchval(
         "WITH n AS (UPDATE businesses SET case_seq = case_seq + 1 WHERE id = $2"
         " RETURNING case_seq)"
-        " INSERT INTO cases (id, business_id, kind, origin, message_id_hash, text_enc, ref)"
-        " SELECT $1, $2, $3, $4, $5, $6, n.case_seq FROM n"
+        " INSERT INTO cases (id, business_id, kind, origin, message_id_hash, text_enc, ref,"
+        " content_hash) SELECT $1, $2, $3, $4, $5, $6, n.case_seq, $7 FROM n"
         " ON CONFLICT (business_id, message_id_hash) DO NOTHING RETURNING ref",
         case.id,
         vault.business_id,
@@ -340,8 +342,65 @@ async def save_case(conn: asyncpg.Connection, vault: Vault, case: Case) -> int |
         case.origin,
         message_hash,
         vault.seal("cases.text", case.text) if case.text else None,
+        _content_hash(vault, content) if content else None,
     )
     return ref
+
+
+def _content_hash(vault: Vault, key: str) -> Hashed:
+    """Content hash scoped to the business (D-083, D-106): no correlation across businesses."""
+    return vault.hash(f"{vault.business_id}:{key}")
+
+
+class Seen(NamedTuple):
+    """A verdict already given for the same content.
+
+    Attributes:
+        ref: Case number the member saw.
+        at: When the verdict was given.
+        verdict: The verdict, decrypted.
+    """
+
+    ref: int
+    at: datetime
+    verdict: Verdict
+
+
+async def fresh_verdict(
+    conn: asyncpg.Connection, vault: Vault, key: str, max_age: timedelta
+) -> Seen | None:
+    """The newest verdict for the same content, if younger than ``max_age`` (D-106).
+
+    Takes a transaction lock on the content first, so a copy arriving while the original is
+    still being judged waits for its verdict instead of paying the models again.
+
+    Args:
+        conn: Connection scoped to the business, inside a transaction.
+        vault: Open vault of the business.
+        key: :func:`~vigia.domain.case.content_key` of the case.
+        max_age: Oldest verdict worth repeating.
+
+    Returns:
+        The verdict with its case number and time, or ``None`` to analyze it again.
+    """
+    content = _content_hash(vault, key)
+    await conn.execute(
+        "SELECT pg_advisory_xact_lock($1)", int.from_bytes(content[:8], "big", signed=True)
+    )
+    row = await conn.fetchrow(
+        "SELECT c.ref, v.created_at, v.payload_enc FROM cases c"
+        " JOIN verdicts v ON v.case_id = c.id"
+        " WHERE c.business_id = $1 AND c.content_hash = $2 AND c.ref IS NOT NULL"
+        " AND v.created_at > now() - $3::interval"
+        " ORDER BY v.created_at DESC LIMIT 1",
+        vault.business_id,
+        content,
+        max_age,
+    )
+    if row is None:
+        return None
+    payload = vault.open("verdicts.payload", row["payload_enc"])
+    return Seen(row["ref"], row["created_at"], Verdict.model_validate_json(payload))
 
 
 async def recent_verdicts(conn: asyncpg.Connection, limit: int = 5) -> list[tuple[datetime, Label]]:

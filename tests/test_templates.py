@@ -6,7 +6,12 @@ from uuid import uuid4
 
 import pytest
 
-from vigia.channel.templates import team_alert_message, team_alert_params, whatsapp_message
+from vigia.channel.templates import (
+    repeat_message,
+    team_alert_message,
+    team_alert_params,
+    whatsapp_message,
+)
 from vigia.domain.case import Case, EmailMeta
 from vigia.domain.escalation import Escalation
 from vigia.domain.signal import Signal
@@ -44,6 +49,22 @@ def test_whatsapp_message_includes_explanation_action_and_short_case_number() ->
 
 def test_whatsapp_message_short_case_number_in_english() -> None:
     assert whatsapp_message(_verdict(), "en", case_ref=3).endswith("case 3")
+
+
+@pytest.mark.parametrize(
+    ("lang", "head", "tail"),
+    [
+        ("es", "Ya lo revisé el 31/10 a las 09:30:", "caso 7"),
+        ("en", "I already checked this on 10/31 at 09:30:", "case 7"),
+    ],
+)
+def test_repeat_message_says_when_in_colombia_time_then_the_same_verdict(
+    lang: str, head: str, tail: str
+) -> None:
+    at = datetime(2026, 10, 31, 14, 30, tzinfo=UTC)
+    msg = repeat_message(_verdict(), lang, 7, at)
+    assert msg.startswith(head + "\n")
+    assert msg.endswith(tail)
 
 
 def test_no_confirm_line_without_an_escalation() -> None:

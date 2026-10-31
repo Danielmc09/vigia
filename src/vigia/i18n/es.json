@@ -37,6 +37,8 @@
   "help.owner": "Solo tú, como dueño:\n• *equipo* <número> <nombre>: inscribe a alguien del equipo.\n• *proveedor* <nombre> cuenta=<número>: guarda un proveedor conocido.\n• *estafa confirmada* <número de caso>: avisa a todo el equipo.\n• *transferir* <número>: le pasa el negocio a otra persona.\n• *confirmar* <id> o *cancelar* <id>: aprueba o descarta una acción pendiente.",
   "case.empty": "Reenvíame el mensaje sospechoso (texto, captura, nota de voz, PDF o correo) y te digo si es estafa. Escribe ayuda para ver los comandos.",
   "case.duplicate": "Ya revisé este mensaje.",
+  "case.repeat": "Ya lo revisé el {when}:",
+  "case.repeat_when": "%d/%m a las %H:%M",
   "case.unsupported": "Todavía no puedo revisar este tipo de archivo. Envíame texto, captura, nota de voz, PDF o correo.",
   "verdict.explanation.signals": "{header} Señales: {signals}.",
   "message.official_channel_line": "Si dudas, entra por {official_channel}.",

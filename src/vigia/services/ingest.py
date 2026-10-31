@@ -7,6 +7,7 @@ channel message id and handed to analysis.
 
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
+from datetime import timedelta
 from email import policy
 from email.parser import BytesParser
 from email.utils import parseaddr
@@ -17,7 +18,8 @@ from uuid import uuid4
 import asyncpg
 
 from vigia import telemetry
-from vigia.domain.case import Case, CaseKind, EmailMeta, IncomingMessage
+from vigia.channel.templates import repeat_message
+from vigia.domain.case import Case, CaseKind, EmailMeta, IncomingMessage, content_key
 from vigia.domain.conversation import never, parse_chat, render_chat
 from vigia.domain.member import Business, normalize_contact
 from vigia.domain.text import clean_text
@@ -28,7 +30,9 @@ from vigia.services.commands import Command, misused_command, parse_command
 from vigia.signals.country_pack import country_pack
 from vigia.signals.sequence import asks_payment, is_trade_word
 from vigia.store import postgres as store
-from vigia.store.crypto import Keyring
+from vigia.store.crypto import Keyring, Vault
+
+FRESH = timedelta(hours=6)  # D-106: a verdict this young is repeated, an older one redone
 
 
 @dataclass(frozen=True)
@@ -85,12 +89,35 @@ async def handle(conn: asyncpg.Connection, ports: Ports, msg: IncomingMessage) -
     if case is None:
         telemetry.count("rejected", "unsupported")
         return t(business.language, "case.unsupported")
+    if (key := content_key(case)) and (
+        again := await repeated(conn, vault, key, business.language)
+    ):
+        return again
     ref = await store.save_case(conn, vault, case)
     if ref is None:
         telemetry.count("rejected", "duplicate")
         return t(business.language, "case.duplicate")
     await ports.analyze(case.model_copy(update={"ref": ref}))
     return None
+
+
+async def repeated(conn: asyncpg.Connection, vault: Vault, key: str, lang: str) -> str | None:
+    """The previous verdict of a forwarded copy, when it is fresh enough to repeat (D-106).
+
+    Args:
+        conn: Application connection inside a transaction.
+        vault: The business's vault.
+        key: :func:`~vigia.domain.case.content_key` of the copy.
+        lang: Language of the business.
+
+    Returns:
+        The repeat, or ``None`` when the copy must be analyzed (new, or its verdict is old).
+    """
+    seen = await store.fresh_verdict(conn, vault, key, FRESH)
+    if seen is None:
+        return None
+    telemetry.count("rejected", "repeated")
+    return repeat_message(seen.verdict, lang, seen.ref, seen.at)
 
 
 def _is_command(command: Command | None) -> TypeGuard[Command]:

@@ -96,3 +96,29 @@ class Case(BaseModel):
     received_at: datetime
     model_refused: bool = False
     ref: int | None = None
+
+
+def media_key(digest: str) -> str:
+    """What makes two files the same case: their bytes (D-106).
+
+    Args:
+        digest: Hex SHA-256 of the downloaded file.
+
+    Returns:
+        The content key, to be hashed with the vault before it is stored.
+    """
+    return f"media:{digest}"
+
+
+def content_key(case: Case) -> str | None:
+    """What makes two cases the same, whatever their message ids (D-106).
+
+    Args:
+        case: Normalized case.
+
+    Returns:
+        The file's key, else the text with its whitespace collapsed; ``None`` when empty.
+    """
+    if case.attachments and case.attachments[0].sha256:
+        return media_key(case.attachments[0].sha256)
+    return "text:" + " ".join(case.text.split()) if case.text else None

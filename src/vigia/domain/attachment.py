@@ -180,7 +180,9 @@ class Attachment(BaseModel):
     Attributes:
         ref: Channel reference of the file.
         mime: Declared MIME type.
+        sha256: Hex digest of the downloaded bytes; a forwarded copy has the same (D-106).
     """
 
     ref: str
     mime: str | None = None
+    sha256: str | None = None
