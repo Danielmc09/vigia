@@ -59,22 +59,24 @@ def _has_unofficial_url(case: Case, signals: list[Signal], pack: CountryPack) ->
     return False
 
 
-def _impersonated_brand(signals: Sequence[Signal], pack: CountryPack) -> Brand | None:
-    """The pack brand a hard signal says is being imitated, if any.
+def _hard_signal_brands(signals: Sequence[Signal], pack: CountryPack) -> list[Brand]:
+    """Pack brands a hard signal says are being imitated, direct mentions before lookalikes.
 
     Regla 14: evidence may come from the analyst, so a ``brand`` is only trusted when it
     is exactly the name of a brand of the pack; anything else is dropped, never echoed.
     """
     by_name = {b.name: b for b in pack.brands}
-    for s in signals:
-        if s.weight == "hard" and (brand := by_name.get(str(s.evidence.get("brand")))):
-            return brand
+    found = [
+        brand
+        for s in signals
+        if s.weight == "hard" and (brand := by_name.get(str(s.evidence.get("brand"))))
+    ]
     for s in signals:
         if s.weight == "hard" and s.type == "lookalike_domain":
             official = s.evidence.get("official")
             if brand := next((b for b in pack.brands if official in b.domains), None):
-                return brand
-    return None
+                found.append(brand)
+    return found
 
 
 def _brands_in_body(text: str, pack: CountryPack) -> list[Brand]:
@@ -99,9 +101,15 @@ def _brands_in_body(text: str, pack: CountryPack) -> list[Brand]:
     return [brand for _, brand in sorted(named, key=lambda pair: pair[0])]
 
 
-def _impersonated_in_body(named: Sequence[Brand]) -> Brand | None:
-    """The first named brand that is not a payment rail; a lone wallet is itself (D-107)."""
-    return next((b for b in named if b.kind not in RAIL_KINDS), named[0] if named else None)
+def _impersonated(candidates: Sequence[Brand]) -> Brand | None:
+    """The first brand that is not a payment rail; a lone wallet stays impersonated (D-107).
+
+    ``candidates`` is the analyst's brands before the body's. The detector's own hard
+    signals never pass through here: a link imitating a wallet keeps it impersonated.
+    """
+    return next(
+        (b for b in candidates if b.kind not in RAIL_KINDS), candidates[0] if candidates else None
+    )
 
 
 def _action(label: Label, signals: Sequence[Signal]) -> Action:
@@ -170,7 +178,10 @@ def build_verdict(case: Case, evidence: Evidence, pack: CountryPack) -> Verdict:
 
     all_signals = softened + (list(analyst.signals) if analyst else [])
     named = _brands_in_body(case.text or "", pack) if label == SCAM else []
-    brand = _impersonated_brand(all_signals, pack) or _impersonated_in_body(named)
+    detected = _hard_signal_brands([s for s in all_signals if s.source != "analyst"], pack)
+    reported = _hard_signal_brands([s for s in all_signals if s.source == "analyst"], pack)
+    brand = detected[0] if detected else _impersonated(reported + named)
+    # D-065: the rail is a wallet the message names, never one only the model brings
     rail = next((b for b in named if b.kind in RAIL_KINDS and b != brand), None)
     return Verdict(
         case_id=str(case.id),

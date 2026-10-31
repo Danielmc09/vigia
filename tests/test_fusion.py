@@ -482,6 +482,63 @@ def test_rail_is_named_beside_a_hard_signal_brand_and_among_wallets_only(
     )
 
 
+def test_rail_rule_also_applies_when_the_analyst_names_the_wallet() -> None:
+    """D-107 covered the body; the analyst's own hard signal skipped the rail check too."""
+    pack = country_pack("CO")
+    assert pack is not None
+    case = _case("La DIAN le informa una deuda, pague por Nequi hoy mismo")
+    analyst = AnalystResult(
+        label="scam",
+        confidence=0.92,
+        signals=[
+            Signal(
+                type="brand_mentioned", weight="hard", source="analyst", evidence={"brand": "Nequi"}
+            )
+        ],
+    )
+    evidence = Evidence(signals=detect(case, pack), analyst=analyst)
+
+    verdict = build_verdict(case, evidence, pack)
+    message = whatsapp_message(verdict, "es")
+
+    assert verdict.impersonated_brand == "DIAN"
+    assert "se hace pasar por DIAN y pide el pago a una cuenta de Nequi" in message
+
+
+def test_a_wallet_only_the_analyst_names_is_never_reported_as_the_rail() -> None:
+    """D-065: the rail is a wallet named in the message, never one the model brings."""
+    pack = country_pack("CO")
+    assert pack is not None
+    text = "Bancolombia: bloqueo, ingrese a https://bancolombia-seguro.co ya"
+    case = _case(text, extract_urls(text))
+    analyst = AnalystResult(
+        label="scam",
+        confidence=0.92,
+        signals=[
+            Signal(
+                type="brand_mentioned", weight="hard", source="analyst", evidence={"brand": "Nequi"}
+            )
+        ],
+    )
+
+    verdict = build_verdict(case, Evidence(signals=detect(case, pack), analyst=analyst), pack)
+
+    assert verdict.impersonated_brand == "Bancolombia"
+    assert "Nequi" not in verdict.user_explanation
+
+
+def test_a_link_imitating_the_wallet_keeps_it_impersonated_beside_another_brand() -> None:
+    """Rule 5: the rail rule only demotes the analyst's brand, never the detector's own link."""
+    pack = country_pack("CO")
+    assert pack is not None
+    text = "Nequi: su pago a la DIAN falló, confirme su clave en https://nequi-seguro.co"
+    case = _case(text, extract_urls(text))
+
+    verdict = build_verdict(case, Evidence(signals=detect(case, pack)), pack)
+
+    assert verdict.impersonated_brand == "Nequi"
+
+
 def _landed(via: str) -> Signal:
     """An official_domain signal the detector emits after unrolling ``via``."""
     return Signal(
