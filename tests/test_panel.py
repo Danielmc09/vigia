@@ -214,6 +214,32 @@ def test_the_try_form_and_the_verdicts_come_before_the_metrics() -> None:
     assert page.index("<table><thead>") < page.index("recall_estafa")
 
 
+def test_the_try_button_sets_the_wait_expectation_without_js() -> None:
+    page = render_panel([_row()], {}, None)
+
+    assert "<script" not in page
+    assert "takes a few seconds" in page
+    # No button text swap on submit (":Analyzing..."): with no JS there is no
+    # reliable way to clear it back to normal once the result page loads, so
+    # the wait state stays a plain text line instead.
+    assert "Analyzing" not in page
+
+
+def test_the_result_is_announced_and_anchored_for_the_browser_to_jump_to() -> None:
+    page = render_panel([_row()], {}, None, TryForm(row=_row()))
+
+    assert 'action="/panel#resultado"' in page
+    assert 'id="resultado"' in page
+    # the verdict's own time (Colombia-local), in the heading, not only in the table
+    assert '<h3 class="result-head">Result · 09:05</h3>' in page
+
+
+def test_the_result_entry_animation_respects_reduced_motion() -> None:
+    page = render_panel([_row()], {}, None, TryForm(row=_row()))
+
+    assert "prefers-reduced-motion: reduce" in page
+
+
 def test_signals_tools_and_rejected_alerts_are_told_apart() -> None:
     row = _row().model_copy(update={"alert_rejections": ["TEMPLATE_PENDING"]})
 
@@ -363,7 +389,7 @@ def test_the_image_ships_the_eval_result_the_panel_reads() -> None:
 def test_the_page_offers_a_try_form_with_three_examples() -> None:
     page = render_panel([], {}, None)
 
-    assert '<form method="post" action="/panel"' in page
+    assert '<form method="post" action="/panel#resultado"' in page
     assert page.count('name="text" value=') == 3
 
 

@@ -56,6 +56,11 @@ padding:4px 14px;border-radius:999px;font-size:13px}
 .scroll{overflow:auto;max-height:70vh;border:1px solid var(--line);border-radius:12px;
 background:var(--surface)}
 .try .scroll{margin-top:16px;max-height:none}
+.result-head{font-size:13px;color:var(--muted);margin:16px 0 4px;text-transform:uppercase;
+letter-spacing:.04em}
+.result{animation:vigia-result-in .4s ease-out}
+@keyframes vigia-result-in{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion: reduce){.result{animation:none}}
 table{width:100%;min-width:820px;border-collapse:collapse}
 th,td{text-align:left;padding:10px 12px;vertical-align:top;border-bottom:1px solid var(--line)}
 thead th{position:sticky;top:0;z-index:1;background:var(--surface);color:var(--muted);
@@ -175,8 +180,11 @@ def _try(head: str, form: TryForm) -> str:
     )
     row = form.row
     result = row and (
+        f'<div id="resultado" class="result">'
+        f'<h3 class="result-head">{escape(t(LANG, "panel.try.result"))} '
+        f'{escape(row.created_at.astimezone(COLOMBIA).strftime("%H:%M"))}</h3>'
         f'<div class="scroll"><table class="tried"><thead><tr>{head}</tr></thead>'
-        f"<tbody>{_row(row)}</tbody></table></div>"
+        f"<tbody>{_row(row)}</tbody></table></div></div>"
     )
     scope = form.rules_only and f'<p class="note">{escape(t(LANG, "panel.try.rules_only"))}</p>'
     notes = (
@@ -187,12 +195,14 @@ def _try(head: str, form: TryForm) -> str:
     shown = "".join(f'<p class="note">{escape(note)}</p>' for present, note in notes if present)
     return (
         f'<section class="panel try"><h2>{escape(t(LANG, "panel.try.title"))}</h2>'
-        '<form method="post" action="/panel" enctype="multipart/form-data">'
+        '<form method="post" action="/panel#resultado" enctype="multipart/form-data">'
         f'<textarea name="text" rows="3">{escape(form.text)}</textarea><div class="actions">'
         f"<label>{escape(t(LANG, 'panel.try.file'))} "
         '<input type="file" name="file" accept="audio/*,image/*,application/pdf"></label>'
-        f'<button class="primary">{escape(t(LANG, "panel.try.button"))}</button></div></form>'
-        f'<form class="examples" method="post" action="/panel">'
+        f'<button class="primary" type="submit">{escape(t(LANG, "panel.try.button"))}</button>'
+        "</div>"
+        f'<p class="note">{escape(t(LANG, "panel.try.wait"))}</p></form>'
+        f'<form class="examples" method="post" action="/panel#resultado">'
         f"<span>{escape(t(LANG, 'panel.try.examples'))}</span>{examples}</form>"
         f"{scope or ''}{shown}{result or ''}</section>"
     )

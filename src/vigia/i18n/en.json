@@ -119,6 +119,8 @@
   "panel.col.ms": "ms",
   "panel.try.title": "Try it",
   "panel.try.button": "Analyze",
+  "panel.try.wait": "This takes a few seconds — the page reloads with the verdict.",
+  "panel.try.result": "Result ·",
   "panel.try.rules_only": "Rules only: no model key, so no analyst.",
   "panel.try.file": "File: voice note, screenshot or PDF",
   "panel.try.read": "Read from the file",
