@@ -3,21 +3,21 @@
  "modo": "deterministas",
  "filtro": null,
  "metricas": {
-  "casos": 161,
-  "exactitud": 0.42857142857142855,
-  "recall_estafa": 0.7303370786516854,
+  "casos": 177,
+  "exactitud": 0.4350282485875706,
+  "recall_estafa": 0.7448979591836735,
   "fp_legitimo": 0.0,
-  "dudosos": 0.5962732919254659,
+  "dudosos": 0.5875706214689266,
   "manipulacion_legitimo": 0.0,
   "por_categoria": {
-   "banco": 0.8235294117647058,
-   "billetera": 0.5,
-   "estado": 0.9,
+   "banco": 0.8421052631578947,
+   "billetera": 0.4,
+   "estado": 0.9230769230769231,
    "legitimo_transportadora": 0.0,
    "transportadora": 0.7,
    "familiar": 0.25,
    "legitimo_banco": 0.0,
-   "legitimo_otro": 0.125,
+   "legitimo_otro": 0.11764705882352941,
    "telco": 0.5,
    "premio": 1.0,
    "bec_proveedor": 0.0,
@@ -27,24 +27,22 @@
    "legitimo_proveedor": 0.0
   },
   "por_tipo": {
-   "texto": 0.40540540540540543,
+   "texto": 0.4110429447852761,
    "conversacion": 0.8181818181818182,
-   "audio": 0.0
+   "audio": 0.3333333333333333
   },
   "por_pais": {
-   "CO": 0.4523809523809524,
-   "US": 0.34285714285714286
+   "CO": 0.4492753623188406,
+   "US": 0.38461538461538464
   },
   "mediana_ms": 0.9,
   "usd_total": 0.0,
   "tokens_total": 0,
-  "degradados": 161,
-  "hipotesis_confirmadas": 69
+  "degradados": 177,
+  "hipotesis_confirmadas": 77
  },
  "gate": [],
- "regresiones": [
-  "recall_estafa"
- ],
+ "regresiones": [],
  "omitidos": [
   {
    "id": "c-0145",
@@ -241,7 +239,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 25.8,
+   "ms": 26.9,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -264,7 +262,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 2.1,
+   "ms": 1.5,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -285,7 +283,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 0.8,
+   "ms": 0.9,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -328,7 +326,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 8.0,
+   "ms": 8.7,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -368,7 +366,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 0.5,
+   "ms": 0.6,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -390,7 +388,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 13.5,
+   "ms": 14.4,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -413,7 +411,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": true,
-   "ms": 9.1,
+   "ms": 8.4,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -434,7 +432,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 0.6,
+   "ms": 0.7,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -456,7 +454,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 10.0,
+   "ms": 10.4,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -477,7 +475,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 0.7,
+   "ms": 0.8,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -500,7 +498,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 5.0,
+   "ms": 5.3,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -525,7 +523,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 8.6,
+   "ms": 8.3,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -569,7 +567,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 7.3,
+   "ms": 7.2,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -615,7 +613,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 8.3,
+   "ms": 8.6,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -639,7 +637,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 9.0,
+   "ms": 9.1,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -660,7 +658,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 5.7,
+   "ms": 5.9,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -681,7 +679,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 0.7,
+   "ms": 0.8,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -703,7 +701,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 9.8,
+   "ms": 10.1,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -769,7 +767,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 0.7,
+   "ms": 0.9,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -853,7 +851,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 1.3,
+   "ms": 1.4,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -901,7 +899,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 2.6,
+   "ms": 2.7,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -944,7 +942,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 3.3,
+   "ms": 3.4,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -1049,7 +1047,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 0.6,
+   "ms": 0.7,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -1226,7 +1224,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 0.6,
+   "ms": 0.5,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -1247,7 +1245,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 9.7,
+   "ms": 9.4,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -1266,7 +1264,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 8.4,
+   "ms": 8.0,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -1287,7 +1285,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 3.8,
+   "ms": 3.4,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -1306,7 +1304,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 0.5,
+   "ms": 0.3,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -1325,7 +1323,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 0.4,
+   "ms": 0.3,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -1387,7 +1385,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 2.2,
+   "ms": 2.3,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -1409,7 +1407,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 9.8,
+   "ms": 9.7,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -1453,7 +1451,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 10.7,
+   "ms": 10.2,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -1474,7 +1472,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 4.1,
+   "ms": 3.1,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -1520,7 +1518,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 6.2,
+   "ms": 5.9,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -1564,7 +1562,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 6.1,
+   "ms": 5.8,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -1585,7 +1583,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 4.0,
+   "ms": 3.8,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -1607,7 +1605,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 6.0,
+   "ms": 5.8,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -1669,7 +1667,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 0.6,
+   "ms": 0.7,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -1688,7 +1686,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 0.6,
+   "ms": 0.7,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -1935,7 +1933,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 0.6,
+   "ms": 0.4,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -1954,7 +1952,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 0.9,
+   "ms": 0.7,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -1982,7 +1980,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 4.4,
+   "ms": 4.7,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -2006,7 +2004,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 1.1,
+   "ms": 1.2,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -2060,7 +2058,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 3.6,
+   "ms": 3.4,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -2083,7 +2081,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 1.0,
+   "ms": 1.2,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -2109,7 +2107,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 3.4,
+   "ms": 3.7,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -2133,7 +2131,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 1.3,
+   "ms": 1.2,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -2152,7 +2150,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 3.0,
+   "ms": 2.5,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -2171,7 +2169,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 2.1,
+   "ms": 1.9,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -2235,7 +2233,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 0.8,
+   "ms": 0.7,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -2256,7 +2254,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 0.9,
+   "ms": 0.8,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -2277,7 +2275,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 0.8,
+   "ms": 0.7,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -2298,7 +2296,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 0.6,
+   "ms": 0.5,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -2317,7 +2315,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 0.8,
+   "ms": 0.7,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -2362,7 +2360,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 0.8,
+   "ms": 1.1,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -2385,7 +2383,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 0.7,
+   "ms": 0.8,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -2411,7 +2409,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 3.8,
+   "ms": 4.2,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -2459,7 +2457,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 2.7,
+   "ms": 2.6,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -2501,7 +2499,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 0.9,
+   "ms": 0.8,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -2543,7 +2541,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 0.7,
+   "ms": 0.6,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -2564,7 +2562,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 0.8,
+   "ms": 0.7,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -2611,7 +2609,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 2.2,
+   "ms": 2.0,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -2630,7 +2628,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 0.9,
+   "ms": 0.8,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -2653,7 +2651,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 1.0,
+   "ms": 1.1,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -2675,7 +2673,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 1.8,
+   "ms": 1.6,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -2717,7 +2715,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 0.7,
+   "ms": 0.6,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -2805,7 +2803,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 11.4,
+   "ms": 11.3,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -2827,7 +2825,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 7.3,
+   "ms": 7.4,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -2848,7 +2846,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 0.8,
+   "ms": 0.9,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -2869,7 +2867,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 1.3,
+   "ms": 1.1,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -2891,7 +2889,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 0.8,
+   "ms": 0.7,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -3179,7 +3177,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 15.0,
+   "ms": 14.5,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -3200,7 +3198,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 0.8,
+   "ms": 0.7,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -3221,7 +3219,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 3.1,
+   "ms": 3.2,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -3242,7 +3240,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 0.5,
+   "ms": 0.4,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -3265,7 +3263,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 6.0,
+   "ms": 5.8,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -3287,7 +3285,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 5.7,
+   "ms": 5.4,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -3308,7 +3306,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 4.4,
+   "ms": 4.3,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -3375,7 +3373,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 1.0,
+   "ms": 1.1,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -3422,7 +3420,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 3.7,
+   "ms": 3.8,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -3444,7 +3442,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 2.2,
+   "ms": 2.3,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -3487,7 +3485,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 5.0,
+   "ms": 5.1,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -3508,7 +3506,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 1.0,
+   "ms": 0.8,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -3569,7 +3567,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 0.7,
+   "ms": 0.6,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -3590,7 +3588,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 6.1,
+   "ms": 6.2,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -3611,7 +3609,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 7.3,
+   "ms": 6.9,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -3632,7 +3630,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 3.3,
+   "ms": 3.1,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -3653,7 +3651,343 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
+   "ms": 2.3,
+   "usd": 0.0,
+   "tokens": 0,
+   "error": null
+  },
+  {
+   "id": "c-0230",
+   "esperado": "estafa",
+   "tipo": "audio",
+   "categoria": "estado",
+   "pais": "CO",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [
+    "personal_payment_release",
+    "urgency"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 1.0,
+   "usd": 0.0,
+   "tokens": 0,
+   "error": null
+  },
+  {
+   "id": "c-0231",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "billetera",
+   "pais": "CO",
+   "obtenido": "dudoso",
+   "paso": false,
+   "hipotesis_confirmada": false,
+   "confianza": 0.5,
+   "senales": [
+    "credentials_request",
+    "personal_payment"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 0.6,
+   "usd": 0.0,
+   "tokens": 0,
+   "error": null
+  },
+  {
+   "id": "c-0232",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "estado",
+   "pais": "CO",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [
+    "brand_off_domain",
+    "authority_with_link"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 7.2,
+   "usd": 0.0,
+   "tokens": 0,
+   "error": null
+  },
+  {
+   "id": "c-0233",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "banco",
+   "pais": "CO",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [
+    "credentials_request",
+    "unresolved_shortener"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 1.0,
+   "usd": 0.0,
+   "tokens": 0,
+   "error": null
+  },
+  {
+   "id": "c-0234",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "banco",
+   "pais": "US",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [
+    "brand_off_domain",
+    "urgency"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
    "ms": 2.5,
+   "usd": 0.0,
+   "tokens": 0,
+   "error": null
+  },
+  {
+   "id": "c-0235",
+   "esperado": "legitimo",
+   "tipo": "texto",
+   "categoria": "legitimo_banco",
+   "pais": "CO",
+   "obtenido": "dudoso",
+   "paso": false,
+   "hipotesis_confirmada": false,
+   "confianza": 0.5,
+   "senales": [],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 0.6,
+   "usd": 0.0,
+   "tokens": 0,
+   "error": null
+  },
+  {
+   "id": "c-0236",
+   "esperado": "legitimo",
+   "tipo": "texto",
+   "categoria": "legitimo_proveedor",
+   "pais": "CO",
+   "obtenido": "dudoso",
+   "paso": false,
+   "hipotesis_confirmada": false,
+   "confianza": 0.5,
+   "senales": [],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 0.6,
+   "usd": 0.0,
+   "tokens": 0,
+   "error": null
+  },
+  {
+   "id": "c-0237",
+   "esperado": "legitimo",
+   "tipo": "texto",
+   "categoria": "legitimo_proveedor",
+   "pais": "CO",
+   "obtenido": "dudoso",
+   "paso": false,
+   "hipotesis_confirmada": false,
+   "confianza": 0.5,
+   "senales": [],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 0.5,
+   "usd": 0.0,
+   "tokens": 0,
+   "error": null
+  },
+  {
+   "id": "c-0238",
+   "esperado": "legitimo",
+   "tipo": "texto",
+   "categoria": "legitimo_proveedor",
+   "pais": "CO",
+   "obtenido": "dudoso",
+   "paso": false,
+   "hipotesis_confirmada": false,
+   "confianza": 0.5,
+   "senales": [
+    "personal_payment"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 0.5,
+   "usd": 0.0,
+   "tokens": 0,
+   "error": null
+  },
+  {
+   "id": "c-0239",
+   "esperado": "legitimo",
+   "tipo": "texto",
+   "categoria": "legitimo_otro",
+   "pais": "CO",
+   "obtenido": "dudoso",
+   "paso": false,
+   "hipotesis_confirmada": false,
+   "confianza": 0.5,
+   "senales": [],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 0.5,
+   "usd": 0.0,
+   "tokens": 0,
+   "error": null
+  },
+  {
+   "id": "c-0240",
+   "esperado": "legitimo",
+   "tipo": "texto",
+   "categoria": "legitimo_proveedor",
+   "pais": "US",
+   "obtenido": "dudoso",
+   "paso": false,
+   "hipotesis_confirmada": false,
+   "confianza": 0.5,
+   "senales": [],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 0.4,
+   "usd": 0.0,
+   "tokens": 0,
+   "error": null
+  },
+  {
+   "id": "c-0241",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "estado",
+   "pais": "CO",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [
+    "brand_off_domain",
+    "authority_with_link"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 8.1,
+   "usd": 0.0,
+   "tokens": 0,
+   "error": null
+  },
+  {
+   "id": "c-0242",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "estado",
+   "pais": "US",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [
+    "brand_off_domain",
+    "prize",
+    "authority_with_link"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 2.2,
+   "usd": 0.0,
+   "tokens": 0,
+   "error": null
+  },
+  {
+   "id": "c-0243",
+   "esperado": "legitimo",
+   "tipo": "texto",
+   "categoria": "legitimo_proveedor",
+   "pais": "CO",
+   "obtenido": "dudoso",
+   "paso": false,
+   "hipotesis_confirmada": false,
+   "confianza": 0.5,
+   "senales": [],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 0.6,
+   "usd": 0.0,
+   "tokens": 0,
+   "error": null
+  },
+  {
+   "id": "c-0244",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "estado",
+   "pais": "US",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [
+    "brand_off_domain",
+    "urgency",
+    "prize",
+    "authority_with_link"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 2.2,
+   "usd": 0.0,
+   "tokens": 0,
+   "error": null
+  },
+  {
+   "id": "c-0245",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "estado",
+   "pais": "CO",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [
+    "brand_off_domain",
+    "authority_with_link"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 8.1,
    "usd": 0.0,
    "tokens": 0,
    "error": null

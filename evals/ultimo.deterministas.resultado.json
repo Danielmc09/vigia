@@ -1,47 +1,226 @@
 {
- "fecha": "2026-10-27",
+ "fecha": "2026-10-31",
  "modo": "deterministas",
  "filtro": null,
  "metricas": {
-  "casos": 114,
-  "exactitud": 0.4473684210526316,
-  "recall_estafa": 0.85,
+  "casos": 177,
+  "exactitud": 0.4350282485875706,
+  "recall_estafa": 0.7448979591836735,
   "fp_legitimo": 0.0,
-  "dudosos": 0.5526315789473685,
+  "dudosos": 0.5875706214689266,
   "manipulacion_legitimo": 0.0,
   "por_categoria": {
-   "banco": 0.8,
-   "billetera": 0.6666666666666666,
-   "estado": 1.0,
+   "banco": 0.8421052631578947,
+   "billetera": 0.4,
+   "estado": 0.9230769230769231,
    "legitimo_transportadora": 0.0,
-   "transportadora": 1.0,
-   "familiar": 0.3333333333333333,
+   "transportadora": 0.7,
+   "familiar": 0.25,
    "legitimo_banco": 0.0,
-   "legitimo_otro": 0.0,
+   "legitimo_otro": 0.11764705882352941,
    "telco": 0.5,
    "premio": 1.0,
    "bec_proveedor": 0.0,
    "bec_jefe": 0.0,
-   "compraventa": 0.53125,
-   "comercio": 1.0,
+   "compraventa": 0.5128205128205128,
+   "comercio": 0.5,
    "legitimo_proveedor": 0.0
   },
   "por_tipo": {
-   "texto": 0.41904761904761906,
-   "conversacion": 0.7777777777777778
+   "texto": 0.4110429447852761,
+   "conversacion": 0.8181818181818182,
+   "audio": 0.3333333333333333
   },
   "por_pais": {
-   "CO": 0.45555555555555555,
-   "US": 0.4166666666666667
+   "CO": 0.4492753623188406,
+   "US": 0.38461538461538464
   },
-  "mediana_ms": 0.6,
+  "mediana_ms": 0.9,
   "usd_total": 0.0,
   "tokens_total": 0,
-  "degradados": 114,
-  "hipotesis_confirmadas": 51
+  "degradados": 177,
+  "hipotesis_confirmadas": 77
  },
  "gate": [],
  "regresiones": [],
+ "omitidos": [
+  {
+   "id": "c-0145",
+   "motivo": "audio needs Voice: rules-only mode and runs without MODEL_API_KEY never transcribe"
+  },
+  {
+   "id": "c-0146",
+   "motivo": "audio needs Voice: rules-only mode and runs without MODEL_API_KEY never transcribe"
+  },
+  {
+   "id": "c-0147",
+   "motivo": "audio needs Voice: rules-only mode and runs without MODEL_API_KEY never transcribe"
+  },
+  {
+   "id": "c-0148",
+   "motivo": "audio needs Voice: rules-only mode and runs without MODEL_API_KEY never transcribe"
+  },
+  {
+   "id": "c-0149",
+   "motivo": "audio needs Voice: rules-only mode and runs without MODEL_API_KEY never transcribe"
+  },
+  {
+   "id": "c-0150",
+   "motivo": "audio needs Voice: rules-only mode and runs without MODEL_API_KEY never transcribe"
+  },
+  {
+   "id": "c-0151",
+   "motivo": "audio needs Voice: rules-only mode and runs without MODEL_API_KEY never transcribe"
+  },
+  {
+   "id": "c-0152",
+   "motivo": "audio needs Voice: rules-only mode and runs without MODEL_API_KEY never transcribe"
+  },
+  {
+   "id": "c-0153",
+   "motivo": "audio needs Voice: rules-only mode and runs without MODEL_API_KEY never transcribe"
+  },
+  {
+   "id": "c-0154",
+   "motivo": "audio needs Voice: rules-only mode and runs without MODEL_API_KEY never transcribe"
+  },
+  {
+   "id": "c-0155",
+   "motivo": "pdf needs Spark: rules-only mode and runs without MODEL_API_KEY never read PDFs"
+  },
+  {
+   "id": "c-0156",
+   "motivo": "pdf needs Spark: rules-only mode and runs without MODEL_API_KEY never read PDFs"
+  },
+  {
+   "id": "c-0157",
+   "motivo": "pdf needs Spark: rules-only mode and runs without MODEL_API_KEY never read PDFs"
+  },
+  {
+   "id": "c-0158",
+   "motivo": "pdf needs Spark: rules-only mode and runs without MODEL_API_KEY never read PDFs"
+  },
+  {
+   "id": "c-0159",
+   "motivo": "pdf needs Spark: rules-only mode and runs without MODEL_API_KEY never read PDFs"
+  },
+  {
+   "id": "c-0160",
+   "motivo": "pdf needs Spark: rules-only mode and runs without MODEL_API_KEY never read PDFs"
+  },
+  {
+   "id": "c-0161",
+   "motivo": "pdf needs Spark: rules-only mode and runs without MODEL_API_KEY never read PDFs"
+  },
+  {
+   "id": "c-0162",
+   "motivo": "pdf needs Spark: rules-only mode and runs without MODEL_API_KEY never read PDFs"
+  },
+  {
+   "id": "c-0163",
+   "motivo": "pdf needs Spark: rules-only mode and runs without MODEL_API_KEY never read PDFs"
+  },
+  {
+   "id": "c-0164",
+   "motivo": "pdf needs Spark: rules-only mode and runs without MODEL_API_KEY never read PDFs"
+  },
+  {
+   "id": "c-0165",
+   "motivo": "pdf needs Spark: rules-only mode and runs without MODEL_API_KEY never read PDFs"
+  },
+  {
+   "id": "c-0166",
+   "motivo": "pdf needs Spark: rules-only mode and runs without MODEL_API_KEY never read PDFs"
+  },
+  {
+   "id": "c-0189",
+   "motivo": "imagen needs Spark: rules-only mode and runs without MODEL_API_KEY never read images"
+  },
+  {
+   "id": "c-0190",
+   "motivo": "imagen needs Spark: rules-only mode and runs without MODEL_API_KEY never read images"
+  },
+  {
+   "id": "c-0191",
+   "motivo": "imagen needs Spark: rules-only mode and runs without MODEL_API_KEY never read images"
+  },
+  {
+   "id": "c-0192",
+   "motivo": "imagen needs Spark: rules-only mode and runs without MODEL_API_KEY never read images"
+  },
+  {
+   "id": "c-0193",
+   "motivo": "imagen needs Spark: rules-only mode and runs without MODEL_API_KEY never read images"
+  },
+  {
+   "id": "c-0194",
+   "motivo": "imagen needs Spark: rules-only mode and runs without MODEL_API_KEY never read images"
+  },
+  {
+   "id": "c-0195",
+   "motivo": "imagen needs Spark: rules-only mode and runs without MODEL_API_KEY never read images"
+  },
+  {
+   "id": "c-0196",
+   "motivo": "imagen needs Spark: rules-only mode and runs without MODEL_API_KEY never read images"
+  },
+  {
+   "id": "c-0197",
+   "motivo": "imagen needs Spark: rules-only mode and runs without MODEL_API_KEY never read images"
+  },
+  {
+   "id": "c-0198",
+   "motivo": "imagen needs Spark: rules-only mode and runs without MODEL_API_KEY never read images"
+  },
+  {
+   "id": "c-0199",
+   "motivo": "imagen needs Spark: rules-only mode and runs without MODEL_API_KEY never read images"
+  },
+  {
+   "id": "c-0200",
+   "motivo": "imagen needs Spark: rules-only mode and runs without MODEL_API_KEY never read images"
+  },
+  {
+   "id": "c-0201",
+   "motivo": "imagen needs Spark: rules-only mode and runs without MODEL_API_KEY never read images"
+  },
+  {
+   "id": "c-0202",
+   "motivo": "imagen needs Spark: rules-only mode and runs without MODEL_API_KEY never read images"
+  },
+  {
+   "id": "c-0203",
+   "motivo": "imagen needs Spark: rules-only mode and runs without MODEL_API_KEY never read images"
+  },
+  {
+   "id": "c-0204",
+   "motivo": "imagen needs Spark: rules-only mode and runs without MODEL_API_KEY never read images"
+  },
+  {
+   "id": "c-0205",
+   "motivo": "imagen needs Spark: rules-only mode and runs without MODEL_API_KEY never read images"
+  },
+  {
+   "id": "c-0206",
+   "motivo": "imagen needs Spark: rules-only mode and runs without MODEL_API_KEY never read images"
+  },
+  {
+   "id": "c-0207",
+   "motivo": "imagen needs Spark: rules-only mode and runs without MODEL_API_KEY never read images"
+  },
+  {
+   "id": "c-0208",
+   "motivo": "imagen needs Spark: rules-only mode and runs without MODEL_API_KEY never read images"
+  },
+  {
+   "id": "c-0209",
+   "motivo": "imagen needs Spark: rules-only mode and runs without MODEL_API_KEY never read images"
+  },
+  {
+   "id": "c-0210",
+   "motivo": "imagen needs Spark: rules-only mode and runs without MODEL_API_KEY never read images"
+  }
+ ],
  "casos": [
   {
    "id": "c-0001",
@@ -60,7 +239,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 17.9,
+   "ms": 26.9,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -83,7 +262,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 0.5,
+   "ms": 1.5,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -104,7 +283,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 0.5,
+   "ms": 0.9,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -125,7 +304,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 0.4,
+   "ms": 0.6,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -147,7 +326,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 2.7,
+   "ms": 8.7,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -168,7 +347,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 0.4,
+   "ms": 0.6,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -187,7 +366,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 0.3,
+   "ms": 0.6,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -209,7 +388,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 11.6,
+   "ms": 14.4,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -232,7 +411,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": true,
-   "ms": 2.8,
+   "ms": 8.4,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -253,7 +432,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 0.4,
+   "ms": 0.7,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -275,7 +454,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 3.3,
+   "ms": 10.4,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -296,7 +475,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 0.6,
+   "ms": 0.8,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -319,7 +498,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 2.0,
+   "ms": 5.3,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -344,7 +523,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 3.0,
+   "ms": 8.3,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -365,7 +544,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 0.5,
+   "ms": 0.7,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -388,7 +567,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 2.6,
+   "ms": 7.2,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -410,7 +589,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 0.5,
+   "ms": 1.3,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -426,6 +605,7 @@
    "hipotesis_confirmada": true,
    "confianza": 0.9,
    "senales": [
+    "lookalike_domain",
     "brand_off_domain",
     "suspicious_tld",
     "prize"
@@ -433,7 +613,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 3.3,
+   "ms": 8.6,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -457,7 +637,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 3.1,
+   "ms": 9.1,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -478,7 +658,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 2.2,
+   "ms": 5.9,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -499,7 +679,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 0.4,
+   "ms": 0.8,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -521,7 +701,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 5.4,
+   "ms": 10.1,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -542,7 +722,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 0.5,
+   "ms": 0.7,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -565,7 +745,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 3.0,
+   "ms": 9.1,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -587,7 +767,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 0.5,
+   "ms": 0.9,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -608,7 +788,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 0.5,
+   "ms": 0.7,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -627,7 +807,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 0.6,
+   "ms": 0.8,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -646,7 +826,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 0.5,
+   "ms": 0.7,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -671,7 +851,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 1.0,
+   "ms": 1.4,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -694,7 +874,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 1.0,
+   "ms": 1.4,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -719,7 +899,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 0.9,
+   "ms": 2.7,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -740,7 +920,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 0.4,
+   "ms": 0.6,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -762,7 +942,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 1.0,
+   "ms": 3.4,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -783,7 +963,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 0.3,
+   "ms": 0.5,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -804,7 +984,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 0.3,
+   "ms": 0.4,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -825,7 +1005,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 0.5,
+   "ms": 0.7,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -846,7 +1026,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 0.4,
+   "ms": 0.6,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -867,7 +1047,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 0.5,
+   "ms": 0.7,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -886,7 +1066,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 0.4,
+   "ms": 0.6,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -907,7 +1087,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 0.3,
+   "ms": 0.5,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -926,7 +1106,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 0.3,
+   "ms": 0.5,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -945,7 +1125,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 0.5,
+   "ms": 0.6,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -964,7 +1144,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 0.6,
+   "ms": 0.8,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -983,7 +1163,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 0.8,
+   "ms": 0.9,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -1004,7 +1184,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 0.4,
+   "ms": 0.6,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -1023,7 +1203,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 0.4,
+   "ms": 0.5,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -1044,7 +1224,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 0.4,
+   "ms": 0.5,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -1065,7 +1245,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 3.2,
+   "ms": 9.4,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -1080,13 +1260,11 @@
    "paso": false,
    "hipotesis_confirmada": false,
    "confianza": 0.5,
-   "senales": [
-    "brand_in_path"
-   ],
+   "senales": [],
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 2.7,
+   "ms": 8.0,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -1107,7 +1285,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 3.1,
+   "ms": 3.4,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -1126,7 +1304,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 0.2,
+   "ms": 0.3,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -1145,7 +1323,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 0.2,
+   "ms": 0.3,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -1164,7 +1342,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 0.1,
+   "ms": 0.3,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -1186,7 +1364,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 1.3,
+   "ms": 3.8,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -1207,7 +1385,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 0.6,
+   "ms": 2.3,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -1229,7 +1407,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 3.0,
+   "ms": 9.7,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -1251,7 +1429,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 3.7,
+   "ms": 11.3,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -1273,7 +1451,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 3.4,
+   "ms": 10.2,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -1294,7 +1472,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 1.1,
+   "ms": 3.1,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -1317,7 +1495,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 1.6,
+   "ms": 4.1,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -1340,7 +1518,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 2.2,
+   "ms": 5.9,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -1362,7 +1540,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 1.9,
+   "ms": 5.8,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -1384,7 +1562,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 1.9,
+   "ms": 5.8,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -1405,7 +1583,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 1.2,
+   "ms": 3.8,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -1427,7 +1605,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 1.9,
+   "ms": 5.8,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -1449,7 +1627,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 1.9,
+   "ms": 5.8,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -1470,7 +1648,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 0.9,
+   "ms": 3.7,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -1489,7 +1667,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 0.4,
+   "ms": 0.7,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -1508,7 +1686,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 0.5,
+   "ms": 0.7,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -1527,7 +1705,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 0.2,
+   "ms": 0.4,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -1546,7 +1724,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 0.2,
+   "ms": 0.4,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -1565,7 +1743,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 0.3,
+   "ms": 0.4,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -1584,7 +1762,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 0.3,
+   "ms": 0.5,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -1603,7 +1781,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 0.3,
+   "ms": 0.5,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -1622,7 +1800,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 0.3,
+   "ms": 0.5,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -1641,7 +1819,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 0.3,
+   "ms": 0.5,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -1660,7 +1838,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 0.3,
+   "ms": 0.5,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -1679,7 +1857,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 0.3,
+   "ms": 0.5,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -1698,7 +1876,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 0.3,
+   "ms": 0.5,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -1717,7 +1895,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 0.3,
+   "ms": 0.4,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -1736,7 +1914,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 0.3,
+   "ms": 0.5,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -1755,7 +1933,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 0.3,
+   "ms": 0.4,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -1774,7 +1952,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 0.5,
+   "ms": 0.7,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -1802,7 +1980,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 3.8,
+   "ms": 4.7,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -1826,7 +2004,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 0.8,
+   "ms": 1.2,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -1852,7 +2030,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 3.0,
+   "ms": 3.8,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -1880,7 +2058,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 3.0,
+   "ms": 3.4,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -1903,7 +2081,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 0.7,
+   "ms": 1.2,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -1929,7 +2107,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 2.9,
+   "ms": 3.7,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -1953,7 +2131,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 1.0,
+   "ms": 1.2,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -1972,7 +2150,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 2.3,
+   "ms": 2.5,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -1991,7 +2169,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 1.7,
+   "ms": 1.9,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -2010,7 +2188,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 0.8,
+   "ms": 1.0,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -2034,7 +2212,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 3.0,
+   "ms": 9.3,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -2055,7 +2233,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 0.5,
+   "ms": 0.7,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -2076,7 +2254,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 0.6,
+   "ms": 0.8,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -2097,7 +2275,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 0.5,
+   "ms": 0.7,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -2118,7 +2296,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 0.3,
+   "ms": 0.5,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -2137,7 +2315,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 0.5,
+   "ms": 0.7,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -2159,7 +2337,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 0.4,
+   "ms": 0.6,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -2182,7 +2360,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 0.5,
+   "ms": 1.1,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -2205,7 +2383,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 0.5,
+   "ms": 0.8,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -2231,7 +2409,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 3.1,
+   "ms": 4.2,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -2255,7 +2433,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 0.6,
+   "ms": 1.0,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -2279,7 +2457,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 1.9,
+   "ms": 2.6,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -2300,7 +2478,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 0.4,
+   "ms": 0.6,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -2321,7 +2499,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 0.6,
+   "ms": 0.8,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -2342,7 +2520,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 0.6,
+   "ms": 0.8,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -2363,7 +2541,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 0.4,
+   "ms": 0.6,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -2384,7 +2562,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 0.5,
+   "ms": 0.7,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -2407,7 +2585,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 0.6,
+   "ms": 1.0,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -2431,7 +2609,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 1.4,
+   "ms": 2.0,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -2450,7 +2628,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 0.6,
+   "ms": 0.8,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -2473,7 +2651,1343 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
+   "ms": 1.1,
+   "usd": 0.0,
+   "tokens": 0,
+   "error": null
+  },
+  {
+   "id": "c-0139",
+   "esperado": "estafa",
+   "tipo": "conversacion",
+   "categoria": "compraventa",
+   "pais": "CO",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [
+    "staggered_charges",
+    "already_paid"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 1.6,
+   "usd": 0.0,
+   "tokens": 0,
+   "error": null
+  },
+  {
+   "id": "c-0140",
+   "esperado": "dudoso",
+   "tipo": "conversacion",
+   "categoria": "compraventa",
+   "pais": "CO",
+   "obtenido": "dudoso",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.5,
+   "senales": [
+    "price_below_market"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 1.3,
+   "usd": 0.0,
+   "tokens": 0,
+   "error": null
+  },
+  {
+   "id": "c-0141",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "compraventa",
+   "pais": "CO",
+   "obtenido": "dudoso",
+   "paso": false,
+   "hipotesis_confirmada": false,
+   "confianza": 0.5,
+   "senales": [
+    "already_paid"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 0.6,
+   "usd": 0.0,
+   "tokens": 0,
+   "error": null
+  },
+  {
+   "id": "c-0142",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "compraventa",
+   "pais": "US",
+   "obtenido": "dudoso",
+   "paso": false,
+   "hipotesis_confirmada": false,
+   "confianza": 0.5,
+   "senales": [
+    "already_paid"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
    "ms": 0.7,
+   "usd": 0.0,
+   "tokens": 0,
+   "error": null
+  },
+  {
+   "id": "c-0143",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "compraventa",
+   "pais": "CO",
+   "obtenido": "dudoso",
+   "paso": false,
+   "hipotesis_confirmada": false,
+   "confianza": 0.5,
+   "senales": [
+    "personal_payment",
+    "already_paid"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 0.7,
+   "usd": 0.0,
+   "tokens": 0,
+   "error": null
+  },
+  {
+   "id": "c-0144",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "compraventa",
+   "pais": "CO",
+   "obtenido": "dudoso",
+   "paso": false,
+   "hipotesis_confirmada": false,
+   "confianza": 0.5,
+   "senales": [
+    "verification_evasion",
+    "already_paid"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 0.6,
+   "usd": 0.0,
+   "tokens": 0,
+   "error": null
+  },
+  {
+   "id": "c-0167",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "banco",
+   "pais": "CO",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [
+    "brand_off_domain",
+    "credentials_request",
+    "urgency"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 11.3,
+   "usd": 0.0,
+   "tokens": 0,
+   "error": null
+  },
+  {
+   "id": "c-0168",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "estado",
+   "pais": "CO",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [
+    "brand_off_domain",
+    "authority_with_link"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 7.4,
+   "usd": 0.0,
+   "tokens": 0,
+   "error": null
+  },
+  {
+   "id": "c-0169",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "transportadora",
+   "pais": "CO",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [
+    "personal_payment_release"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 0.9,
+   "usd": 0.0,
+   "tokens": 0,
+   "error": null
+  },
+  {
+   "id": "c-0170",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "familiar",
+   "pais": "CO",
+   "obtenido": "dudoso",
+   "paso": false,
+   "hipotesis_confirmada": false,
+   "confianza": 0.5,
+   "senales": [
+    "family"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 1.1,
+   "usd": 0.0,
+   "tokens": 0,
+   "error": null
+  },
+  {
+   "id": "c-0171",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "billetera",
+   "pais": "CO",
+   "obtenido": "dudoso",
+   "paso": false,
+   "hipotesis_confirmada": false,
+   "confianza": 0.5,
+   "senales": [
+    "credentials_request",
+    "personal_payment"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 0.7,
+   "usd": 0.0,
+   "tokens": 0,
+   "error": null
+  },
+  {
+   "id": "c-0172",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "banco",
+   "pais": "CO",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [
+    "lookalike_domain"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 3.4,
+   "usd": 0.0,
+   "tokens": 0,
+   "error": null
+  },
+  {
+   "id": "c-0173",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "transportadora",
+   "pais": "US",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [
+    "brand_off_domain",
+    "urgency"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 3.1,
+   "usd": 0.0,
+   "tokens": 0,
+   "error": null
+  },
+  {
+   "id": "c-0174",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "banco",
+   "pais": "US",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [
+    "brand_off_domain",
+    "credentials_request",
+    "urgency"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 2.8,
+   "usd": 0.0,
+   "tokens": 0,
+   "error": null
+  },
+  {
+   "id": "c-0175",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "estado",
+   "pais": "US",
+   "obtenido": "dudoso",
+   "paso": false,
+   "hipotesis_confirmada": false,
+   "confianza": 0.5,
+   "senales": [
+    "personal_payment"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 0.6,
+   "usd": 0.0,
+   "tokens": 0,
+   "error": null
+  },
+  {
+   "id": "c-0176",
+   "esperado": "legitimo",
+   "tipo": "texto",
+   "categoria": "legitimo_banco",
+   "pais": "CO",
+   "obtenido": "dudoso",
+   "paso": false,
+   "hipotesis_confirmada": false,
+   "confianza": 0.5,
+   "senales": [
+    "credentials_request"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 0.7,
+   "usd": 0.0,
+   "tokens": 0,
+   "error": null
+  },
+  {
+   "id": "c-0177",
+   "esperado": "legitimo",
+   "tipo": "texto",
+   "categoria": "legitimo_banco",
+   "pais": "CO",
+   "obtenido": "dudoso",
+   "paso": false,
+   "hipotesis_confirmada": false,
+   "confianza": 0.5,
+   "senales": [
+    "official_domain",
+    "credentials_request"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 0.7,
+   "usd": 0.0,
+   "tokens": 0,
+   "error": null
+  },
+  {
+   "id": "c-0178",
+   "esperado": "legitimo",
+   "tipo": "texto",
+   "categoria": "legitimo_proveedor",
+   "pais": "CO",
+   "obtenido": "dudoso",
+   "paso": false,
+   "hipotesis_confirmada": false,
+   "confianza": 0.5,
+   "senales": [],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 0.8,
+   "usd": 0.0,
+   "tokens": 0,
+   "error": null
+  },
+  {
+   "id": "c-0179",
+   "esperado": "legitimo",
+   "tipo": "texto",
+   "categoria": "legitimo_proveedor",
+   "pais": "CO",
+   "obtenido": "dudoso",
+   "paso": false,
+   "hipotesis_confirmada": false,
+   "confianza": 0.5,
+   "senales": [
+    "personal_payment"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 0.6,
+   "usd": 0.0,
+   "tokens": 0,
+   "error": null
+  },
+  {
+   "id": "c-0180",
+   "esperado": "legitimo",
+   "tipo": "texto",
+   "categoria": "legitimo_otro",
+   "pais": "CO",
+   "obtenido": "dudoso",
+   "paso": false,
+   "hipotesis_confirmada": false,
+   "confianza": 0.5,
+   "senales": [],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 0.7,
+   "usd": 0.0,
+   "tokens": 0,
+   "error": null
+  },
+  {
+   "id": "c-0181",
+   "esperado": "legitimo",
+   "tipo": "texto",
+   "categoria": "legitimo_transportadora",
+   "pais": "CO",
+   "obtenido": "dudoso",
+   "paso": false,
+   "hipotesis_confirmada": false,
+   "confianza": 0.5,
+   "senales": [],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 0.7,
+   "usd": 0.0,
+   "tokens": 0,
+   "error": null
+  },
+  {
+   "id": "c-0182",
+   "esperado": "legitimo",
+   "tipo": "texto",
+   "categoria": "legitimo_banco",
+   "pais": "US",
+   "obtenido": "dudoso",
+   "paso": false,
+   "hipotesis_confirmada": false,
+   "confianza": 0.5,
+   "senales": [
+    "credentials_request"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 0.7,
+   "usd": 0.0,
+   "tokens": 0,
+   "error": null
+  },
+  {
+   "id": "c-0183",
+   "esperado": "legitimo",
+   "tipo": "texto",
+   "categoria": "legitimo_transportadora",
+   "pais": "US",
+   "obtenido": "dudoso",
+   "paso": false,
+   "hipotesis_confirmada": false,
+   "confianza": 0.5,
+   "senales": [
+    "official_domain"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 0.6,
+   "usd": 0.0,
+   "tokens": 0,
+   "error": null
+  },
+  {
+   "id": "c-0184",
+   "esperado": "legitimo",
+   "tipo": "texto",
+   "categoria": "legitimo_proveedor",
+   "pais": "US",
+   "obtenido": "dudoso",
+   "paso": false,
+   "hipotesis_confirmada": false,
+   "confianza": 0.5,
+   "senales": [],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 0.6,
+   "usd": 0.0,
+   "tokens": 0,
+   "error": null
+  },
+  {
+   "id": "c-0185",
+   "esperado": "dudoso",
+   "tipo": "texto",
+   "categoria": "legitimo_otro",
+   "pais": "CO",
+   "obtenido": "dudoso",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.5,
+   "senales": [],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 14.5,
+   "usd": 0.0,
+   "tokens": 0,
+   "error": null
+  },
+  {
+   "id": "c-0186",
+   "esperado": "dudoso",
+   "tipo": "texto",
+   "categoria": "legitimo_otro",
+   "pais": "CO",
+   "obtenido": "dudoso",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.5,
+   "senales": [
+    "urgency"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 0.7,
+   "usd": 0.0,
+   "tokens": 0,
+   "error": null
+  },
+  {
+   "id": "c-0187",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "banco",
+   "pais": "CO",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [
+    "lookalike_domain"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 3.2,
+   "usd": 0.0,
+   "tokens": 0,
+   "error": null
+  },
+  {
+   "id": "c-0188",
+   "esperado": "legitimo",
+   "tipo": "texto",
+   "categoria": "legitimo_banco",
+   "pais": "CO",
+   "obtenido": "dudoso",
+   "paso": false,
+   "hipotesis_confirmada": false,
+   "confianza": 0.5,
+   "senales": [
+    "official_domain"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 0.4,
+   "usd": 0.0,
+   "tokens": 0,
+   "error": null
+  },
+  {
+   "id": "c-0211",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "transportadora",
+   "pais": "CO",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.8,
+   "senales": [
+    "ip_or_port",
+    "urgency",
+    "http_without_tls"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 5.8,
+   "usd": 0.0,
+   "tokens": 0,
+   "error": null
+  },
+  {
+   "id": "c-0212",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "transportadora",
+   "pais": "CO",
+   "obtenido": "dudoso",
+   "paso": false,
+   "hipotesis_confirmada": false,
+   "confianza": 0.5,
+   "senales": [
+    "ip_or_port",
+    "http_without_tls"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 5.4,
+   "usd": 0.0,
+   "tokens": 0,
+   "error": null
+  },
+  {
+   "id": "c-0213",
+   "esperado": "legitimo",
+   "tipo": "texto",
+   "categoria": "legitimo_otro",
+   "pais": "CO",
+   "obtenido": "dudoso",
+   "paso": false,
+   "hipotesis_confirmada": false,
+   "confianza": 0.5,
+   "senales": [
+    "official_domain"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 4.3,
+   "usd": 0.0,
+   "tokens": 0,
+   "error": null
+  },
+  {
+   "id": "c-0214",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "banco",
+   "pais": "CO",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [
+    "credentials_request",
+    "unresolved_shortener",
+    "official_domain"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 1.3,
+   "usd": 0.0,
+   "tokens": 0,
+   "error": null
+  },
+  {
+   "id": "c-0215",
+   "esperado": "dudoso",
+   "tipo": "texto",
+   "categoria": "comercio",
+   "pais": "CO",
+   "obtenido": "dudoso",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.5,
+   "senales": [
+    "unresolved_shortener"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 0.9,
+   "usd": 0.0,
+   "tokens": 0,
+   "error": null
+  },
+  {
+   "id": "c-0216",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "estado",
+   "pais": "CO",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.8,
+   "senales": [
+    "authority_with_link",
+    "unresolved_shortener",
+    "official_domain"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 1.1,
+   "usd": 0.0,
+   "tokens": 0,
+   "error": null
+  },
+  {
+   "id": "c-0217",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "compraventa",
+   "pais": "CO",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.8,
+   "senales": [
+    "advance_before_seeing",
+    "unresolved_shortener",
+    "official_domain"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 1.6,
+   "usd": 0.0,
+   "tokens": 0,
+   "error": null
+  },
+  {
+   "id": "c-0218",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "banco",
+   "pais": "CO",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [
+    "lookalike_domain",
+    "brand_off_domain",
+    "credentials_request",
+    "suspicious_tld"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 3.8,
+   "usd": 0.0,
+   "tokens": 0,
+   "error": null
+  },
+  {
+   "id": "c-0219",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "telco",
+   "pais": "CO",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [
+    "lookalike_domain",
+    "brand_off_domain"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 2.3,
+   "usd": 0.0,
+   "tokens": 0,
+   "error": null
+  },
+  {
+   "id": "c-0220",
+   "esperado": "estafa",
+   "tipo": "audio",
+   "categoria": "estado",
+   "pais": "CO",
+   "obtenido": "dudoso",
+   "paso": false,
+   "hipotesis_confirmada": false,
+   "confianza": 0.5,
+   "senales": [
+    "personal_payment"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 0.7,
+   "usd": 0.0,
+   "tokens": 0,
+   "error": null
+  },
+  {
+   "id": "c-0221",
+   "esperado": "estafa",
+   "tipo": "audio",
+   "categoria": "transportadora",
+   "pais": "CO",
+   "obtenido": "dudoso",
+   "paso": false,
+   "hipotesis_confirmada": false,
+   "confianza": 0.5,
+   "senales": [
+    "ip_or_port",
+    "http_without_tls"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 5.1,
+   "usd": 0.0,
+   "tokens": 0,
+   "error": null
+  },
+  {
+   "id": "c-0222",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "comercio",
+   "pais": "CO",
+   "obtenido": "dudoso",
+   "paso": false,
+   "hipotesis_confirmada": false,
+   "confianza": 0.5,
+   "senales": [
+    "urgency"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 0.8,
+   "usd": 0.0,
+   "tokens": 0,
+   "error": null
+  },
+  {
+   "id": "c-0223",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "comercio",
+   "pais": "US",
+   "obtenido": "dudoso",
+   "paso": false,
+   "hipotesis_confirmada": false,
+   "confianza": 0.5,
+   "senales": [
+    "urgency"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 0.7,
+   "usd": 0.0,
+   "tokens": 0,
+   "error": null
+  },
+  {
+   "id": "c-0224",
+   "esperado": "legitimo",
+   "tipo": "texto",
+   "categoria": "legitimo_otro",
+   "pais": "CO",
+   "obtenido": "dudoso",
+   "paso": false,
+   "hipotesis_confirmada": false,
+   "confianza": 0.5,
+   "senales": [],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 0.6,
+   "usd": 0.0,
+   "tokens": 0,
+   "error": null
+  },
+  {
+   "id": "c-0225",
+   "esperado": "legitimo",
+   "tipo": "texto",
+   "categoria": "legitimo_otro",
+   "pais": "US",
+   "obtenido": "dudoso",
+   "paso": false,
+   "hipotesis_confirmada": false,
+   "confianza": 0.5,
+   "senales": [
+    "official_domain"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 0.6,
+   "usd": 0.0,
+   "tokens": 0,
+   "error": null
+  },
+  {
+   "id": "c-0226",
+   "esperado": "legitimo",
+   "tipo": "texto",
+   "categoria": "legitimo_otro",
+   "pais": "CO",
+   "obtenido": "dudoso",
+   "paso": false,
+   "hipotesis_confirmada": false,
+   "confianza": 0.5,
+   "senales": [
+    "brand_off_domain"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 6.2,
+   "usd": 0.0,
+   "tokens": 0,
+   "error": null
+  },
+  {
+   "id": "c-0227",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "telco",
+   "pais": "CO",
+   "obtenido": "dudoso",
+   "paso": false,
+   "hipotesis_confirmada": false,
+   "confianza": 0.5,
+   "senales": [
+    "brand_off_domain"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 6.9,
+   "usd": 0.0,
+   "tokens": 0,
+   "error": null
+  },
+  {
+   "id": "c-0228",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "transportadora",
+   "pais": "US",
+   "obtenido": "dudoso",
+   "paso": false,
+   "hipotesis_confirmada": false,
+   "confianza": 0.5,
+   "senales": [
+    "brand_off_domain"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 3.1,
+   "usd": 0.0,
+   "tokens": 0,
+   "error": null
+  },
+  {
+   "id": "c-0229",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "banco",
+   "pais": "US",
+   "obtenido": "dudoso",
+   "paso": false,
+   "hipotesis_confirmada": false,
+   "confianza": 0.5,
+   "senales": [
+    "brand_off_domain"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 2.3,
+   "usd": 0.0,
+   "tokens": 0,
+   "error": null
+  },
+  {
+   "id": "c-0230",
+   "esperado": "estafa",
+   "tipo": "audio",
+   "categoria": "estado",
+   "pais": "CO",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [
+    "personal_payment_release",
+    "urgency"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 1.0,
+   "usd": 0.0,
+   "tokens": 0,
+   "error": null
+  },
+  {
+   "id": "c-0231",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "billetera",
+   "pais": "CO",
+   "obtenido": "dudoso",
+   "paso": false,
+   "hipotesis_confirmada": false,
+   "confianza": 0.5,
+   "senales": [
+    "credentials_request",
+    "personal_payment"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 0.6,
+   "usd": 0.0,
+   "tokens": 0,
+   "error": null
+  },
+  {
+   "id": "c-0232",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "estado",
+   "pais": "CO",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [
+    "brand_off_domain",
+    "authority_with_link"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 7.2,
+   "usd": 0.0,
+   "tokens": 0,
+   "error": null
+  },
+  {
+   "id": "c-0233",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "banco",
+   "pais": "CO",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [
+    "credentials_request",
+    "unresolved_shortener"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 1.0,
+   "usd": 0.0,
+   "tokens": 0,
+   "error": null
+  },
+  {
+   "id": "c-0234",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "banco",
+   "pais": "US",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [
+    "brand_off_domain",
+    "urgency"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 2.5,
+   "usd": 0.0,
+   "tokens": 0,
+   "error": null
+  },
+  {
+   "id": "c-0235",
+   "esperado": "legitimo",
+   "tipo": "texto",
+   "categoria": "legitimo_banco",
+   "pais": "CO",
+   "obtenido": "dudoso",
+   "paso": false,
+   "hipotesis_confirmada": false,
+   "confianza": 0.5,
+   "senales": [],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 0.6,
+   "usd": 0.0,
+   "tokens": 0,
+   "error": null
+  },
+  {
+   "id": "c-0236",
+   "esperado": "legitimo",
+   "tipo": "texto",
+   "categoria": "legitimo_proveedor",
+   "pais": "CO",
+   "obtenido": "dudoso",
+   "paso": false,
+   "hipotesis_confirmada": false,
+   "confianza": 0.5,
+   "senales": [],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 0.6,
+   "usd": 0.0,
+   "tokens": 0,
+   "error": null
+  },
+  {
+   "id": "c-0237",
+   "esperado": "legitimo",
+   "tipo": "texto",
+   "categoria": "legitimo_proveedor",
+   "pais": "CO",
+   "obtenido": "dudoso",
+   "paso": false,
+   "hipotesis_confirmada": false,
+   "confianza": 0.5,
+   "senales": [],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 0.5,
+   "usd": 0.0,
+   "tokens": 0,
+   "error": null
+  },
+  {
+   "id": "c-0238",
+   "esperado": "legitimo",
+   "tipo": "texto",
+   "categoria": "legitimo_proveedor",
+   "pais": "CO",
+   "obtenido": "dudoso",
+   "paso": false,
+   "hipotesis_confirmada": false,
+   "confianza": 0.5,
+   "senales": [
+    "personal_payment"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 0.5,
+   "usd": 0.0,
+   "tokens": 0,
+   "error": null
+  },
+  {
+   "id": "c-0239",
+   "esperado": "legitimo",
+   "tipo": "texto",
+   "categoria": "legitimo_otro",
+   "pais": "CO",
+   "obtenido": "dudoso",
+   "paso": false,
+   "hipotesis_confirmada": false,
+   "confianza": 0.5,
+   "senales": [],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 0.5,
+   "usd": 0.0,
+   "tokens": 0,
+   "error": null
+  },
+  {
+   "id": "c-0240",
+   "esperado": "legitimo",
+   "tipo": "texto",
+   "categoria": "legitimo_proveedor",
+   "pais": "US",
+   "obtenido": "dudoso",
+   "paso": false,
+   "hipotesis_confirmada": false,
+   "confianza": 0.5,
+   "senales": [],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 0.4,
+   "usd": 0.0,
+   "tokens": 0,
+   "error": null
+  },
+  {
+   "id": "c-0241",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "estado",
+   "pais": "CO",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [
+    "brand_off_domain",
+    "authority_with_link"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 8.1,
+   "usd": 0.0,
+   "tokens": 0,
+   "error": null
+  },
+  {
+   "id": "c-0242",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "estado",
+   "pais": "US",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [
+    "brand_off_domain",
+    "prize",
+    "authority_with_link"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 2.2,
+   "usd": 0.0,
+   "tokens": 0,
+   "error": null
+  },
+  {
+   "id": "c-0243",
+   "esperado": "legitimo",
+   "tipo": "texto",
+   "categoria": "legitimo_proveedor",
+   "pais": "CO",
+   "obtenido": "dudoso",
+   "paso": false,
+   "hipotesis_confirmada": false,
+   "confianza": 0.5,
+   "senales": [],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 0.6,
+   "usd": 0.0,
+   "tokens": 0,
+   "error": null
+  },
+  {
+   "id": "c-0244",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "estado",
+   "pais": "US",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [
+    "brand_off_domain",
+    "urgency",
+    "prize",
+    "authority_with_link"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 2.2,
+   "usd": 0.0,
+   "tokens": 0,
+   "error": null
+  },
+  {
+   "id": "c-0245",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "estado",
+   "pais": "CO",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [
+    "brand_off_domain",
+    "authority_with_link"
+   ],
+   "herramientas_usadas": [],
+   "degradado": true,
+   "manipulacion": false,
+   "ms": 8.1,
    "usd": 0.0,
    "tokens": 0,
    "error": null
