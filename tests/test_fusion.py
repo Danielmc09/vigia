@@ -8,6 +8,7 @@ from uuid import uuid4
 import pytest
 from pydantic import ValidationError
 
+from vigia.channel.templates import whatsapp_message
 from vigia.domain.analyst import AnalystResult, Evidence
 from vigia.domain.case import Case
 from vigia.domain.signal import Signal
@@ -408,6 +409,32 @@ def test_a_brand_that_is_also_a_plain_lowercase_word_is_not_named() -> None:
     verdict = build_verdict(case, evidence, pack)
 
     assert verdict.impersonated_brand is None
+
+
+@pytest.mark.parametrize(("case_id", "brand"), [("c-0220", "DIAN"), ("c-0221", None)])
+def test_inc_marca_en_audio_ignores_asr_case_only_for_unambiguous_brands(
+    case_id: str, brand: str | None
+) -> None:
+    """Incident 31 oct: the transcript said "dian" and the reply lost the brand and its channel."""
+    pack = country_pack("CO")
+    assert pack is not None
+    raw = next(
+        json.loads(line)
+        for line in (Path(__file__).parents[1] / "evals" / "casos.jsonl")
+        .read_text("utf-8")
+        .splitlines()
+        if f'"{case_id}"' in line
+    )
+    case = _case(raw["texto"], extract_urls(raw["texto"]))
+    evidence = Evidence(signals=detect(case, pack), analyst=_analyst("scam", 0.92))
+
+    verdict = build_verdict(case, evidence, pack)
+
+    assert verdict.label == "scam"
+    assert verdict.impersonated_brand == brand
+    if brand:
+        channel = next(b.official_channel for b in pack.brands if b.name == brand)
+        assert channel and channel in whatsapp_message(verdict, "es")
 
 
 def _landed(via: str) -> Signal:
