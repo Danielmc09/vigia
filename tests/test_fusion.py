@@ -458,6 +458,30 @@ def test_inc_riel_de_pago_names_the_impersonated_brand_not_the_wallet(
         assert "nequi.com.co" not in message
 
 
+@pytest.mark.parametrize(
+    ("text", "brand", "rail"),
+    [
+        ("DIAN: pague por Nequi hoy en https://dian-pagos.xyz/deuda", "DIAN", "Nequi"),
+        ("Nequi le informa: transfiera el saldo a su Daviplata ya", "Nequi", "Daviplata"),
+    ],
+)
+def test_rail_is_named_beside_a_hard_signal_brand_and_among_wallets_only(
+    text: str, brand: str, rail: str
+) -> None:
+    """D-107: the rail is reported when the brand comes from a link, and with two wallets."""
+    pack = country_pack("CO")
+    assert pack is not None
+    case = _case(text, extract_urls(text))
+    evidence = Evidence(signals=detect(case, pack), analyst=_analyst("scam", 0.92))
+
+    verdict = build_verdict(case, evidence, pack)
+
+    assert verdict.impersonated_brand == brand
+    assert f"se hace pasar por {brand} y pide el pago a una cuenta de {rail}" in (
+        verdict.user_explanation
+    )
+
+
 def _landed(via: str) -> Signal:
     """An official_domain signal the detector emits after unrolling ``via``."""
     return Signal(

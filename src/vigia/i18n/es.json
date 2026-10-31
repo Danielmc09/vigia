@@ -1,6 +1,7 @@
 {
   "verdict.scam.header": "Esto es una estafa.",
   "verdict.scam.brand": "Esto es una estafa: no viene de {brand}.",
+  "verdict.scam.brand_rail": "Esto es una estafa: se hace pasar por {brand} y pide el pago a una cuenta de {rail}.",
   "verdict.legit.header": "Es legítimo.",
   "verdict.doubtful.header": "No es claro: trátalo con cuidado.",
   "command.enroll": "hola",

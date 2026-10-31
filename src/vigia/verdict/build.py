@@ -21,6 +21,9 @@ from vigia.verdict.fusion import LEGIT, SCAM, fuse, soften_citations
 _SALE_ACTIONS: dict[str, Action] = {"extortion": "block_and_report", "already_paid": "stop_paying"}
 """specs/15 reply variants, first match wins: threats, then a victim who already paid."""
 
+RAIL_KINDS = frozenset({"billetera", "pagos"})
+"""Where the money goes, not who is impersonated, when another brand is named (D-107)."""
+
 MAX_EXPLANATION_SIGNALS = 3  # specs/05 template: "Señales: {hasta 3}"
 
 # specs/05 rule 7: a hard signal about money asks the member not to pay; any other hard
@@ -74,8 +77,8 @@ def _impersonated_brand(signals: Sequence[Signal], pack: CountryPack) -> Brand |
     return None
 
 
-def _brand_in_body(text: str, pack: CountryPack) -> Brand | None:
-    """The pack brand written as a whole word in the body (incident c-0211).
+def _brands_in_body(text: str, pack: CountryPack) -> list[Brand]:
+    """The pack brands written as whole words in the body, in text order (c-0211, D-107).
 
     Case-insensitive ("CoordInadora", an ASR "dian"), except that an all-lowercase
     match of an ambiguous brand is skipped so plain words like "dale" or "claro" do not
@@ -83,12 +86,22 @@ def _brand_in_body(text: str, pack: CountryPack) -> Brand | None:
     """
     # ponytail: an ambiguous brand capitalized at the start ("Dale clic") is still named.
     folded = fold(text).lower()
+    named: list[tuple[int, Brand]] = []
     for brand in pack.brands:
         name = re.escape(fold(brand.name).lower())
-        for found in re.finditer(rf"(?<![a-z0-9]){name}(?![a-z0-9])", folded):
-            if not (brand.ambiguous and text[found.start() : found.end()].islower()):
-                return brand
-    return None
+        starts = [
+            found.start()
+            for found in re.finditer(rf"(?<![a-z0-9]){name}(?![a-z0-9])", folded)
+            if not (brand.ambiguous and text[found.start() : found.end()].islower())
+        ]
+        if starts:
+            named.append((starts[0], brand))
+    return [brand for _, brand in sorted(named, key=lambda pair: pair[0])]
+
+
+def _impersonated_in_body(named: Sequence[Brand]) -> Brand | None:
+    """The first named brand that is not a payment rail; a lone wallet is itself (D-107)."""
+    return next((b for b in named if b.kind not in RAIL_KINDS), named[0] if named else None)
 
 
 def _action(label: Label, signals: Sequence[Signal]) -> Action:
@@ -112,18 +125,23 @@ def _action(label: Label, signals: Sequence[Signal]) -> Action:
     return "verify_official_channel"
 
 
-def _explanation(lang: str, label: Label, signals: Sequence[Signal], brand: str | None) -> str:
+def _header(lang: str, label: Label, brand: Brand | None, rail: Brand | None) -> str:
+    """specs/05 rule 6 first line: who is impersonated and, if named, where the money goes."""
+    if label != SCAM or brand is None:
+        return t(lang, f"verdict.{label}.header")
+    if rail is None:
+        return t(lang, f"verdict.{SCAM}.brand", brand=brand.name)
+    # ponytail: a rail named beside a credential theft still reads "asks for payment".
+    return t(lang, f"verdict.{SCAM}.brand_rail", brand=brand.name, rail=rail.name)
+
+
+def _explanation(lang: str, header: str, signals: Sequence[Signal]) -> str:
     """specs/05 rule 6: the user-facing text, always code-built from i18n (regla 14).
 
     The analyst's own free text never reaches this (see :class:`AnalystResult`), and
     neither do its signals: callers pass only deterministic evidence, so the model never
     picks which facts the code asserts (D-065).
     """
-    header = (
-        t(lang, f"verdict.{SCAM}.brand", brand=brand)
-        if label == SCAM and brand
-        else t(lang, f"verdict.{label}.header")
-    )
     ordered = by_weight(signals)
     # a type with no catalog entry (e.g. made up by the analyst) is left out, never echoed
     known = (s.type for s in ordered if has_key(lang, f"signal.{s.type}"))
@@ -151,9 +169,9 @@ def build_verdict(case: Case, evidence: Evidence, pack: CountryPack) -> Verdict:
     label, confidence = fuse(softened, analyst, evidence.manipulation_detected, unofficial_url)
 
     all_signals = softened + (list(analyst.signals) if analyst else [])
-    brand = _impersonated_brand(all_signals, pack)
-    if brand is None and label == SCAM:
-        brand = _brand_in_body(case.text or "", pack)
+    named = _brands_in_body(case.text or "", pack) if label == SCAM else []
+    brand = _impersonated_brand(all_signals, pack) or _impersonated_in_body(named)
+    rail = next((b for b in named if b.kind in RAIL_KINDS and b != brand), None)
     return Verdict(
         case_id=str(case.id),
         business_id=str(case.business_id),
@@ -162,7 +180,7 @@ def build_verdict(case: Case, evidence: Evidence, pack: CountryPack) -> Verdict:
         signals=all_signals,
         impersonated_brand=brand.name if brand else None,
         user_explanation=_explanation(
-            pack.language, label, softened, brand.name if brand else None
+            pack.language, _header(pack.language, label, brand, rail), softened
         ),
         action=_action(label, all_signals),
         official_channel=brand.official_channel if brand else None,
