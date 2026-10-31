@@ -390,37 +390,93 @@ def test_full_mode_still_fails_on_accuracy_and_doubtful_regressions(tmp_path: Pa
     assert _result(tmp_path)["regresiones"] == ["exactitud", "dudosos"]
 
 
-def _baseline(tmp_path: Path, metrics: dict[str, float], passed: dict[str, bool]) -> None:
-    cases = [{"id": i, "paso": p} for i, p in passed.items()]
-    result = {"metricas": metrics, "casos": cases}
-    (tmp_path / RULES_BASELINE).write_text(json.dumps(result), encoding="utf-8")
-
-
 RULES_BASELINE = "ultimo.deterministas.resultado.json"
 RULES_RESULT = f"{date.today()}.deterministas.resultado.json"
+
+
+def _rules_run(tmp_path: Path, answers: dict[str, str], *cases: dict[str, object]) -> int:
+    path = _write(tmp_path, *cases)
+    args = [str(path), "--solo-deterministas"]
+    return measure.main(args, classify=_by_text(answers), out_dir=tmp_path)
+
+
+DOUBTFUL_LEGIT = {"scam one": "scam", "scam two": "scam", "legit": "doubtful"}
 
 
 def test_incident_a_grown_set_does_not_regress_on_aggregates_alone(tmp_path: Path) -> None:
     # hypothesis: 31 oct, rules-only recall fell 0.85 -> 0.745 because 38 scams were added
     # since the 27 oct baseline; zero cases got worse, yet the gate exited 1 on recall.
-    _baseline(tmp_path, {"recall_estafa": 1.0, "exactitud": 1.0}, {"c-1": True, "c-3": True})
-    answers = {"scam one": "scam", "scam two": "doubtful", "legit": "legit"}
+    _rules_run(tmp_path, DOUBTFUL_LEGIT, SCAM_1, LEGIT)
+    answers = {"scam one": "scam", "scam two": "doubtful", "legit": "doubtful"}
 
-    code = _run(tmp_path, _by_text(answers), "--solo-deterministas")
+    code = _rules_run(tmp_path, answers, SCAM_1, SCAM_2, LEGIT)
 
     assert _result(tmp_path, RULES_RESULT)["regresiones"] == []
     assert code == 0
     assert len(_result(tmp_path, RULES_BASELINE)["casos"]) == 3
 
 
-def test_a_grown_set_regresses_on_a_shared_case_that_now_fails(tmp_path: Path) -> None:
-    _baseline(tmp_path, {"recall_estafa": 1.0}, {"c-1": True, "c-3": True})
-    answers = {"scam one": "doubtful", "scam two": "scam", "legit": "legit"}
+def test_a_grown_set_regresses_on_a_shared_scam_that_now_fails(tmp_path: Path) -> None:
+    _rules_run(tmp_path, DOUBTFUL_LEGIT, SCAM_1, LEGIT)
+    answers = {"scam one": "doubtful", "scam two": "scam", "legit": "doubtful"}
 
-    code = _run(tmp_path, _by_text(answers), "--solo-deterministas")
+    code = _rules_run(tmp_path, answers, SCAM_1, SCAM_2, LEGIT)
 
     assert code == 1
-    assert _result(tmp_path, RULES_RESULT)["regresiones"] == ["c-1"]
+    assert _result(tmp_path, RULES_RESULT)["regresiones"] == ["recall_estafa"]
+
+
+def test_incident_a_grown_set_regresses_on_a_legit_now_called_scam(tmp_path: Path) -> None:
+    # hypothesis: juez 31 oct (D-115): rules never answer legitimo, so a legit case never
+    # "passes" and a per-case pass/fail check cannot see it flip dudoso -> estafa; the
+    # aggregates over the shared cases do: fp_legitimo goes 0.0 -> 1.0 and the gate exits 1.
+    _rules_run(tmp_path, DOUBTFUL_LEGIT, SCAM_1, LEGIT)
+    answers = {"scam one": "scam", "scam two": "scam", "legit": "scam"}
+
+    code = _rules_run(tmp_path, answers, SCAM_1, SCAM_2, LEGIT)
+
+    assert code == 1
+    assert _result(tmp_path, RULES_RESULT)["regresiones"] == ["fp_legitimo"]
+
+
+def test_a_removed_case_compares_only_the_cases_left(tmp_path: Path) -> None:
+    _rules_run(tmp_path, DOUBTFUL_LEGIT, SCAM_1, SCAM_2, LEGIT)
+    answers = {"scam one": "scam", "legit": "scam"}
+
+    code = _rules_run(tmp_path, answers, SCAM_1, LEGIT)
+
+    assert code == 1
+    assert _result(tmp_path, RULES_RESULT)["regresiones"] == ["fp_legitimo"]
+
+
+def test_a_run_cut_by_the_budget_compares_only_the_cases_it_ran(tmp_path: Path) -> None:
+    _rules_run(tmp_path, DOUBTFUL_LEGIT, LEGIT, SCAM_1, SCAM_2)
+    path = _write(tmp_path, LEGIT, SCAM_1, SCAM_2)
+    pricey = _by_text({"legit": "scam", "scam one": "scam", "scam two": "scam"}, usd=1.5)
+
+    code = measure.main([str(path), "--solo-deterministas", "--max-usd", "2.0"], pricey, tmp_path)
+
+    assert code == 2
+    assert _result(tmp_path, RULES_RESULT)["regresiones"] == ["fp_legitimo"]
+    assert len(_result(tmp_path, RULES_BASELINE)["casos"]) == 3
+
+
+def test_a_baseline_with_no_cases_has_nothing_to_regress_against(tmp_path: Path) -> None:
+    result = {"metricas": {"recall_estafa": 1.0, "fp_legitimo": 0.0}, "casos": []}
+    (tmp_path / RULES_BASELINE).write_text(json.dumps(result), encoding="utf-8")
+    answers = {"scam one": "doubtful", "scam two": "doubtful", "legit": "scam"}
+
+    code = _rules_run(tmp_path, answers, SCAM_1, SCAM_2, LEGIT)
+
+    assert code == 0
+    assert _result(tmp_path, RULES_RESULT)["regresiones"] == []
+
+
+def test_duplicate_ids_in_the_eval_set_are_a_clear_error(tmp_path: Path) -> None:
+    path = _write(tmp_path, SCAM_1, SCAM_2, _case("c-1", "legitimo", "legit"))
+
+    with pytest.raises(ValueError, match="c-1"):
+        measure.main([str(path), "--solo-deterministas"], classify=PERFECT, out_dir=tmp_path)
 
 
 def test_with_analyst_offers_crop_on_images(monkeypatch: pytest.MonkeyPatch) -> None:
