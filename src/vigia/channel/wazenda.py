@@ -174,7 +174,7 @@ class Wazenda:
     _sent: deque[float] = field(default_factory=deque, init=False, repr=False)
 
     def _trusted(self, url: str) -> bool:
-        """Whether a media URL is https on exactly the base host, port, and no userinfo."""
+        """Whether a media URL is https on the base host or its `www.` twin (D-103), no userinfo."""
         base = urlsplit(self.base_url)
         try:
             parts = urlsplit(url)

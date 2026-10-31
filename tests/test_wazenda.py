@@ -173,6 +173,8 @@ async def test_media_is_downloaded_with_the_api_key() -> None:
     [
         "https://wazenda.com.evil.example/media/1",
         "https://wazenda.com@evil.example/media/1",
+        "https://www.evil.example/media/1",
+        "https://wwwwazenda.com/media/1",
         "https://user:pw@wazenda.com/media/1",
         "http://wazenda.com/api/v1/public/media/1",
         "https://wazenda.com:8443/media/1",
@@ -506,6 +508,29 @@ async def test_two_attachments_2_s_apart_are_not_guessed() -> None:
     result = await wazenda.latest_media("+573000000001", _at("2026-10-31T14:08:36+00:00"))
     assert isinstance(result, Rejection) and result.error_code == "MEDIA_MATCH_FAILED"
     assert len(seen) == 1
+
+
+@pytest.mark.parametrize(
+    ("webhook", "expected"),
+    [("2026-10-31T14:08:38+00:00", None), ("2026-10-31T14:08:37+00:00", VOICE_ID)],
+    ids=["gap-4s-rejected", "gap-6s-nearest"],
+)
+async def test_the_ambiguity_gap_boundary(webhook: str, expected: str | None) -> None:
+    """Candidates 3 s/7 s away (gap 4 s) are not told apart; 2 s/8 s (gap 6 s) are (D-103)."""
+    handler, seen = _listing(_pair(10), b"bytes")
+    wazenda, _ = client(handler)
+
+    result = await wazenda.latest_media("+573000000001", _at(webhook))
+    if expected is None:
+        assert isinstance(result, Rejection) and result.error_code == "MEDIA_MATCH_FAILED"
+    else:
+        assert str(seen[-1].url) == f"{BASE}/messages/{expected}/media"
+
+
+async def test_the_www_twin_of_the_base_host_is_downloaded() -> None:
+    handler, seen = _listing([], b"bytes")
+    wazenda, _ = client(handler)
+    assert await wazenda.download("https://www.wazenda.com/api/v1/public/media?sig=1") == b"bytes"
 
 
 async def test_a_listed_media_url_is_fetched_directly() -> None:
