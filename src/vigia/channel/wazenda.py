@@ -42,7 +42,9 @@ PER_MINUTE = 55  # specs/01: own cap below Wazenda's 60 requests per minute per 
 _SIGNATURE = re.compile(r"sha256=([0-9a-f]{64})")
 _PLACEHOLDER = re.compile(r"\[(audio|image|video|document|sticker)\]")
 MATCH_WINDOW = timedelta(seconds=120)
-"""How far a listed attachment may be from the webhook's timestamp to be its match."""
+"""Outer sanity bound: how far a listed attachment may be from the webhook's timestamp."""
+AMBIGUOUS_GAP = timedelta(seconds=5)
+"""Two best candidates closer than this to each other are not told apart (D-103)."""
 
 
 class _Payload(BaseModel):
@@ -64,6 +66,7 @@ class _Listed(BaseModel):
     direction: Literal["inbound", "outbound"]
     contact_number: str
     media_type: str | None = None
+    media_url: str | None = None
     created_at: datetime
 
 
@@ -180,7 +183,7 @@ class Wazenda:
             return False
         return (
             parts.scheme == "https"
-            and parts.hostname == base.hostname
+            and parts.hostname in {base.hostname, f"www.{base.hostname}"}
             and parts.username is None
             and parts.password is None
             and port == (base.port or 443)
@@ -212,16 +215,18 @@ class Wazenda:
         """Find the attachment of a webhook without ``media_url`` and download it.
 
         The webhook carries a ``wamid``; the media endpoint wants Wazenda's own uuid, so
-        the sender's last messages are listed and exactly one inbound attachment within
-        ``MATCH_WINDOW`` of ``at`` must exist. Anything else is never guessed.
+        the sender's last messages are listed and the inbound attachment closest to ``at``
+        (within ``MATCH_WINDOW``) is taken, unless the runner-up is within
+        ``AMBIGUOUS_GAP`` of it: then nothing is guessed (D-103). A trusted listed
+        ``media_url`` is fetched directly; otherwise Wazenda's uuid.
 
         Args:
             sender: Normalized phone (``+57...``) of the webhook.
             at: The webhook's timestamp.
 
         Returns:
-            The bytes (same checks as ``download``); ``MEDIA_MATCH_FAILED`` for zero or
-            several candidates, ``CHANNEL_UNAVAILABLE`` if the listing fails. Never raises.
+            The bytes (same checks as ``download``); ``MEDIA_MATCH_FAILED`` for no candidate
+            or two too close to tell, ``CHANNEL_UNAVAILABLE`` if the listing fails. Never raises.
         """
         contact = sender.lstrip("+")
         params = {"line_id": self.line_id, "contact": contact, "limit": 5}
@@ -237,23 +242,27 @@ class Wazenda:
             items = response.json()
         except ValueError:
             items = None
-        found = []
+        found: list[tuple[timedelta, _Listed]] = []
         for raw in items if isinstance(items, list) else []:
             try:
                 item = _Listed.model_validate(raw)
             except ValidationError:
                 continue
-            when = _aware(item.created_at)
+            distance = abs(_aware(item.created_at) - at)
             if (
                 item.direction == "inbound"
                 and item.media_type
                 and item.contact_number == contact
-                and abs(when - at) <= MATCH_WINDOW
+                and distance <= MATCH_WINDOW
             ):
-                found.append(item.id)
-        if len(found) != 1:
+                found.append((distance, item))
+        found.sort(key=lambda pair: pair[0])
+        if not found or (len(found) > 1 and found[1][0] - found[0][0] < AMBIGUOUS_GAP):
             return Rejection(error_code="MEDIA_MATCH_FAILED", message=f"{len(found)} candidates")
-        return await self.download(f"{self.base_url}/messages/{found[0]}/media")
+        item = found[0][1]
+        if item.media_url and self._trusted(item.media_url):
+            return await self.download(item.media_url)
+        return await self.download(f"{self.base_url}/messages/{item.id}/media")
 
     async def _under_cap(self) -> None:
         """Wait until one more request fits in the last minute.
