@@ -1,12 +1,15 @@
 """URL extraction from free text, tolerant to how scammers write links (domain)."""
 
 import re
+from pathlib import Path
 from urllib.parse import SplitResult, parse_qsl, urlencode, urlsplit, urlunsplit
 
 from pydantic import BaseModel
 
-# A scheme-less host is taken whole and kept only if its last label is a TLD: any two letters
-# (ccTLD) or one of these gTLDs, never another word even with a path after it (D-039, revised).
+# A scheme-less host is taken whole and kept only if its last label is a TLD that exists (IANA
+# list, vendored, D-109): two letters, one of these, or any other with a hyphen in the label
+# before it.
+# Many TLDs are words (final, casa, ltda), so those need the hyphen (D-039, revised).
 # Taking it whole matters: cutting at a listed TLD turned chase.com.secure-login.ru into
 # chase.com, an official domain (c-0054..c-0056).
 SCHEMELESS_TLDS = frozenset(
@@ -16,6 +19,12 @@ SCHEMELESS_TLDS = frozenset(
     | {"bid", "lat"}
     # Abused by phishing kits and not Spanish words: pagos-dian.support (c-0232).
     | {"support", "help", "services", "center", "cyou", "bond"}
+)
+_IANA_FILE = Path(__file__).with_name("tlds-iana.txt")
+_IANA_TLDS = frozenset(
+    line.strip().lower()
+    for line in _IANA_FILE.read_text(encoding="ascii").splitlines()
+    if not line.startswith("#")
 )
 _TLD_MAX = 24
 _LABEL = r"[a-z0-9\u0370-\u03ff\u0400-\u04ff-]+"
@@ -56,17 +65,20 @@ def _clean(raw: str) -> str:
     return url if has_scheme else url.removeprefix("//")
 
 
-def _is_tld(label: str, evidence: bool) -> bool:
-    """Whether a scheme-less host's last label, as written, reads as a TLD and not prose.
+def _is_tld(host: str, evidence: bool) -> bool:
+    """Whether a scheme-less host ends, as written, in a TLD and not in prose.
 
     Sentence case ("Bancolombia", "Su", "Help") is a word starting a sentence after a period
     with no space, so it is prose unless a path or port follows (``Bit.Ly/3xQ``, c-0233).
-    A label outside the list is prose even with a path: ``bancolombia.ahorros/corriente``
-    would otherwise give a hard signal on a legitimate message (c-0237..c-0240).
+    A label that is no TLD is prose even with a path (``bancolombia.ahorros/corriente``,
+    c-0237); one that exists but is not listed needs a hyphen (``dian-devolucion.tax``,
+    c-0241, ``www.irs-refund.tax`` c-0244), since ``informe.final/v2`` is prose (c-0243).
     """
+    name, label = host.rsplit(".", 2)[-2:]
     if not label.isalpha():
         return False
-    known = len(label) == 2 or label.lower() in SCHEMELESS_TLDS
+    tld = label.lower()
+    known = len(label) == 2 or tld in SCHEMELESS_TLDS or (tld in _IANA_TLDS and "-" in name)
     if label[0].isupper() and label[1:].islower():
         return evidence and known
     return known
@@ -78,7 +90,7 @@ def _is_url(m: re.Match[str]) -> bool:
     A path or port after the host is the evidence ``_is_tld`` weighs.
     """
     host = m["host"]
-    return not host or _is_tld(host.rsplit(".", 1)[-1], evidence=m.end() > m.end("host"))
+    return not host or _is_tld(host, evidence=m.end() > m.end("host"))
 
 
 def defang(host: str) -> str:

@@ -13,6 +13,7 @@ Country packs contain only public data (brand names, official domains and servic
 
 ## Third-party content (public, quoted with source)
 - `evals/muestras/c-0145.wav` … `c-0154.wav`: synthetic voice notes generated with the macOS text-to-speech voices (Apple: Paulina, Mónica, Eddy, Samantha) reading scripts we wrote. The voices are Apple's; the scripts are ours. No real recordings.
+- `src/vigia/domain/tlds-iana.txt`: the IANA list of top-level domains, copied as-is from https://data.iana.org/TLD/tlds-alpha-by-domain.txt (version 2026103100, downloaded 2026-10-31; source in the file header). Public data, never fetched at runtime.
 - `conocimiento/semilla.jsonl`: known scam campaigns. Message texts and malicious domains are quoted or summarized from public alerts and press reports (official agencies, banks, news outlets); every entry records its `source_url`, and `conocimiento/fuentes.json` lists them all. The fingerprints computed from them are ours. No personal data.
 
 ## Third-party services used as-is (not built by us)
