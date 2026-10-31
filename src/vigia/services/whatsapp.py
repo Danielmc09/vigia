@@ -140,10 +140,14 @@ async def _read_media(
 
     ``first`` claims the bytes before any reader is paid; a repeat is answered as a duplicate.
     """
-    data = await channel.wazenda.download(msg.attachments[0].ref or "")
+    ref = msg.attachments[0].ref
+    wazenda = channel.wazenda
+    data = await (
+        wazenda.download(ref) if ref else wazenda.latest_media(msg.sender, msg.received_at)
+    )
     if isinstance(data, Rejection):
-        too_large = data.error_code == "TOO_LARGE"
-        return t(language, "attachment.too_large" if too_large else "attachment.unavailable")
+        key = {"TOO_LARGE": "attachment.too_large", "MEDIA_MATCH_FAILED": "attachment.unmatched"}
+        return t(language, key.get(data.error_code, "attachment.unavailable"))
     read = await read_media(data, channel.readers, channel.config, Sender(language, first))
     if isinstance(read, str):
         return t(language, read)

@@ -13,9 +13,10 @@ import wave
 from collections import deque
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
-from datetime import UTC, datetime
-from typing import Any
+from datetime import UTC, datetime, timedelta
+from typing import Any, Literal
 from urllib.parse import urlsplit
+from uuid import UUID
 
 import av
 import httpx
@@ -39,6 +40,9 @@ MAX_MESSAGE_CHARS = 700  # specs/01: WhatsApp-friendly cap of every outgoing tex
 RETRIES = 3  # specs/01: 429 is retried 3 times, 1/2/4 s plus jitter
 PER_MINUTE = 55  # specs/01: own cap below Wazenda's 60 requests per minute per line
 _SIGNATURE = re.compile(r"sha256=([0-9a-f]{64})")
+_PLACEHOLDER = re.compile(r"\[(audio|image|video|document|sticker)\]")
+MATCH_WINDOW = timedelta(seconds=120)
+"""How far a listed attachment may be from the webhook's timestamp to be its match."""
 
 
 class _Payload(BaseModel):
@@ -50,6 +54,17 @@ class _Payload(BaseModel):
     timestamp: datetime
     body: str | None = None
     media_url: str | None = None
+    media_type: str | None = None
+
+
+class _Listed(BaseModel):
+    """One item of ``GET /messages`` (verified 31 oct); invalid items are skipped."""
+
+    id: UUID
+    direction: Literal["inbound", "outbound"]
+    contact_number: str
+    media_type: str | None = None
+    created_at: datetime
 
 
 def signed_payload(secret: bytes | None, body: bytes, header: str | None) -> dict[str, Any] | None:
@@ -81,6 +96,8 @@ def to_message(raw: dict[str, Any]) -> IncomingMessage | None:
     """A ``message.received`` event as the channel-neutral incoming message.
 
     Media kind is left ``unknown``: the downloaded bytes decide it, never ``media_type``.
+    A media webhook may carry only a placeholder body (``[audio]``) and no ``media_url``:
+    its attachment then has an empty ``ref``, meaning "find it with ``latest_media``".
 
     Args:
         raw: Verified webhook JSON.
@@ -92,18 +109,32 @@ def to_message(raw: dict[str, Any]) -> IncomingMessage | None:
         payload = _Payload.model_validate(raw)
     except ValidationError:
         return None
-    if payload.event != "message.received" or not (payload.body or payload.media_url):
+    placeholder = _PLACEHOLDER.fullmatch((payload.body or "").strip()) is not None
+    media = bool(payload.media_url or payload.media_type) or placeholder
+    if payload.event != "message.received" or not (payload.body or media):
         return None
     received = payload.timestamp
     return IncomingMessage(
         message_id=payload.message_id,
         origin="wazenda",
         sender=normalize_phone(payload.sender),
-        kind="unknown" if payload.media_url else "text",
-        text=payload.body,
-        attachments=[Attachment(ref=payload.media_url)] if payload.media_url else [],
-        received_at=received if received.tzinfo else received.replace(tzinfo=UTC),
+        kind="unknown" if media else "text",
+        text=None if placeholder else payload.body,
+        attachments=[Attachment(ref=payload.media_url or "")] if media else [],
+        received_at=_aware(received),
     )
+
+
+def _aware(moment: datetime) -> datetime:
+    """Read a naive provider timestamp as UTC.
+
+    Args:
+        moment: Timestamp parsed from a Wazenda payload or listing.
+
+    Returns:
+        The same instant with a timezone.
+    """
+    return moment if moment.tzinfo else moment.replace(tzinfo=UTC)
 
 
 HTTP_TIMEOUT_S = 30
@@ -176,6 +207,53 @@ class Wazenda:
                 return await read_capped(response.aiter_bytes())
         except httpx.HTTPError as exc:
             return _unavailable(type(exc).__name__)
+
+    async def latest_media(self, sender: str, at: datetime) -> bytes | Rejection:
+        """Find the attachment of a webhook without ``media_url`` and download it.
+
+        The webhook carries a ``wamid``; the media endpoint wants Wazenda's own uuid, so
+        the sender's last messages are listed and exactly one inbound attachment within
+        ``MATCH_WINDOW`` of ``at`` must exist. Anything else is never guessed.
+
+        Args:
+            sender: Normalized phone (``+57...``) of the webhook.
+            at: The webhook's timestamp.
+
+        Returns:
+            The bytes (same checks as ``download``); ``MEDIA_MATCH_FAILED`` for zero or
+            several candidates, ``CHANNEL_UNAVAILABLE`` if the listing fails. Never raises.
+        """
+        contact = sender.lstrip("+")
+        params = {"line_id": self.line_id, "contact": contact, "limit": 5}
+        try:
+            response = await self.http.get(
+                f"{self.base_url}/messages", params=params, headers={"X-API-Key": self.api_key}
+            )
+        except httpx.HTTPError as exc:
+            return _unavailable(type(exc).__name__)
+        if response.status_code != httpx.codes.OK:
+            return _unavailable(f"listing status {response.status_code}")
+        try:
+            items = response.json()
+        except ValueError:
+            items = None
+        found = []
+        for raw in items if isinstance(items, list) else []:
+            try:
+                item = _Listed.model_validate(raw)
+            except ValidationError:
+                continue
+            when = _aware(item.created_at)
+            if (
+                item.direction == "inbound"
+                and item.media_type
+                and item.contact_number == contact
+                and abs(when - at) <= MATCH_WINDOW
+            ):
+                found.append(item.id)
+        if len(found) != 1:
+            return Rejection(error_code="MEDIA_MATCH_FAILED", message=f"{len(found)} candidates")
+        return await self.download(f"{self.base_url}/messages/{found[0]}/media")
 
     async def _under_cap(self) -> None:
         """Wait until one more request fits in the last minute.

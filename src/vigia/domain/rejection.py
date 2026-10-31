@@ -26,6 +26,8 @@ RejectionCode = Literal[
     "CONTENT_FILTER",
     # Channel (T-10): the media could not be downloaded from Wazenda.
     "CHANNEL_UNAVAILABLE",
+    # T-10e: a webhook attachment without media_url had no single match in the listing.
+    "MEDIA_MATCH_FAILED",
 ]
 
 

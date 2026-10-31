@@ -143,6 +143,7 @@
   "scam_confirmed.nothing": "Ese caso no tiene enlaces ni texto suficiente para reconocerlo después. No guardé nada.",
   "attachment.too_large": "El archivo pesa más de 10 MB y no lo puedo revisar. Envíame una captura o el texto del mensaje.",
   "attachment.unavailable": "No pude descargar el archivo en este momento. Vuelve a enviarlo en unos minutos.",
+  "attachment.unmatched": "No pude saber qué adjunto revisar. Reenvíalo solo, de a uno.",
   "operator.alert": "VIGÍA alerta {name}: valor {value}, umbral {threshold}, caso {case_id}, traza {trace_id}. Qué hacer: {runbook}",
   "operator.test_alert": "VIGÍA: alerta de prueba del centinela, traza {trace_id}. Si te llegó, el canal al operador funciona. Qué hacer: {runbook}",
   "usage.team": "Para agregar a alguien de tu equipo escribe: equipo +57 300 000 0000 Nombre (el número con código de país; el correo es opcional al final).",

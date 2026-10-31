@@ -143,6 +143,7 @@
   "scam_confirmed.nothing": "That case has no links and too little text to recognize it later. I saved nothing.",
   "attachment.too_large": "The file is over 10 MB and I can't check it. Send me a screenshot or the message text.",
   "attachment.unavailable": "I couldn't download the file right now. Please send it again in a few minutes.",
+  "attachment.unmatched": "I couldn't tell which attachment to check. Forward it alone, one at a time.",
   "operator.alert": "VIGÍA alert {name}: value {value}, threshold {threshold}, case {case_id}, trace {trace_id}. What to do: {runbook}",
   "operator.test_alert": "VIGÍA: sentinel test alert, trace {trace_id}. If you got it, the operator channel works. What to do: {runbook}",
   "usage.team": "To add someone to your team, write: team +1 202 555 0100 Name (the number with its country code; the email is optional at the end).",
