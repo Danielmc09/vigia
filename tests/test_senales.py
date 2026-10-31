@@ -474,6 +474,26 @@ def test_ambiguous_brand_in_the_registered_domain_is_still_off_domain() -> None:
     assert ("brand_off_domain", "hard") in _found(url_signals("https://meta-soporte.xyz/x", CO))
 
 
+def test_ambiguous_brand_with_its_official_domain_in_a_subdomain_is_off_domain() -> None:
+    # Incident c-0055: "chase.com.secure-login.ru" carries the whole official domain.
+    signals = _found(url_signals("https://chase.com.secure-login.ru/x", US))
+    assert ("brand_off_domain", "hard") in signals
+    assert all(w == "light" for _, w in _found(url_signals("https://purchase.com/x", US)))
+
+
+@pytest.mark.parametrize(
+    ("url", "pack"),
+    [
+        ("https://claro.pagos-online.co/factura", CO),
+        ("https://ups.tracking-delivery.info/pay", US),
+        ("https://chase.secure-login.ru", US),
+    ],
+)
+def test_ambiguous_brand_as_a_foreign_subdomain_still_counts(url: str, pack: CountryPack) -> None:
+    # Incidents c-0227..c-0229: the most common phishing shape keeps a brand signal.
+    assert ("brand_off_domain", "medium") in _found(url_signals(url, pack))
+
+
 def test_every_user_content_domain_is_a_brand_domain() -> None:
     for pack in (CO, US):
         for brand in pack.brands:
