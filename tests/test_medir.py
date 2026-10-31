@@ -390,6 +390,39 @@ def test_full_mode_still_fails_on_accuracy_and_doubtful_regressions(tmp_path: Pa
     assert _result(tmp_path)["regresiones"] == ["exactitud", "dudosos"]
 
 
+def _baseline(tmp_path: Path, metrics: dict[str, float], passed: dict[str, bool]) -> None:
+    cases = [{"id": i, "paso": p} for i, p in passed.items()]
+    result = {"metricas": metrics, "casos": cases}
+    (tmp_path / RULES_BASELINE).write_text(json.dumps(result), encoding="utf-8")
+
+
+RULES_BASELINE = "ultimo.deterministas.resultado.json"
+RULES_RESULT = f"{date.today()}.deterministas.resultado.json"
+
+
+def test_incident_a_grown_set_does_not_regress_on_aggregates_alone(tmp_path: Path) -> None:
+    # hypothesis: 31 oct, rules-only recall fell 0.85 -> 0.745 because 38 scams were added
+    # since the 27 oct baseline; zero cases got worse, yet the gate exited 1 on recall.
+    _baseline(tmp_path, {"recall_estafa": 1.0, "exactitud": 1.0}, {"c-1": True, "c-3": True})
+    answers = {"scam one": "scam", "scam two": "doubtful", "legit": "legit"}
+
+    code = _run(tmp_path, _by_text(answers), "--solo-deterministas")
+
+    assert _result(tmp_path, RULES_RESULT)["regresiones"] == []
+    assert code == 0
+    assert len(_result(tmp_path, RULES_BASELINE)["casos"]) == 3
+
+
+def test_a_grown_set_regresses_on_a_shared_case_that_now_fails(tmp_path: Path) -> None:
+    _baseline(tmp_path, {"recall_estafa": 1.0}, {"c-1": True, "c-3": True})
+    answers = {"scam one": "doubtful", "scam two": "scam", "legit": "legit"}
+
+    code = _run(tmp_path, _by_text(answers), "--solo-deterministas")
+
+    assert code == 1
+    assert _result(tmp_path, RULES_RESULT)["regresiones"] == ["c-1"]
+
+
 def test_with_analyst_offers_crop_on_images(monkeypatch: pytest.MonkeyPatch) -> None:
     """D-076: the eval analyst gets SAM and reads the image from its ``ref`` (revisor T-12)."""
     seen: dict[str, object] = {}

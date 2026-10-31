@@ -1,10 +1,11 @@
 """Run an eval set against VIGIA and grade it deterministically (specs/06).
 
-Usage: ``python medir.py [evals/casos.jsonl] [--filtro campo=valor] [--solo-deterministas]
-[--json out.json] [--max-usd 2.0] [--adversarios]``.
+Usage: ``python tools/measure.py [evals/casos.jsonl] [--filtro field=value]
+[--solo-deterministas] [--json out.json] [--max-usd 2.0] [--adversarios]``.
 
 Exit codes: 0 ok, 1 gate or regression (or an adversarial expectation missed), 2 over
-budget, 3 mode not available yet.
+budget, 3 mode not available yet. A regression is a metric worse than the baseline run on
+the same cases; when the case set changed, it is a shared case that passed and now fails.
 """
 
 import argparse
@@ -406,6 +407,16 @@ def regressions(metrics: dict[str, Any], baseline: dict[str, Any], full: bool = 
     ]
 
 
+def lost_cases(records: list[dict[str, Any]], baseline: list[dict[str, Any]]) -> list[str]:
+    """Ids of cases that passed in the baseline run and fail now.
+
+    The only valid regression when the case set changed: aggregates over two different
+    sets compare nothing (31 oct, recall fell from 38 scams added, none got worse).
+    """
+    passed = {c["id"] for c in baseline if c.get("paso")}
+    return [r["id"] for r in records if r["id"] in passed and r["paso"] is False]
+
+
 def run(
     cases: list[dict[str, Any]],
     classify: Classifier,
@@ -501,13 +512,21 @@ def _adversarial(path: Path, json_out: Path | None, out_dir: Path) -> int:
 
 
 def _parse(argv: list[str]) -> argparse.Namespace:
-    parser = argparse.ArgumentParser(prog="medir.py", description=__doc__)
-    parser.add_argument("path", nargs="?", type=Path, default=EVALS / "casos.jsonl")
-    parser.add_argument("--filtro", help="campo=valor, e.g. tipo=audio")
-    parser.add_argument("--solo-deterministas", action="store_true")
-    parser.add_argument("--adversarios", action="store_true")
-    parser.add_argument("--json", type=Path)
-    parser.add_argument("--max-usd", type=float, default=2.0)
+    parser = argparse.ArgumentParser(prog="measure.py", description=__doc__)
+    parser.add_argument(
+        "path", nargs="?", type=Path, default=EVALS / "casos.jsonl", help="eval set (JSONL)"
+    )
+    parser.add_argument("--filtro", help="only cases where field=value, e.g. tipo=audio")
+    parser.add_argument(
+        "--solo-deterministas", action="store_true", help="rules only, no model calls"
+    )
+    parser.add_argument(
+        "--adversarios", action="store_true", help="run evals/adversarios.jsonl instead"
+    )
+    parser.add_argument("--json", type=Path, help="also write the result to this file")
+    parser.add_argument(
+        "--max-usd", type=float, default=2.0, help="stop when spend passes this (default 2.0)"
+    )
     return parser.parse_args(argv)
 
 
@@ -656,7 +675,7 @@ def _main(
     if classify is None and not args.adversarios:
         classify = deterministic if args.solo_deterministas else full()
     if args.adversarios or classify is None:
-        print(f"medir: {_unavailable(args, out_dir)}", file=sys.stderr)
+        print(f"measure: {_unavailable(args, out_dir)}", file=sys.stderr)
         return EXIT_UNAVAILABLE
     if readers is None:
         readers = {} if args.solo_deterministas else real_readers()
@@ -666,8 +685,16 @@ def _main(
     failures = gate_failures(metrics, full=mode == "completo")
     suffix = ".deterministas" if mode == "deterministas" else ""
     baseline = out_dir / f"ultimo{suffix}.resultado.json"
-    previous = json.loads(baseline.read_text("utf-8"))["metricas"] if baseline.is_file() else {}
-    regressed = [] if args.filtro else regressions(metrics, previous, full=mode == "completo")
+    previous = json.loads(baseline.read_text("utf-8")) if baseline.is_file() else {}
+    before = previous.get("casos")
+    same_set = before is None or {c["id"] for c in before} == {r["id"] for r in records}
+    regressed = (
+        []
+        if args.filtro
+        else regressions(metrics, previous.get("metricas", {}), full=mode == "completo")
+        if same_set
+        else lost_cases(records, before or [])
+    )
     code = EXIT_BUDGET if over_budget else EXIT_GATE if failures or regressed else EXIT_OK
     result = {
         "fecha": date.today().isoformat(),
