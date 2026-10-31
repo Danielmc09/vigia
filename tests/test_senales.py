@@ -1,7 +1,7 @@
 """Deterministic signals of specs/04: URLs, text patterns, address book, QR and the detector."""
 
 from collections.abc import Callable
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
 from uuid import uuid4
 
 import pytest
@@ -14,6 +14,7 @@ from vigia.domain.urls import Unrolled
 from vigia.signals.address_book import address_book_signals
 from vigia.signals.country_pack import country_pack
 from vigia.signals.detector import detect
+from vigia.signals.knowledge import confirmed_campaign
 from vigia.signals.patterns import pattern_signals
 from vigia.signals.qr import qr_signals
 from vigia.signals.urls import needs_unrolling, registrable_domain, url_signals
@@ -458,6 +459,31 @@ def test_user_content_domain_still_has_lookalikes() -> None:
 def test_detector_user_content_link_keeps_credentials_hard() -> None:
     text = "Mira el catalogo en https://www.instagram.com/tienda.ofertas.co y envianos tu clave"
     assert ("credentials_request", "hard") in _found(detect(_case(text), CO))
+
+
+@pytest.mark.parametrize("pack", [CO, US])
+def test_meta_hosts_are_not_off_domain(pack: CountryPack) -> None:
+    # Incident c-0224..c-0226: Meta's own hosts and "meta" as a common subdomain word.
+    assert url_signals("https://fb.me/ferreteriaeltornillo", pack) == []
+    assert _found(url_signals("https://www.meta.ai/", pack)) == {("official_domain", "light")}
+    for url in ("https://meta.wikimedia.org/wiki/x", "https://ferreteria.co/meta/ofertas"):
+        assert all(s.weight == "light" for s in url_signals(url, pack)), url
+
+
+def test_ambiguous_brand_in_the_registered_domain_is_still_off_domain() -> None:
+    assert ("brand_off_domain", "hard") in _found(url_signals("https://meta-soporte.xyz/x", CO))
+
+
+def test_every_user_content_domain_is_a_brand_domain() -> None:
+    for pack in (CO, US):
+        for brand in pack.brands:
+            assert set(brand.user_content) <= set(brand.domains), brand.name
+
+
+def test_a_user_content_host_is_never_a_campaign_fingerprint() -> None:
+    text = "Gana un premio, entra a https://www.instagram.com/perfil.falso y paga el envio"
+    campaign = confirmed_campaign(text, CO, None, date(2026, 10, 31))
+    assert campaign is None or "instagram.com" not in campaign.domains
 
 
 def test_detector_uses_the_address_book() -> None:
