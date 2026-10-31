@@ -2,6 +2,7 @@
 
 import json
 from datetime import UTC, datetime
+from html import escape
 from pathlib import Path
 from urllib.parse import urlencode
 from uuid import uuid4
@@ -21,6 +22,7 @@ from vigia.domain.member import Business
 from vigia.domain.reading import Transcriber, Transcript
 from vigia.domain.signal import Signal
 from vigia.domain.verdict import Verdict, VerdictRow
+from vigia.i18n import t
 from vigia.services import whatsapp
 from vigia.services.transcription import image_reader
 from vigia.store import postgres as store
@@ -612,3 +614,8 @@ def test_an_upload_without_the_panel_token_is_refused(monkeypatch: pytest.Monkey
     response = _client(TOKEN).post("/panel", files={"file": ("nota.ogg", opus(), "audio/ogg")})
 
     assert response.status_code == 401
+
+
+def test_rules_only_explains_why_nothing_comes_out_legitimate() -> None:
+    html = render_panel([], {}, None, TryForm(rules_only=True))
+    assert escape(t("en", "panel.try.rules_only")) in html

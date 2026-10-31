@@ -123,7 +123,7 @@
   "panel.try.busy": "Analizando…",
   "panel.try.error": "No se pudo analizar. Intenta de nuevo.",
   "panel.try.result": "Resultado ·",
-  "panel.try.rules_only": "Solo reglas: sin llave de modelo no hay analista.",
+  "panel.try.rules_only": "Solo reglas: sin llave de modelo no hay analista. Sin él VIGÍA nunca responde \"legítimo\": esa decisión la toma el analista, así que un mensaje legítimo sale \"dudoso\".",
   "panel.try.file": "Archivo: nota de voz, captura o PDF",
   "panel.try.read": "Leído del archivo",
   "panel.try.links": "Enlaces del QR",

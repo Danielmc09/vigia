@@ -123,7 +123,7 @@
   "panel.try.busy": "Analyzing…",
   "panel.try.error": "Could not analyze it. Try again.",
   "panel.try.result": "Result ·",
-  "panel.try.rules_only": "Rules only: no model key, so no analyst.",
+  "panel.try.rules_only": "Rules only: no model key, so no analyst. Without it VIGÍA never answers \"legitimate\": that call is the analyst's, so a legitimate message comes out \"unclear\".",
   "panel.try.file": "File: voice note, screenshot or PDF",
   "panel.try.read": "Read from the file",
   "panel.try.links": "QR links",

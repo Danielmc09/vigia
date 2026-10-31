@@ -1,9 +1,13 @@
 """T-22c `make demo`: a clean seed, 5 sample cases land as verdicts in the panel."""
 
+import logging
+
 import asyncpg
 import demo
 import pytest
+import structlog
 
+from vigia import telemetry
 from vigia.config import Settings
 from vigia.services import whatsapp
 from vigia.store import postgres as store
@@ -70,3 +74,18 @@ def test_panel_url_uses_the_published_port(monkeypatch: pytest.MonkeyPatch) -> N
 def test_panel_url_escapes_the_token() -> None:
     """T-22e: ``+`` in a base64 token must survive the browser link."""
     assert demo.panel_url("a+b/c=").endswith("/panel?token=a%2Bb%2Fc%3D")
+
+
+def test_demo_logs_only_warnings_so_the_answers_stay_visible(
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """stage_done stays silent; a WARNING-level event still comes through."""
+    demo.quiet_logs()
+    try:
+        telemetry.event("stage_done", stage="gate", ms=3)
+        telemetry.event("model_unavailable", level=logging.WARNING)
+    finally:
+        structlog.reset_defaults()
+    out = capsys.readouterr().out
+    assert "stage_done" not in out
+    assert "model_unavailable" in out

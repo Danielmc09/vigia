@@ -6,6 +6,7 @@ mode and says so; it never fails for lack of a model key (specs/07).
 
 import asyncio
 import json
+import logging
 import webbrowser
 from datetime import UTC, datetime
 from urllib.parse import urlencode
@@ -13,6 +14,7 @@ from uuid import uuid4
 
 import asyncpg
 import httpx
+import structlog
 
 from vigia.channel.wazenda import Wazenda
 from vigia.config import Settings
@@ -103,7 +105,13 @@ def panel_url(token: str, config: Settings | None = None) -> str:
     return f"http://localhost:{(config or Settings()).api_port}/panel?{urlencode({'token': token})}"
 
 
+def quiet_logs() -> None:
+    """Keep warnings and errors only, so the per-stage logs don't bury the demo output."""
+    structlog.configure(wrapper_class=structlog.make_filtering_bound_logger(logging.WARNING))
+
+
 async def _main() -> None:
+    quiet_logs()
     config = Settings()
     if config.model_api_key is None:
         print("No MODEL_API_KEY: running in rules-only mode (no analyst, no readers).")
