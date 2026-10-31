@@ -4,8 +4,8 @@ Usage: ``python tools/measure.py [evals/casos.jsonl] [--filtro field=value]
 [--solo-deterministas] [--json out.json] [--max-usd 2.0] [--adversarios]``.
 
 Exit codes: 0 ok, 1 gate or regression (or an adversarial expectation missed), 2 over
-budget, 3 mode not available yet. A regression is a metric worse than the baseline run on
-the same cases; when the case set changed, it is a shared case that passed and now fails.
+budget, 3 mode not available yet. A regression is a metric worse than in the baseline run,
+both recomputed over the cases the two runs share (a grown, shrunk or budget-cut set).
 """
 
 import argparse
@@ -14,7 +14,7 @@ import json
 import mimetypes
 import sys
 import time
-from collections import defaultdict
+from collections import Counter, defaultdict
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field, replace
 from datetime import UTC, date, datetime
@@ -407,14 +407,19 @@ def regressions(metrics: dict[str, Any], baseline: dict[str, Any], full: bool = 
     ]
 
 
-def lost_cases(records: list[dict[str, Any]], baseline: list[dict[str, Any]]) -> list[str]:
-    """Ids of cases that passed in the baseline run and fail now.
+def shared_regressions(
+    records: list[dict[str, Any]], baseline: list[dict[str, Any]], full: bool = True
+) -> list[str]:
+    """:func:`regressions` of the metrics recomputed over the cases both runs share.
 
-    The only valid regression when the case set changed: aggregates over two different
-    sets compare nothing (31 oct, recall fell from 38 scams added, none got worse).
+    Aggregates over two different sets compare nothing (31 oct, recall fell from 38 scams
+    added, none got worse); a per-case pass/fail check misses a legit case flipped to
+    ``estafa`` in rules-only mode, where legit never passes (juez, D-115).
     """
-    passed = {c["id"] for c in baseline if c.get("paso")}
-    return [r["id"] for r in records if r["id"] in passed and r["paso"] is False]
+    ids = {c["id"] for c in baseline} & {r["id"] for r in records}
+    now = summarize([r for r in records if r["id"] in ids])
+    before = summarize([c for c in baseline if c["id"] in ids])
+    return regressions(now, before, full)
 
 
 def run(
@@ -533,6 +538,9 @@ def _parse(argv: list[str]) -> argparse.Namespace:
 def load(path: Path, where: str | None) -> list[dict[str, Any]]:
     """The records of a JSONL eval file, optionally only those where ``campo=valor``."""
     cases = [json.loads(line) for line in path.read_text("utf-8").splitlines() if line.strip()]
+    ids = Counter(c["id"] for c in cases)
+    if repeated := sorted(i for i, n in ids.items() if n > 1):
+        raise ValueError(f"duplicate ids in {path}: {', '.join(repeated)}")
     if not where:
         return cases
     key, _, value = where.partition("=")
@@ -687,13 +695,12 @@ def _main(
     baseline = out_dir / f"ultimo{suffix}.resultado.json"
     previous = json.loads(baseline.read_text("utf-8")) if baseline.is_file() else {}
     before = previous.get("casos")
-    same_set = before is None or {c["id"] for c in before} == {r["id"] for r in records}
     regressed = (
         []
         if args.filtro
         else regressions(metrics, previous.get("metricas", {}), full=mode == "completo")
-        if same_set
-        else lost_cases(records, before or [])
+        if before is None
+        else shared_regressions(records, before, full=mode == "completo")
     )
     code = EXIT_BUDGET if over_budget else EXIT_GATE if failures or regressed else EXIT_OK
     result = {
