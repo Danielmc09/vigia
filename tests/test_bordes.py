@@ -224,8 +224,6 @@ def test_a19_accented_homograph_with_scheme_is_a_hard_lookalike() -> None:
         ("Entre a pagos-dian.support y pague hoy", "pagos-dian.support"),  # c-0232
         ("Actualícela en Bit.Ly/3xQnq antes de las 6", "bit.ly/3xQnq"),  # c-0233
         ("Confirm your card at Chase-Secure.Help/login now", "chase-secure.help/login"),  # c-0234
-        ("Pague en dian-pagos.zzpago/x hoy", "dian-pagos.zzpago/x"),
-        ("Entre ya a evil.zzpago:8080 hoy", "evil.zzpago:8080"),
         ("PAGOS-DIAN.SUPPORT hoy", "pagos-dian.support"),
     ],
 )
@@ -254,6 +252,7 @@ def test_incident_31oct_unlisted_or_capitalized_tld_is_extracted(text: str, url:
         "el informe.final/v2 de la DIAN",
         "juan.perez/compras y ventas.norte/sur",
         "db.local:5432",
+        "Pague en dian-pagos.zzpago/x hoy",
     ],
 )
 def test_incident_31oct_prose_after_a_period_stays_prose(text: str) -> None:

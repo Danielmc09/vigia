@@ -6,19 +6,23 @@ from urllib.parse import SplitResult, parse_qsl, urlencode, urlsplit, urlunsplit
 from pydantic import BaseModel
 
 # A scheme-less host is taken whole and kept only if its last label is a TLD: any two letters
-# (ccTLD) or one of these gTLDs (D-039, revised). Taking it whole matters: cutting at a listed
-# TLD turned chase.com.secure-login.ru into chase.com, an official domain (c-0054..c-0056).
+# (ccTLD) or one of these gTLDs, never another word even with a path after it (D-039, revised).
+# Taking it whole matters: cutting at a listed TLD turned chase.com.secure-login.ru into
+# chase.com, an official domain (c-0054..c-0056).
 SCHEMELESS_TLDS = frozenset(
     {"com", "net", "org", "info", "biz", "gov", "edu", "int", "example"}
     | {"app", "dev", "page", "xyz", "top", "zip", "mov", "site", "online", "shop", "store"}
     | {"live", "click", "link", "icu", "cfd", "buzz", "rest", "sbs", "vip", "club", "win"}
     | {"bid", "lat"}
+    # Abused by phishing kits and not Spanish words: pagos-dian.support (c-0232).
+    | {"support", "help", "services", "center", "cyou", "bond"}
 )
+_TLD_MAX = 24
 _LABEL = r"[a-z0-9\u0370-\u03ff\u0400-\u04ff-]+"
 _URL = re.compile(
     # With scheme: any TLD, any Unicode letter, so accented homographs reach lookalike (A19);
     # the lookahead forbids stopping before another label (no prefix of a longer host).
-    r"(?<![@\w.-])(?:https?://(?:(?:[^\W_]|-)+\.)+[^\W\d_]{2,24}(?![^\W_]|[.-][^\W_])"
+    rf"(?<![@\w.-])(?:https?://(?:(?:[^\W_]|-)+\.)+[^\W\d_]{{2,{_TLD_MAX}}}(?![^\W_]|[.-][^\W_])"
     r"|https?://\d{1,3}(?:\.\d{1,3}){3}"
     # Without scheme: ASCII, Greek and Cyrillic labels, as many as there are (greedy).
     rf"|(?P<host>{_LABEL}(?:\.{_LABEL})+))"
@@ -52,20 +56,29 @@ def _clean(raw: str) -> str:
     return url if has_scheme else url.removeprefix("//")
 
 
-def _is_tld(label: str) -> bool:
+def _is_tld(label: str, evidence: bool) -> bool:
     """Whether a scheme-less host's last label, as written, reads as a TLD and not prose.
 
-    Sentence case ("Bancolombia", "Me", "Co") is a word starting a sentence after a period
-    with no space, so it is rejected; all lower or all upper case is a TLD.
+    Sentence case ("Bancolombia", "Su", "Help") is a word starting a sentence after a period
+    with no space, so it is prose unless a path or port follows (``Bit.Ly/3xQ``, c-0233).
+    A label outside the list is prose even with a path: ``bancolombia.ahorros/corriente``
+    would otherwise give a hard signal on a legitimate message (c-0237..c-0240).
     """
-    if not label.isalpha() or (label[0].isupper() and label[1:].islower()):
+    if not label.isalpha():
         return False
-    return len(label) == 2 or label.lower() in SCHEMELESS_TLDS
+    known = len(label) == 2 or label.lower() in SCHEMELESS_TLDS
+    if label[0].isupper() and label[1:].islower():
+        return evidence and known
+    return known
 
 
 def _is_url(m: re.Match[str]) -> bool:
-    """Whether a ``_URL`` match is a link: a scheme, or a host whose last label is a TLD."""
-    return not m["host"] or _is_tld(m["host"].rsplit(".", 1)[-1])
+    """Whether a ``_URL`` match is a link: a scheme, or a host whose last label is a TLD.
+
+    A path or port after the host is the evidence ``_is_tld`` weighs.
+    """
+    host = m["host"]
+    return not host or _is_tld(host.rsplit(".", 1)[-1], evidence=m.end() > m.end("host"))
 
 
 def defang(host: str) -> str:
