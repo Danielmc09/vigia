@@ -228,6 +228,8 @@ def test_a19_accented_homograph_with_scheme_is_a_hard_lookalike() -> None:
         ("Reclame en dian-devolucion.tax/reclamo hoy", "dian-devolucion.tax/reclamo"),  # c-0241
         ("Claim it at irs-refund.tax before Friday", "irs-refund.tax"),  # c-0242
         ("Ingrese a Nequi-Alertas.Bank/x ya", "nequi-alertas.bank/x"),
+        ("Verify at www.irs-refund.tax/claim now", "www.irs-refund.tax/claim"),  # c-0244
+        ("Ingrese a portal.dian-devolucion.tax/x ya", "portal.dian-devolucion.tax/x"),  # c-0245
     ],
 )
 def test_incident_31oct_unlisted_or_capitalized_tld_is_extracted(text: str, url: str) -> None:
