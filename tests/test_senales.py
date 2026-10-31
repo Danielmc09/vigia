@@ -108,6 +108,7 @@ URL_FIRES = [
     ("http://ejemplo.example", "CO", "http_without_tls", "light"),
     ("https://www.servientrega.com/rastreo", "CO", "official_domain", "light"),
     ("https://www.claro.com.co/personas/", "CO", "official_domain", "light"),
+    ("https://www.cruzverde.com.co/medicamentos", "CO", "official_domain", "light"),
     ("https://www.usps.com", "US", "official_domain", "light"),
     ("https://paypal.me/juan", "US", "official_domain", "light"),
 ]

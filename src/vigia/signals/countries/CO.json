@@ -498,6 +498,15 @@
    "canal_oficial": "app oficial o https://www.avianca.com",
    "tipo": "comercio",
    "fuente_url": "https://www.avianca.com/"
+  },
+  {
+   "marca": "Cruz Verde",
+   "dominios": [
+    "cruzverde.com.co"
+   ],
+   "canal_oficial": "app oficial o https://www.cruzverde.com.co",
+   "tipo": "comercio",
+   "fuente_url": "https://www.cruzverde.com.co/"
   }
  ],
  "patrones": {
