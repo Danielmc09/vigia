@@ -7,6 +7,7 @@ from uuid import uuid4
 import pytest
 
 from vigia.channel.templates import (
+    QUOTE_MAX,
     repeat_message,
     team_alert_message,
     team_alert_params,
@@ -86,7 +87,6 @@ SIMIT = (
 )
 
 
-QUOTE_MAX = 120  # the fixed cut the alert promises
 SIMIT_QUOTE = "Multa pendiente SIMIT. Pague hoy en simit-pagos[.]click o llame al +57 300 ***"
 
 
@@ -133,8 +133,8 @@ def test_team_alert_message_renders_in_english() -> None:
 
 @pytest.mark.parametrize("lang", ["es", "en"])
 def test_t10d_team_alert_carries_the_hook_and_the_disarmed_indicator(lang: str) -> None:
-    """T-10d: the team can recognize the scam without getting it again."""
-    msg = team_alert_message(lang, "Ana", _scam_verdict(), _scam_case())
+    """T-10d: the team can recognize the scam without getting it again (no quote: D-108)."""
+    msg = team_alert_message(lang, "Ana", _scam_verdict(), _scam_case(kind="image"))
 
     assert "simit-pagos[.]click" in msg
     assert "+57 300 ***" in msg
@@ -322,6 +322,26 @@ def test_incident_accounts_ids_codes_and_emails_are_masked_in_the_quote() -> Non
         assert leak not in msg
     assert "proveedor-falso[.]co" in msg
     assert "$1.500.000" in msg  # an amount is how the scam reads, not who it is
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "Reclame su premio en premios-bancolombia.support/p?u=ana hoy mismo",
+        "Pague en dian-pagos.help/x hoy mismo ya por favor",
+        "Valide en Bit.Ly/3xQ hoy mismo ya por favor",
+        "Pague en Simit-pagos.Click/pago?doc=1 hoy mismo ya",
+        "Ingrese a https://bancolombia.com@evil.click/x?doc=AB hoy mismo",
+        "Entre ya a evil.support:8080/x?doc=AB hoy mismo",
+    ],
+)
+def test_incident_a_host_the_url_rule_misses_is_disarmed_in_the_quote(text: str) -> None:
+    """Juez 31 oct: a TLD off the list or a Sentence-case host reached the team live."""
+    msg = team_alert_message("es", "Ana", _verdict(signals=_NO_LINK), _scam_case(text, urls=[]))
+    quote = next(line for line in msg.splitlines() if line.startswith("Dice: “"))
+
+    assert not re.search(r"[^\W\d_]\.[^\W\d_]", quote)  # no live dot between letters
+    assert "/" not in quote and "?" not in quote  # no path or query left
 
 
 def test_incident_a_quote_with_nothing_readable_falls_back_to_the_hook() -> None:

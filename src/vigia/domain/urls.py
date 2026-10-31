@@ -63,6 +63,23 @@ def _is_tld(label: str) -> bool:
     return len(label) == 2 or label.lower() in SCHEMELESS_TLDS
 
 
+def _is_url(m: re.Match[str]) -> bool:
+    """Whether a ``_URL`` match is a link: a scheme, or a host whose last label is a TLD."""
+    return not m["host"] or _is_tld(m["host"].rsplit(".", 1)[-1])
+
+
+def defang(host: str) -> str:
+    """A host readable but not clickable: dots written as ``[.]``.
+
+    Args:
+        host: Domain or host name.
+
+    Returns:
+        The disarmed host.
+    """
+    return host.replace(".", "[.]")
+
+
 def extract_urls(text: str) -> list[str]:
     """Find URLs in a message, with or without scheme, cleaned and deduplicated.
 
@@ -80,11 +97,7 @@ def extract_urls(text: str) -> list[str]:
         >>> extract_urls("Reclama en bit.ly/3xQnq.")
         ['bit.ly/3xQnq']
     """
-    found = (
-        m.group()
-        for m in _URL.finditer(text)
-        if not m["host"] or _is_tld(m["host"].rsplit(".", 1)[-1])
-    )
+    found = (m.group() for m in _URL.finditer(text) if _is_url(m))
     return list(dict.fromkeys(_clean(url) for url in found))
 
 
@@ -116,3 +129,30 @@ class Unrolled(BaseModel, frozen=True):
     def final_domain(self) -> str:
         """Host of the final URL, without port."""
         return split_url(self.final_url).hostname or ""
+
+
+def disarm_urls(text: str) -> str:
+    """Replace every URL in a text with its host, dots written as ``[.]``.
+
+    The same URLs ``extract_urls`` finds; path and query go, since they may carry a
+    victim's id (``?doc=123``), and the host stays readable but not clickable.
+
+    Args:
+        text: Message body.
+
+    Returns:
+        The text with each URL disarmed and the rest untouched.
+
+    Example:
+        >>> disarm_urls("Pague en https://simit-pagos.click/pago?doc=1.")
+        'Pague en simit-pagos[.]click.'
+    """
+
+    def disarm(m: re.Match[str]) -> str:
+        if not _is_url(m):
+            return m.group()
+        raw = m.group()
+        url = raw.rstrip(_TRAILING)
+        return defang(split_url(url).hostname or url) + raw[len(url) :]
+
+    return _URL.sub(disarm, text)

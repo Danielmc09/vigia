@@ -8,12 +8,24 @@ from vigia.channel.panel import COLOMBIA
 from vigia.domain.case import Case
 from vigia.domain.escalation import Escalation
 from vigia.domain.signal import by_weight
+from vigia.domain.urls import defang, disarm_urls
 from vigia.domain.verdict import Label, Verdict
 from vigia.i18n import has_key, t
 
 _SCAM = cast(Label, get_args(Label)[0])
 # "+" and a country code, or a CO mobile (3xx); an account number like 0123-4567-8901 is neither
 _PHONE = re.compile(r"\+\d(?:[ -]?\d){9,}|(?<!\d)3\d{2}[ -]?\d{3}[ -]?\d{4}(?!\d)")
+# anything that reads as a host, case and TLD aside: the URL rule misses "Bit.Ly" or ".support"
+# (D-108). Scheme, user part (an email's, or "bank.com@evil.click") and path go; host stays
+_HOSTISH = re.compile(r"(?:\w+://)?(?:[^\s@/]+@)?((?:[\w-]+\.)+[^\W\d_]{2,})(?::\d+)?(?:[/?#]\S*)?")
+# six digits or more is an account, an id or a code (D-032); "$1.500.000" is an amount, kept
+_DIGITS = re.compile(r"(?<![\d$.,])\d(?:[ .-]?\d){5,}")
+# only text the scammer wrote: an image's or PDF's text is Spark's (rule 14), a chat has names
+_QUOTABLE = frozenset({"text", "url", "audio", "email"})
+QUOTE_MAX = 120
+_QUOTE_MIN_WORDS = 3
+# a word of two letters or more, punctuation around it allowed; "simit-pagos[.]click" is not
+_WORD = re.compile(r"\W*[^\W\d_]{2,}\W*")
 
 
 def whatsapp_message(
@@ -97,26 +109,57 @@ def _indicators(verdict: Verdict, case: Case) -> list[str]:
     if host is None and case.email and case.email.sender:
         host = case.email.sender.rpartition("@")[2]
     if host:
-        found.append(host.replace(".", "[.]"))
+        found.append(defang(host))
     if phone := _PHONE.search(case.text or ""):
-        head = re.sub(r"\D", "", phone.group())[:-7]
-        prefix = f"+{head[:-3]} " if phone.group().startswith("+") else ""
-        found.append(f"{prefix}{head[-3:]} ***")
+        found.append(_masked_phone(phone))
     return found
+
+
+def _masked_phone(phone: re.Match[str]) -> str:
+    """A phone with its last seven digits cut: ``+57 300 ***`` or ``300 ***``."""
+    head = re.sub(r"\D", "", phone.group())[:-7]
+    prefix = f"+{head[:-3]} " if phone.group().startswith("+") else ""
+    return f"{prefix}{head[-3:]} ***"
+
+
+def _quote(case: Case) -> str | None:
+    """The start of what the scammer wrote, disarmed like the indicator, or None (D-108).
+
+    Links keep only their host and email addresses only their domain, both with dots as
+    ``[.]``; phones lose their last seven digits and any other run of six digits or more
+    becomes ``***``. Masked before cutting, so a cut never leaves half a number in clear.
+    """
+    if case.kind not in _QUOTABLE or not case.text:
+        return None
+    text = _HOSTISH.sub(lambda m: defang(m[1]), disarm_urls(case.text))
+    text = _PHONE.sub(_masked_phone, text)
+    text = " ".join(_DIGITS.sub("***", text).split())  # one line: Meta rejects multiline params
+    if len(text) > QUOTE_MAX:
+        text = text[: QUOTE_MAX + 1].rsplit(" ", 1)[0] + "…"
+    readable = sum(bool(_WORD.fullmatch(w)) for w in text.split())
+    return text if readable >= _QUOTE_MIN_WORDS else None
+
+
+def _summary(lang: str, verdict: Verdict, case: Case) -> str | None:
+    """What arrived as a quote, else how to spot it, else None."""
+    if quote := _quote(case):
+        return t(lang, "team_alert.quote", quote=quote)
+    hook = _hook(lang, verdict)
+    return t(lang, "team_alert.hook", hook=hook) if hook else None
 
 
 def team_alert_message(lang: str, reporter: str, verdict: Verdict, case: Case) -> str:
     """The notice the rest of the team gets when a case is a scam (specs/05, T-10d).
 
-    Enough to recognize the scam, never the scam itself: the hook comes from the signals
-    and the indicator is disarmed; no original text, no clickable link, no number of who
-    forwarded it or how many got the alert (D-017).
+    Enough to recognize the scam, never the scam itself: the start of what the scammer
+    wrote as a quote, disarmed (D-108), or else the hook from the signals; no clickable
+    link, no full number, nothing of who forwarded it or how many got the alert (D-017).
 
     Args:
         lang: Language of the business.
         reporter: Name of who forwarded it.
         verdict: The scam verdict; its brand and deterministic signals are used.
-        case: The case, read only for its kind, email domain and phone prefix.
+        case: The case, read for its kind, its text to quote, email domain and phone.
 
     Returns:
         The alert text.
@@ -127,9 +170,8 @@ def team_alert_message(lang: str, reporter: str, verdict: Verdict, case: Case) -
         lines = [t(lang, f"team_alert.{_SCAM}_unbranded", reporter=reporter, kind=kind)]
     else:
         lines = [t(lang, f"team_alert.{_SCAM}", reporter=reporter, kind=kind, brand=brand)]
-    hook = _hook(lang, verdict)
-    if hook:
-        lines.append(t(lang, "team_alert.hook", hook=hook))
+    if summary := _summary(lang, verdict, case):
+        lines.append(summary)
     indicators = _indicators(verdict, case)
     if indicators:
         lines.append(
@@ -155,14 +197,12 @@ def team_alert_params(
         lang: Language of the business.
         names: Business name and the name of who forwarded it.
         verdict: The scam verdict; only its deterministic hook is used.
-        case: The case, read for its kind and short number.
+        case: The case, read for its kind, text to quote and short number.
 
     Returns:
         The template language code and the params: business, reporter, summary, case number.
     """
-    hook = _hook(lang, verdict)
-    if hook:
-        summary = t(lang, "team_alert.hook", hook=hook)
-    else:
-        summary = t(lang, "team_alert.came_as", kind=t(lang, f"team_alert.kind.{case.kind}"))
+    summary = _summary(lang, verdict, case) or t(
+        lang, "team_alert.came_as", kind=t(lang, f"team_alert.kind.{case.kind}")
+    )
     return _TEMPLATE_LANGUAGE[lang], [*names, summary, str(case.ref)]
