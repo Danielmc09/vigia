@@ -1,5 +1,6 @@
 """Deterministic signals of specs/04: URLs, text patterns, address book, QR and the detector."""
 
+from collections.abc import Callable
 from datetime import UTC, datetime
 from uuid import uuid4
 
@@ -9,6 +10,7 @@ from vigia.domain.case import Case, EmailMeta
 from vigia.domain.country import CountryPack
 from vigia.domain.member import Supplier
 from vigia.domain.signal import Signal
+from vigia.domain.urls import Unrolled
 from vigia.signals.address_book import address_book_signals
 from vigia.signals.country_pack import country_pack
 from vigia.signals.detector import detect
@@ -167,22 +169,38 @@ def test_url_signals_carry_url_domain_and_origin_as_evidence() -> None:
     }
 
 
-def test_resolved_shortener_is_judged_by_its_destination() -> None:
-    def resolver(url: str) -> str:
-        return "https://bancolombia-seguro.co/x"
+def _landing(*chain: str) -> Callable[[str], Unrolled]:
+    return lambda url: Unrolled(chain=[url, *chain])
 
-    found = _found(url_signals("bit.ly/abc", CO, resolver=resolver))
+
+def test_resolved_shortener_is_judged_by_its_destination() -> None:
+    found = _found(
+        url_signals("bit.ly/abc", CO, resolver=_landing("https://bancolombia-seguro.co/x"))
+    )
     assert ("brand_off_domain", "hard") in found
     assert ("unresolved_shortener", "medium") not in found
 
 
 def test_shortener_to_official_domain_is_official() -> None:
-    found = _found(url_signals("bit.ly/abc", CO, resolver=lambda u: "https://www.dian.gov.co"))
-    assert found == {("official_domain", "light")}
+    signals = url_signals(
+        "bit.ly/abc", CO, resolver=_landing("https://x.co/a", "https://www.dian.gov.co")
+    )
+    assert _found(signals) == {("official_domain", "light")}
+    assert signals[0].evidence["via"] == "bit.ly/abc"
+    assert signals[0].evidence["chain"] == [
+        "bit.ly/abc",
+        "https://x.co/a",
+        "https://www.dian.gov.co",
+    ]
+
+
+def test_known_shortener_that_does_not_redirect_stays_unresolved() -> None:
+    found = _found(url_signals("bit.ly/abc", CO, resolver=_landing()))
+    assert found == {("unresolved_shortener", "medium")}
 
 
 def test_resolver_failure_is_a_light_signal_not_an_exception() -> None:
-    def resolver(url: str) -> str:
+    def resolver(url: str) -> Unrolled:
         raise TimeoutError
 
     found = _found(url_signals("bit.ly/abc", CO, resolver=resolver))
@@ -191,7 +209,7 @@ def test_resolver_failure_is_a_light_signal_not_an_exception() -> None:
 
 
 def test_resolver_is_not_called_for_regular_links() -> None:
-    def resolver(url: str) -> str:
+    def resolver(url: str) -> Unrolled:
         raise AssertionError("no network for non-shorteners")
 
     url_signals("https://www.bancolombia.com", CO, resolver=resolver)
@@ -379,8 +397,63 @@ def test_detector_uses_the_address_book() -> None:
     assert ("account_differs_from_known", "hard") in _found(detect(_case(text), CO, [ACEROS]))
 
 
+def test_detector_cloaked_shortener_keeps_credentials_hard() -> None:
+    # resolves to the official site from the server, may not from the victim (D-098)
+    text = "Bancolombia: confirme su usuario y clave en https://bit.ly/Bq7Lm2x"
+    signals = detect(_case(text), CO, resolver=_landing("https://www.bancolombia.com/personas"))
+    assert ("credentials_request", "hard") in _found(signals)
+
+
+def test_detector_cloaked_shortener_keeps_its_medium_when_the_text_is_risky() -> None:
+    # incident c-0216: unrolling may absolve the legit guard, never remove a medium (D-098)
+    text = "DIAN: tiene una deuda pendiente. Pague hoy en https://bit.ly/Bq7Lm2x"
+    signals = detect(_case(text), CO, resolver=_landing("https://www.bancolombia.com/personas"))
+    assert ("unresolved_shortener", "medium") in _found(signals)
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        # incident c-0217: the other medium comes from the sale sequence, not from patterns
+        "Vendo cachorro labrador, precio 300.000. Para separarlo necesito un anticipo antes de"
+        " que lo vea. Fotos en https://bit.ly/Bq7Lm2x",
+        "Vendo moto, solo recibo consignacion a cuenta personal de Nequi. Fotos en"
+        " https://bit.ly/Bq7Lm2x",
+    ],
+)
+def test_detector_cloaked_shortener_keeps_its_medium_beside_any_other_medium(text: str) -> None:
+    signals = detect(_case(text), CO, resolver=_landing("https://www.bancolombia.com/personas"))
+    assert ("unresolved_shortener", "medium") in _found(signals)
+
+
+def test_detector_cloaked_shortener_keeps_its_medium_beside_a_rogue_qr() -> None:
+    case = _case("Detalle en https://bit.ly/Bq7Lm2x").model_copy(
+        update={"qr_urls": ["https://pagos-rapidos.xyz/p"]}
+    )
+    signals = detect(case, CO, resolver=_landing("https://www.bancolombia.com/personas"))
+    assert ("unresolved_shortener", "medium") in _found(signals)
+
+
+def test_detector_shortener_to_official_without_risk_has_no_medium() -> None:
+    text = "Cruz Verde: tu pedido ya esta listo. Detalle en https://bit.ly/Ab12Cd3"
+    signals = detect(_case(text), CO, resolver=_landing("https://www.cruzverde.com.co/pedido"))
+    assert not [s for s in signals if s.weight in ("hard", "medium")]
+
+
+def test_detector_never_unrolls_qr_links() -> None:
+    called: list[str] = []
+
+    def resolver(url: str) -> Unrolled:
+        called.append(url)
+        return Unrolled(chain=[url, "https://www.bancolombia.com"])
+
+    case = _case("mire el codigo").model_copy(update={"qr_urls": ["https://bit.ly/qr1"]})
+    detect(case, CO, resolver=resolver)
+    assert called == []
+
+
 def test_detector_never_raises() -> None:
-    def resolver(url: str) -> str:
+    def resolver(url: str) -> Unrolled:
         raise RuntimeError("boom")
 
     signals = detect(_case("bit.ly/x"), CO, resolver=resolver)

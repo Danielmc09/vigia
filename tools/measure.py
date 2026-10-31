@@ -8,6 +8,7 @@ budget, 3 mode not available yet.
 """
 
 import argparse
+import ipaddress
 import json
 import mimetypes
 import sys
@@ -20,6 +21,8 @@ from pathlib import Path
 from statistics import median
 from typing import Any
 from uuid import NAMESPACE_URL, uuid5
+
+import httpx
 
 from vigia import telemetry
 from vigia.config import settings
@@ -34,12 +37,14 @@ from vigia.domain.verdict import Label
 from vigia.jev.gate import screen
 from vigia.model.sam import make_sam
 from vigia.model.spark import SparkClient
+from vigia.net.unroll import unroll
 from vigia.services import process_case, transcription, whatsapp
 from vigia.services.backend import make_chat
 from vigia.services.ingest import normalize
 from vigia.services.judge import make_judge
 from vigia.signals.country_pack import country_pack
 from vigia.signals.knowledge import seeded_pack
+from vigia.signals.urls import Resolver
 from vigia.verdict.fusion import DOUBTFUL, DOUBTFUL_CONFIDENCE, LEGIT
 
 REPO = Path(__file__).parents[1]
@@ -99,6 +104,31 @@ class Outcome:
 
 Classifier = Callable[[Case], Outcome]
 """Anything that turns a Case into an Outcome: the deterministic path or the app."""
+
+
+def fixture_unroller(path: Path) -> Resolver:
+    """The real unroller over a fixture of redirects, so evals never touch the network (D-102).
+
+    Args:
+        path: JSON map from URL to the ``Location`` it answers.
+
+    Returns:
+        A function from link to where it lands; a URL outside the map does not redirect.
+    """
+    hops: dict[str, str] = json.loads(path.read_text(encoding="utf-8"))
+
+    def answer(request: httpx.Request) -> httpx.Response:
+        target = hops.get(str(request.url))
+        return httpx.Response(302, headers={"location": target}) if target else httpx.Response(200)
+
+    def lookup(host: str, port: int) -> list[str]:
+        try:
+            return [str(ipaddress.ip_address(host))]
+        except ValueError:
+            return ["93.184.216.34"]  # any name is public here; same fake as tests/test_net.py
+
+    client = httpx.Client(transport=httpx.MockTransport(answer), follow_redirects=False)
+    return lambda url: unroll(url, client, lookup)
 
 
 def _outcome(case: Case, judge: Judge, analyst: process_case.Analyst | None) -> Outcome:
@@ -585,6 +615,21 @@ def main(
         0 ok, 1 gate, regression or adversarial miss, 2 over budget, 3 mode not available.
     """
     args = _parse(argv)
+    online = process_case.UNROLL
+    process_case.UNROLL = fixture_unroller(EVALS / "redirecciones.json")
+    try:
+        return _main(args, classify, out_dir, readers)
+    finally:
+        process_case.UNROLL = online
+
+
+def _main(
+    args: argparse.Namespace,
+    classify: Classifier | None,
+    out_dir: Path,
+    readers: Readers | None,
+) -> int:
+    """:func:`main` with the eval unroller installed."""
     mode = "deterministas" if args.solo_deterministas else "completo"
     adversarial = out_dir / "adversarios.jsonl"
     if args.adversarios and adversarial.is_file():

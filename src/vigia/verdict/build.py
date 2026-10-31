@@ -34,10 +34,19 @@ _PAY_HARD_TYPES = frozenset(
 )
 
 
-def _has_unofficial_url(case: Case, pack: CountryPack) -> bool:
-    """True when any URL of the case (text or QR) is on a domain outside the official ones."""
+def _has_unofficial_url(case: Case, signals: list[Signal], pack: CountryPack) -> bool:
+    """True when any URL of the case (text or QR) is on a domain outside the official ones.
+
+    A text link unrolled to an official domain counts as official here, and only here: this
+    flag guards the legit branch, so a cloaked shortener can at most keep a case doubtful
+    (D-098). QR links are never unrolled. Its raw twin, which escalates credential requests, lives
+    in signals/detector.py and never looks at unrolled links.
+    """
     official = pack.official_domains()
-    for url in case.urls + case.qr_urls:
+    landed = {
+        s.evidence.get("via") for s in signals if s.type == "official_domain" and s.source == "urls"
+    }
+    for url in [u for u in case.urls if u not in landed] + case.qr_urls:
         try:
             domain = registrable_domain(split_url(url).netloc)
         except ValueError:
@@ -138,7 +147,7 @@ def build_verdict(case: Case, evidence: Evidence, pack: CountryPack) -> Verdict:
     """
     analyst = evidence.analyst
     softened = soften_citations(evidence.signals, case, pack)
-    unofficial_url = _has_unofficial_url(case, pack)
+    unofficial_url = _has_unofficial_url(case, evidence.signals, pack)
     label, confidence = fuse(softened, analyst, evidence.manipulation_detected, unofficial_url)
 
     all_signals = softened + (list(analyst.signals) if analyst else [])

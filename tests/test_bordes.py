@@ -31,6 +31,7 @@ from vigia.domain.urls import extract_urls
 from vigia.i18n import t
 from vigia.jev.gate import screen
 from vigia.model.jev import JevJudge, make_dev_judge
+from vigia.net.unroll import unroll
 from vigia.policy.actions import confirm, new_escalation
 from vigia.services.ingest import handle, normalize
 from vigia.signals.country_pack import country_pack
@@ -619,6 +620,30 @@ async def test_b11_forward_with_three_eml_gives_three_cases(
 # --- C. Models and dependencies ------------------------------------------------------
 
 
+@pytest.mark.edge("C16")
+def test_c16_shortener_to_a_private_address_is_never_requested() -> None:
+    assert CO is not None
+    seen: list[str] = []
+
+    def answer(request: httpx.Request) -> httpx.Response:
+        seen.append(str(request.url))
+        return httpx.Response(302, headers={"location": "http://127.0.0.1/admin"})
+
+    client = httpx.Client(transport=httpx.MockTransport(answer), follow_redirects=False)
+    case = _case_from("Revisa tu cuenta https://bit.ly/Ab12Cd")
+
+    signals = detect(
+        case,
+        CO,
+        resolver=lambda url: unroll(
+            url, client, lambda h, p: [h if h[0].isdigit() else "93.184.216.34"]
+        ),
+    )
+
+    assert "unresolved_shortener" in {s.type for s in signals}
+    assert seen == ["https://bit.ly/Ab12Cd"]  # the loopback hop was refused before the request
+
+
 @pytest.mark.edge("C10")
 def test_c10_jev_down_or_without_key_falls_back_to_mock_investigate() -> None:
     def down(request: httpx.Request) -> httpx.Response:
@@ -836,11 +861,6 @@ PENDING = [
         pytest.mark.edge("C14"),
         "T-16: 60 s visibility, 3 tries -> DLQ",
         "vigia.analyst.queue:enqueue",
-    ),
-    _pending(
-        pytest.mark.edge("C16"),
-        "T-09: resolver blocks private IPs (SSRF)",
-        "vigia.channel.resolver:resolve_redirects",
     ),
     _pending(
         pytest.mark.edge("C17"),

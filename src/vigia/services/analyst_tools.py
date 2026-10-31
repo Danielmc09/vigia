@@ -5,7 +5,7 @@ arguments and refusals. What a tool returns goes to the model provider, so it ca
 least it can (D-064).
 """
 
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from typing import Any, Protocol
 
 from vigia.analyst.tools import ACTION_TOOLS, Tool, refuse_action, reject
@@ -16,11 +16,12 @@ from vigia.domain.member import Supplier
 from vigia.domain.rejection import Rejection
 from vigia.domain.signal import Signal
 from vigia.domain.text import fold, mail_domain, only_digits, squash
-from vigia.domain.urls import split_url
+from vigia.domain.urls import Unrolled, split_url
 from vigia.signals.qr import qr_urls
 from vigia.signals.urls import (
     aliases,
     domain_name,
+    from_map,
     is_official,
     registrable_domain,
     url_signals,
@@ -47,9 +48,23 @@ def _matches(needle: str, names: set[str]) -> bool:
     )
 
 
-def _analyze_url(pack: CountryPack) -> Tool:
+def analyze_url_tool(pack: CountryPack, links: Mapping[str, Unrolled]) -> Tool:
+    """``analyze_url`` over the short links the pipeline already unrolled (D-101).
+
+    The model picks the URL, so it never reaches the network: a short link outside
+    ``links`` stays unresolved, whatever the message told the model to ask for.
+
+    Args:
+        pack: Country pack of the business.
+        links: Unrolled short links of the case, by original URL.
+
+    Returns:
+        The tool.
+    """
+    resolver = from_map(links)
+
     def analyze_url(url: str, _: float) -> dict[str, Any]:
-        signals = url_signals(url, pack)
+        signals = url_signals(url, pack, resolver)
         if not signals:
             # Nothing fired, but "not official" is still news for the model (D-063).
             signals = [Signal(type="unknown_domain", weight="light", source="urls")]
@@ -168,7 +183,7 @@ def toolbox(
         Tool name to function; action tools are bound to a refusal.
     """
     tools = {
-        "analyze_url": _analyze_url(pack),
+        "analyze_url": analyze_url_tool(pack, {}),  # spark_analyst rebinds it to the case's links
         "check_country": _check_country(pack),
         "check_address_book": _check_address_book(suppliers),
     }

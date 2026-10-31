@@ -8,7 +8,7 @@ from vigia.domain.country import CountryPack
 from vigia.domain.image import Box, crop, largest, open_image
 from vigia.domain.signal import Signal
 from vigia.domain.urls import extract_urls
-from vigia.signals.urls import Resolver, is_official, url_signals
+from vigia.signals.urls import is_official, url_signals
 
 
 def decode_qr(image: bytes) -> list[str]:
@@ -46,22 +46,19 @@ def qr_urls(image: bytes, boxes: Sequence[Box] = ()) -> list[str]:
     return list(dict.fromkeys(url for text in texts for url in extract_urls(text)))
 
 
-def qr_signals(
-    urls: Sequence[str], pack: CountryPack, resolver: Resolver | None = None
-) -> list[Signal]:
+def qr_signals(urls: Sequence[str], pack: CountryPack) -> list[Signal]:
     """URL signals for each QR link, plus a medium one when it leaves the official domains.
 
     Args:
         urls: ``Case.qr_urls``.
         pack: Country pack of the business.
-        resolver: Short-link follower; ``None`` means no network.
 
     Returns:
         The signals, URL ones with ``origin="qr"``.
     """
     signals: list[Signal] = []
     for url in urls:
-        found = url_signals(url, pack, resolver, origin="qr")
+        found = url_signals(url, pack, origin="qr")  # never unrolled (D-098)
         signals += found
         if not is_official(found):
             signals.append(

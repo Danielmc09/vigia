@@ -26,6 +26,7 @@ graph TD
     vigia.analyst
     vigia.model
     vigia.store
+    vigia.net
   end
   subgraph domain
     vigia.domain
@@ -54,6 +55,8 @@ graph TD
   vigia.analyst -.-> vigia.domain
   vigia.model -.-> vigia.domain
   vigia.store --> vigia.domain
+  vigia.net -.-> vigia.domain
+  vigia.app -.-> vigia.net
   vigia.store --> PG[(Postgres, RLS by app.business_id)]
 ```
 
@@ -80,7 +83,8 @@ sequenceDiagram
 - `domain-is-pure`: `vigia.domain` imports nothing else from `vigia`.
 - `rules-see-only-domain`: `signals`, `verdict`, `policy`, `jev` never import adapters,
   services or the app.
-- `adapters-are-independent`: `channel`, `analyst`, `model`, `store` do not import each other.
+- `adapters-are-independent`: `channel`, `analyst`, `model`, `store`, `net` do not import each other.
+  `net` follows short links hop by hop and refuses non-public addresses (D-099).
 - `nobody-imports-app`: only the process entrypoint loads `vigia.app`.
 
 ## Multi-tenancy

@@ -33,12 +33,14 @@ from vigia.domain.verdict import Verdict, VerdictRow
 from vigia.i18n import t
 from vigia.model import jev, spark
 from vigia.model.sam import make_sam
-from vigia.services import whatsapp
+from vigia.net.unroll import unroller
+from vigia.services import process_case, whatsapp
 from vigia.services.backend import has_chat, make_chat
 from vigia.services.ingest import normalize
 from vigia.services.judge import make_judge
 from vigia.services.process_case import Analyst, judge_case, spark_analyst
 from vigia.signals.knowledge import seeded_pack
+from vigia.signals.urls import Resolver
 from vigia.store import postgres as store
 
 _SECURITY_HEADERS = {"X-Content-Type-Options": "nosniff", "X-Frame-Options": "DENY"}
@@ -548,4 +550,23 @@ def _try_it(
     return try_it, analyst is None and chat is None
 
 
+def startup_unroller(mode: str) -> Resolver | None:
+    """The short-link follower for this process: production only, offline if it cannot start.
+
+    Args:
+        mode: Deployment mode; outside ``prod`` the rules never touch the network.
+
+    Returns:
+        The unroller, or ``None`` (the rules then behave as before D-099).
+    """
+    if mode != "prod":
+        return None
+    try:
+        return unroller()
+    except Exception:  # noqa: BLE001 - a missing unroller must never stop the service
+        log.warning("unroller_unavailable")
+        return None
+
+
+process_case.UNROLL = startup_unroller(settings.mode)
 app = create_app(settings)

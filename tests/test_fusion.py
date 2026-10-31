@@ -408,3 +408,40 @@ def test_a_brand_that_is_also_a_plain_lowercase_word_is_not_named() -> None:
     verdict = build_verdict(case, evidence, pack)
 
     assert verdict.impersonated_brand is None
+
+
+def _landed(via: str) -> Signal:
+    """An official_domain signal the detector emits after unrolling ``via``."""
+    return Signal(
+        type="official_domain",
+        weight="light",
+        source="urls",
+        evidence={"domain": "cruzverde.com.co", "via": via},
+    )
+
+
+def test_build_verdict_shortener_unrolled_to_official_domain_can_be_legit() -> None:
+    pack = country_pack("CO")
+    assert pack is not None
+    case = _case("Tu pedido de Cruz Verde va en camino", ["https://ma.sv/Ab12Cd3"])
+    evidence = Evidence(signals=[_landed("https://ma.sv/Ab12Cd3")], analyst=_analyst("legit", 0.9))
+
+    assert build_verdict(case, evidence, pack).label == "legit"
+
+
+def test_build_verdict_unrolled_signal_absolves_only_its_own_link() -> None:
+    pack = country_pack("CO")
+    assert pack is not None
+    case = _case("Pedido", ["https://ma.sv/Ab12Cd3", "https://ma.sv/Zz99Yy8"])
+    evidence = Evidence(signals=[_landed("https://ma.sv/Ab12Cd3")], analyst=_analyst("legit", 0.9))
+
+    assert build_verdict(case, evidence, pack).label == "doubtful"
+
+
+def test_build_verdict_qr_link_is_never_absolved_by_unrolling() -> None:
+    pack = country_pack("CO")
+    assert pack is not None
+    case = _case("Escanea el QR").model_copy(update={"qr_urls": ["https://ma.sv/Ab12Cd3"]})
+    evidence = Evidence(signals=[_landed("https://ma.sv/Ab12Cd3")], analyst=_analyst("legit", 0.9))
+
+    assert build_verdict(case, evidence, pack).label == "doubtful"

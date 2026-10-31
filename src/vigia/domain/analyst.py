@@ -9,6 +9,7 @@ from typing import Any
 from pydantic import BaseModel, Field
 
 from vigia.domain.signal import Signal
+from vigia.domain.urls import Unrolled
 from vigia.domain.verdict import Label
 
 
@@ -46,11 +47,14 @@ class Evidence(BaseModel, frozen=True):
         signals: Deterministic signals of the case.
         analyst: The analyst's read of the case, if one ran (T-09).
         manipulation_detected: Jev's flag (T-08); forces at least ``doubtful``.
+        links: Short links the pipeline already unrolled, by original URL; the analyst
+            reads them and never fetches one itself (D-101).
     """
 
     signals: list[Signal] = Field(default_factory=list)
     analyst: AnalystResult | None = None
     manipulation_detected: bool = False
+    links: dict[str, Unrolled] = Field(default_factory=dict)
 
 
 class ToolCall(BaseModel, frozen=True):

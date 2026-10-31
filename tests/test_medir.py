@@ -452,3 +452,15 @@ def test_full_run_never_judges_with_jev_even_if_the_env_asks(
     monkeypatch.setattr(measure, "with_analyst", lambda spark, judge: seen.append(judge))
     measure.full()
     assert seen and isinstance(seen[0], SparkJudge) and not isinstance(seen[0], JevJudge)
+
+
+def test_evals_unroll_short_links_from_the_fixture_never_the_network() -> None:
+    from vigia.net.unroll import UnrollError
+
+    follow = measure.fixture_unroller(measure.EVALS / "redirecciones.json")
+
+    landed = follow("https://ma.sv/Ab12Cd3")
+    assert landed.final_domain == "www.cruzverde.com.co"
+    with pytest.raises(UnrollError):  # the metadata hop is refused by the real checks
+        follow("https://bit.ly/Zx9Pq4r")
+    assert follow("https://bit.ly/NotInFixture").hops == 0  # unknown: lands where it is

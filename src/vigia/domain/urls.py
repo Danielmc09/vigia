@@ -3,6 +3,8 @@
 import re
 from urllib.parse import SplitResult, parse_qsl, urlencode, urlsplit, urlunsplit
 
+from pydantic import BaseModel
+
 # A scheme-less host is taken whole and kept only if its last label is a TLD: any two letters
 # (ccTLD) or one of these gTLDs (D-039, revised). Taking it whole matters: cutting at a listed
 # TLD turned chase.com.secure-login.ru into chase.com, an official domain (c-0054..c-0056).
@@ -84,3 +86,33 @@ def extract_urls(text: str) -> list[str]:
         if not m["host"] or _is_tld(m["host"].rsplit(".", 1)[-1])
     )
     return list(dict.fromkeys(_clean(url) for url in found))
+
+
+class Unrolled(BaseModel, frozen=True):
+    """Where a short link lands after following its redirects by hand (D-099).
+
+    Attributes:
+        chain: Every URL visited, the original first and the final one last.
+    """
+
+    chain: list[str]
+
+    @property
+    def original_url(self) -> str:
+        """The link as followed: as it came, with ``https://`` added when it had no scheme."""
+        return self.chain[0]
+
+    @property
+    def final_url(self) -> str:
+        """Where the last hop landed."""
+        return self.chain[-1]
+
+    @property
+    def hops(self) -> int:
+        """How many redirects were followed; 0 means the link does not redirect."""
+        return len(self.chain) - 1
+
+    @property
+    def final_domain(self) -> str:
+        """Host of the final URL, without port."""
+        return split_url(self.final_url).hostname or ""

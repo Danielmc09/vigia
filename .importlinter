@@ -18,6 +18,7 @@ forbidden_modules =
     vigia.services
     vigia.app
     vigia.telemetry
+    vigia.net
 
 [importlinter:contract:rules-see-only-domain]
 name = Rules only see the domain
@@ -35,6 +36,7 @@ forbidden_modules =
     vigia.services
     vigia.app
     vigia.telemetry
+    vigia.net
 
 [importlinter:contract:adapters-are-independent]
 name = Adapters do not import each other
@@ -44,6 +46,7 @@ modules =
     vigia.analyst
     vigia.model
     vigia.store
+    vigia.net
 
 [importlinter:contract:nobody-imports-app]
 name = Nobody imports app

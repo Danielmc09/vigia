@@ -2,17 +2,17 @@
 
 import ipaddress
 import re
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from typing import Any
 from urllib.parse import SplitResult
 
 from vigia.domain.country import Brand, CountryPack
 from vigia.domain.signal import Signal, Weight
 from vigia.domain.text import fold, squash
-from vigia.domain.urls import split_url
+from vigia.domain.urls import Unrolled, split_url
 
-Resolver = Callable[[str], str]
-"""Port that follows a short link to its final URL; raises on any network failure."""
+Resolver = Callable[[str], Unrolled]
+"""Port that follows a short link hop by hop (D-099); raises on any network failure."""
 
 SHORTENERS = frozenset({"bit.ly", "tinyurl.com", "cutt.ly", "rb.gy", "is.gd", "t.co"})
 SUSPICIOUS_TLDS = frozenset(
@@ -159,11 +159,14 @@ def _shortener(url: str, pack: CountryPack, resolver: Resolver | None, origin: s
     if resolver is None:
         return [unresolved]
     try:
-        final = resolver(url)
+        landed = resolver(url)
     except Exception:  # noqa: BLE001 - any network failure is a light signal (specs/04)
         return [unresolved, Signal(type="could_not_verify", weight="light", source="urls")]
-    resolved = url_signals(final, pack, None, origin)
-    return [s.model_copy(update={"evidence": s.evidence | {"via": url}}) for s in resolved]
+    if not landed.hops:
+        return [unresolved]
+    resolved = url_signals(landed.final_url, pack, None, origin)
+    trail = {"via": url, "chain": landed.chain}
+    return [s.model_copy(update={"evidence": s.evidence | trail}) for s in resolved]
 
 
 def url_signals(
@@ -198,6 +201,27 @@ def url_signals(
         return [Signal(type="could_not_verify", weight="light", source="urls", evidence=base)]
     base["domain"] = domain
     return [s.model_copy(update={"evidence": base | s.evidence}) for s in signals]
+
+
+def from_map(links: Mapping[str, Unrolled]) -> Resolver | None:
+    """A resolver over links unrolled beforehand, so the rules and the model never fetch.
+
+    Args:
+        links: Unrolled short links of the case, by original URL.
+
+    Returns:
+        ``None`` when nothing was unrolled (offline); else a lookup where a link left out
+        (failed or never asked) is ``could_not_verify``.
+    """
+    return links.__getitem__ if links else None
+
+
+def needs_unrolling(url: str) -> bool:
+    """True for a link on a known shortener: the only links the case pipeline fetches (D-099)."""
+    try:
+        return registrable_domain(split_url(url).netloc) in SHORTENERS
+    except ValueError:
+        return False
 
 
 def is_official(signals: list[Signal]) -> bool:

@@ -4,6 +4,7 @@ The single pipeline of specs/09 for ``/caso``, ``measure.py`` and the adversaria
 signals → (analyst) → fusion. The gate runs before, per chat, because it needs history.
 """
 
+import logging
 import time
 from collections.abc import Callable, Sequence
 
@@ -17,11 +18,13 @@ from vigia.domain.image import Segmenter
 from vigia.domain.member import Supplier
 from vigia.domain.rejection import Rejection
 from vigia.domain.signal import Signal
+from vigia.domain.urls import Unrolled
 from vigia.domain.verdict import Verdict, tools_usd
 from vigia.jev.gate import screen
 from vigia.model.spark import SparkClient
 from vigia.services import analyst_tools
 from vigia.signals.detector import detect
+from vigia.signals.urls import Resolver, from_map, needs_unrolling
 from vigia.verdict.build import build_verdict
 from vigia.verdict.fusion import decided_by_rules, soften_citations
 
@@ -32,6 +35,11 @@ Only a ``CONTENT_FILTER`` :class:`Rejection` adds :data:`FILTERED_SIGNAL`; any o
 
 FILTERED_SIGNAL = Signal(type="model_could_not_verify", weight="light", source="analyst")
 """The model's content filter refused the case (T-09b): informs, never decides."""
+
+log = logging.getLogger(__name__)
+
+UNROLL: Resolver | None = None
+"""Short-link follower, set once at startup (D-099); ``None`` keeps the rules offline."""
 
 Loader = Callable[[str], bytes]
 """Port: the bytes of an attachment, by its ``ref`` (a path in evals, the channel's media later)."""
@@ -63,9 +71,22 @@ def spark_analyst(
         if segment and load and case.kind == "image" and case.attachments:
             crop = analyst_tools.crop_tool(load(case.attachments[0].ref), segment)
         tools = analyst_tools.toolbox(pack, suppliers, search, crop)
+        tools["analyze_url"] = analyst_tools.analyze_url_tool(pack, evidence.links)  # D-101
         return loop.investigate(case, evidence, tools, spark.complete)
 
     return analyst
+
+
+def _unrolled(case: Case) -> dict[str, Unrolled]:
+    """The case's short links, followed before the rules run; a failure just leaves one out."""
+    links = {}
+    for url in case.urls:
+        if UNROLL is not None and needs_unrolling(url):
+            try:
+                links[url] = UNROLL(url)
+            except Exception as exc:  # noqa: BLE001 - never an error on the case path (D-099)
+                log.info("unroll_failed %s", type(exc).__name__)  # the link itself is case content
+    return links
 
 
 def classify(case: Case, pack: CountryPack, gate: GateResult, analyst: Analyst | None) -> Verdict:
@@ -84,10 +105,13 @@ def classify(case: Case, pack: CountryPack, gate: GateResult, analyst: Analyst |
         The verdict of specs/05.
     """
     with telemetry.stage("rules"):
-        signals = detect(case, pack)
+        links = _unrolled(case)
+        signals = detect(case, pack, resolver=from_map(links))
     if case.model_refused:
         signals, analyst = [*signals, FILTERED_SIGNAL], None
-    evidence = Evidence(signals=signals, manipulation_detected=gate.manipulation_detected)
+    evidence = Evidence(
+        signals=signals, manipulation_detected=gate.manipulation_detected, links=links
+    )
     if analyst is not None and not decided_by_rules(soften_citations(signals, case, pack)):
         with telemetry.stage("analyst") as cost:
             read = analyst(case, evidence, pack, gate)
