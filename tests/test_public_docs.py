@@ -36,3 +36,32 @@ def test_links_to_git_ignored_or_missing_paths_are_dead() -> None:
     dead = check_public_docs.dead_links(text, ROOT / "docs")
 
     assert dead == ["../ESTADO.md", "nope.md"]
+
+
+def _case(degraded: bool, tools: list[str], usd: float, ms: float) -> dict[str, object]:
+    return {"degradado": degraded, "herramientas_usadas": tools, "usd": usd, "ms": ms}
+
+
+CASES = [
+    _case(True, [], 0.0014, 1300.0),  # rules were conclusive (D-061)
+    _case(True, ["read_pdf"], 0.004, 3000.0),  # a model read the attachment, then rules decided
+    _case(False, ["web_search"], 0.0038, 3600.0),  # the analyst ran
+]
+
+
+def test_routing_fragments_split_rule_decided_reader_only_and_analyst_cases() -> None:
+    fragments = check_public_docs.routing_fragments(CASES, ",")
+
+    assert fragments == [
+        "En 1 de los 3 casos",
+        "mediana de $0,0014 y 1,3 s por caso, contra $0,0038 y 3,6 s con el analista",
+        "En otros 1,",
+        "El analista corrió en los 1 restantes.",
+    ]
+
+
+def test_routing_fragments_in_english_use_a_decimal_point() -> None:
+    fragments = check_public_docs.routing_fragments(CASES, ".")
+
+    assert fragments[0] == "In 1 of the 3 cases"
+    assert fragments[-1] == "The analyst ran in the other 1."

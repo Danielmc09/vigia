@@ -20,8 +20,13 @@ from the newest dated run in `evals/`.
 |---|---|---|---|---|---|---|---|---|---|
 | 2026-10-31 | 221 | 93.7% | 99.2% | 2.1% | 6.3% | $0.729 | 2.76 s | `7c54bc3` | passed, 0 regressions |
 
-88 of the 221 verdicts came without the analyst (`degradados` in the result
-file): rules and fusion alone.
+In 73 of the 221 cases the deterministic rules were already conclusive, so VIGÍA
+skipped the analyst on purpose ([`ADR-061`](docs/decisions/ADR-061.md)): only the
+gate's manipulation check called a model, at a median of $0.0014 and 1.3 s per case,
+against $0.0038 and 3.6 s with the analyst. In 15 more, Muse Spark read the PDF or
+screenshot and the rules decided on the extracted text. The analyst ran in the other 133.
+The result file counts those 88 as `degradados` (no analyst); none of the 221 lost
+the analyst to an unavailable model or a refusal.
 
 Target (≥80 cases): `recall_estafa ≥ 0.90`, `fp_legitimo ≤ 0.10`,
 `dudosos ≤ 0.25`.
