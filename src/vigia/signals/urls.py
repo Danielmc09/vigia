@@ -122,9 +122,14 @@ def aliases(brand: Brand) -> set[str]:
     return {squash(n) for n in names}
 
 
-def _brand_in(tokens: set[str], pack: CountryPack) -> Brand | None:
-    """First pack brand whose name or official domain name is one of ``tokens``."""
-    return next((b for b in pack.brands if aliases(b) & tokens), None)
+def _brand_in(tokens: set[str], narrow: set[str], pack: CountryPack) -> Brand | None:
+    """First pack brand whose name or official domain name is one of ``tokens``.
+
+    An ambiguous brand (D-104) is also a common word ("meta.wikimedia.org"): it only
+    counts among the ``narrow`` tokens, those of the registered domain or of an official
+    domain spelled out in the host ("chase.com.secure-login.ru", D-105).
+    """
+    return next((b for b in pack.brands if aliases(b) & (narrow if b.ambiguous else tokens)), None)
 
 
 def _host_tokens(host: str) -> set[str]:
@@ -142,11 +147,19 @@ def _host_signals(parts: SplitResult, domain: str, pack: CountryPack) -> list[Si
     found: list[tuple[str, Weight, dict[str, Any]]] = []
     if official := _lookalike(domain, pack):
         found.append(("lookalike_domain", "hard", {"official": official}))
-    if brand := _brand_in(_host_tokens(parts.hostname or ""), pack):
+    host = parts.hostname or ""
+    spelled = {domain_name(d) for b in pack.brands for d in b.domains if f".{d}." in f".{host}."}
+    tokens = _host_tokens(host)
+    if brand := _brand_in(tokens, _host_tokens(domain) | spelled, pack):
         found.append(("brand_off_domain", "hard", {"brand": brand.name}))
-    elif brand := _brand_in(_path_tokens(parts.path), pack):
+    elif brand := _brand_in(tokens, tokens, pack):
+        # D-105: an ambiguous brand as a foreign subdomain is the commonest phishing shape
+        # ("claro.pagos-online.co") and also a common word ("meta.wikimedia.org"): medium.
+        found.append(("brand_off_domain", "medium", {"brand": brand.name}))
+    elif brand := _brand_in(_path_tokens(parts.path), set(), pack):
         # D-035: a brand word in the path is often an ordinary word ("claro") or a payment
-        # method (PSE); it adds up but never condemns alone.
+        # method (PSE); it adds up but never condemns alone. An ambiguous brand never counts
+        # here (D-105): "/meta/ofertas" is a word, not a brand.
         found.append(("brand_in_path", "medium", {"brand": brand.name}))
     if domain.rsplit(".", 1)[-1] in SUSPICIOUS_TLDS:
         found.append(("suspicious_tld", "medium", {}))

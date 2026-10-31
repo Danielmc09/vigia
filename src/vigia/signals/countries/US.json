@@ -159,7 +159,8 @@
    "ambigua": true,
    "dominios": [
     "meta.com",
-    "metamail.com"
+    "metamail.com",
+    "meta.ai"
    ],
    "canal_oficial": "email from meta.com or metamail.com; anything else only inside the official app",
    "tipo": "plataforma",
@@ -170,14 +171,16 @@
    "dominios": [
     "facebook.com",
     "fb.com",
-    "facebookmail.com"
+    "facebookmail.com",
+    "fb.me"
    ],
    "canal_oficial": "official app or https://www.facebook.com",
    "tipo": "plataforma",
    "fuente_url": "https://www.facebook.com/help/1634546593478660",
    "contenido_de_usuarios": [
     "facebook.com",
-    "fb.com"
+    "fb.com",
+    "fb.me"
    ]
   },
   {

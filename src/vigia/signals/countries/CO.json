@@ -532,7 +532,8 @@
    "ambigua": true,
    "dominios": [
     "meta.com",
-    "metamail.com"
+    "metamail.com",
+    "meta.ai"
    ],
    "canal_oficial": "correos de meta.com o metamail.com; el resto solo dentro de la app oficial",
    "tipo": "plataforma",
@@ -543,14 +544,16 @@
    "dominios": [
     "facebook.com",
     "fb.com",
-    "facebookmail.com"
+    "facebookmail.com",
+    "fb.me"
    ],
    "canal_oficial": "app oficial o https://www.facebook.com",
    "tipo": "plataforma",
    "fuente_url": "https://www.facebook.com/help/1634546593478660",
    "contenido_de_usuarios": [
     "facebook.com",
-    "fb.com"
+    "fb.com",
+    "fb.me"
    ]
   },
   {

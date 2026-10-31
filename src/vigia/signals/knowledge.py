@@ -69,7 +69,7 @@ def seeded_pack(iso: str, seed: Path) -> CountryPack | None:
 
 def _linked(urls: Iterable[str], pack: CountryPack) -> Iterator[tuple[str, str]]:
     """``(host, registrable domain)`` of each link, minus official domains and shorteners."""
-    ignored = pack.official_domains() | SHORTENERS
+    ignored = pack.official_domains() | pack.user_content_domains() | SHORTENERS
     for url in urls:
         try:
             host = (split_url(url).hostname or "").lower()

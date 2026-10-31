@@ -466,8 +466,10 @@ def test_meta_hosts_are_not_off_domain(pack: CountryPack) -> None:
     # Incident c-0224..c-0226: Meta's own hosts and "meta" as a common subdomain word.
     assert url_signals("https://fb.me/ferreteriaeltornillo", pack) == []
     assert _found(url_signals("https://www.meta.ai/", pack)) == {("official_domain", "light")}
-    for url in ("https://meta.wikimedia.org/wiki/x", "https://ferreteria.co/meta/ofertas"):
-        assert all(s.weight == "light" for s in url_signals(url, pack)), url
+    assert all(s.weight == "light" for s in url_signals("https://ferreteria.co/meta/x", pack))
+    # c-0227..c-0229: a foreign subdomain keeps a medium, for the analyst to break the tie.
+    wiki = _found(url_signals("https://meta.wikimedia.org/wiki/x", pack))
+    assert wiki == {("brand_off_domain", "medium")}
 
 
 def test_ambiguous_brand_in_the_registered_domain_is_still_off_domain() -> None:
