@@ -6,6 +6,7 @@ import io
 import json
 import math
 import struct
+from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any
 
@@ -380,7 +381,8 @@ def _webhook_time() -> Any:
 async def test_t10e_the_attachment_is_found_by_listing_and_fetched_by_uuid() -> None:
     """T-10e incident: the webhook sends a wamid, the media endpoint wants Wazenda's uuid."""
     voice = opus()
-    handler, seen = _listing(fixture("mensajes_media")["response"], voice)
+    items = [i | {"media_url": None} for i in fixture("mensajes_media")["response"]]
+    handler, seen = _listing(items, voice)
     wazenda, _ = client(handler)
 
     assert await wazenda.latest_media("+573000000001", _webhook_time()) == voice
@@ -462,3 +464,63 @@ async def test_t10e_a_huge_attachment_stops_at_10_mb() -> None:
     wazenda, _ = client(handler)
     result = await wazenda.latest_media("+573000000001", _webhook_time())
     assert isinstance(result, Rejection) and result.error_code == "TOO_LARGE"
+
+
+# --- Incident 31 oct: a second attachment within two minutes always failed --------------
+
+IMAGE_ID = "00000000-0000-4000-8000-00000000b004"
+
+
+def _at(stamp: str) -> datetime:
+    return datetime.fromisoformat(stamp)
+
+
+def _pair(seconds_apart: int) -> list[dict[str, Any]]:
+    """A voice note at 14:08:35 and an image ``seconds_apart`` later, newest first."""
+    image_at = _at("2026-10-31T14:08:35+00:00") + timedelta(seconds=seconds_apart)
+    return [
+        _voice(id=IMAGE_ID, media_type="image", body="[image]", media_url=None)
+        | {"created_at": image_at.isoformat()},
+        _voice(media_url=None, created_at="2026-10-31T14:08:35Z"),
+    ]
+
+
+@pytest.mark.parametrize(
+    ("webhook", "expected"),
+    [("2026-10-31T14:08:35+00:00", VOICE_ID), ("2026-10-31T14:10:04+00:00", IMAGE_ID)],
+    ids=["voice", "image"],
+)
+async def test_two_attachments_89_s_apart_each_matches_its_own(webhook: str, expected: str) -> None:
+    """Incident 31 oct: voice 14:08:35, image 14:10:04; the image got MEDIA_MATCH_FAILED."""
+    handler, seen = _listing(_pair(89), b"bytes")
+    wazenda, _ = client(handler)
+
+    assert await wazenda.latest_media("+573000000001", _at(webhook)) == b"bytes"
+    assert str(seen[-1].url) == f"{BASE}/messages/{expected}/media"
+
+
+async def test_two_attachments_2_s_apart_are_not_guessed() -> None:
+    handler, seen = _listing(_pair(2), b"bytes")
+    wazenda, _ = client(handler)
+
+    result = await wazenda.latest_media("+573000000001", _at("2026-10-31T14:08:36+00:00"))
+    assert isinstance(result, Rejection) and result.error_code == "MEDIA_MATCH_FAILED"
+    assert len(seen) == 1
+
+
+async def test_a_listed_media_url_is_fetched_directly() -> None:
+    """Verified 31 oct: GET /messages brings a signed media_url on inbound attachments."""
+    signed = "https://www.wazenda.com/api/v1/public/media?l=x&m=y&exp=1&sig=ab"
+    handler, seen = _listing([_voice(media_url=signed)], b"bytes")
+    wazenda, _ = client(handler)
+
+    assert await wazenda.latest_media("+573000000001", _webhook_time()) == b"bytes"
+    assert str(seen[-1].url) == signed
+
+
+async def test_a_listed_media_url_off_wazenda_falls_back_to_the_uuid() -> None:
+    handler, seen = _listing([_voice(media_url="https://evil.example/m?sig=1")], b"bytes")
+    wazenda, _ = client(handler)
+
+    assert await wazenda.latest_media("+573000000001", _webhook_time()) == b"bytes"
+    assert str(seen[-1].url) == f"{BASE}/messages/{VOICE_ID}/media"
