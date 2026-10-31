@@ -217,6 +217,38 @@ def test_a19_accented_homograph_with_scheme_is_a_hard_lookalike() -> None:
     assert "lookalike_domain" in hard
 
 
+@pytest.mark.edge("A19")
+@pytest.mark.parametrize(
+    ("text", "url"),
+    [
+        ("Entre a pagos-dian.support y pague hoy", "pagos-dian.support"),  # c-0232
+        ("Actualícela en Bit.Ly/3xQnq antes de las 6", "bit.ly/3xQnq"),  # c-0233
+        ("Confirm your card at Chase-Secure.Help/login now", "chase-secure.help/login"),  # c-0234
+        ("Pague en dian-pagos.zzpago/x hoy", "dian-pagos.zzpago/x"),
+        ("Entre ya a evil.zzpago:8080 hoy", "evil.zzpago:8080"),
+        ("PAGOS-DIAN.SUPPORT hoy", "pagos-dian.support"),
+    ],
+)
+def test_incident_31oct_unlisted_or_capitalized_tld_is_extracted(text: str, url: str) -> None:
+    assert extract_urls(text) == [url]
+
+
+@pytest.mark.edge("A19")
+@pytest.mark.parametrize(
+    "text",
+    [
+        "ya quedó.Su cuenta de Bancolombia recibió el pago",  # c-0235
+        "cualquier cosa me avisa.Saludos",
+        "Contact us.Support is open 24/7",
+        "Llegó el pago.Help me confirm it",
+        "listo.Bancolombia/Davivienda los dos confirmaron",
+        "bancolombia-nequi.ayer quedó",
+    ],
+)
+def test_incident_31oct_prose_after_a_period_stays_prose(text: str) -> None:
+    assert extract_urls(text) == []
+
+
 def test_host_ends_before_an_underscore() -> None:
     assert extract_urls("Pague en www.falso.com_pago hoy") == ["www.falso.com"]
 
