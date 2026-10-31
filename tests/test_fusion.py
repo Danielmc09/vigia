@@ -28,6 +28,18 @@ def _analyst(label: str, confidence: float) -> AnalystResult:
     return AnalystResult(label=label, confidence=confidence)  # type: ignore[arg-type]
 
 
+def _eval_case(case_id: str) -> Case:
+    """The text case ``case_id`` of evals/casos.jsonl, with its URLs."""
+    raw = next(
+        json.loads(line)
+        for line in (Path(__file__).parents[1] / "evals" / "casos.jsonl")
+        .read_text("utf-8")
+        .splitlines()
+        if f'"{case_id}"' in line
+    )
+    return _case(raw["texto"], extract_urls(raw["texto"]))
+
+
 def _case(text: str, urls: list[str] | None = None) -> Case:
     return Case(
         id=uuid4(),
@@ -370,14 +382,7 @@ def test_inc_marca_en_el_cuerpo_names_the_brand_written_in_the_message(case_id: 
     """Incident c-0211/c-0212: a raw-IP link convicts, but the brand only lived in the body."""
     pack = country_pack("CO")
     assert pack is not None
-    raw = next(
-        json.loads(line)
-        for line in (Path(__file__).parents[1] / "evals" / "casos.jsonl")
-        .read_text("utf-8")
-        .splitlines()
-        if f'"{case_id}"' in line
-    )
-    case = _case(raw["texto"], extract_urls(raw["texto"]))
+    case = _eval_case(case_id)
 
     # Rules alone convict c-0211; the English c-0212 needs the analyst, as in production.
     analyst = _analyst("scam", 0.9) if case_id == "c-0212" else None
@@ -418,14 +423,7 @@ def test_inc_marca_en_audio_ignores_asr_case_only_for_unambiguous_brands(
     """Incident 31 oct: the transcript said "dian" and the reply lost the brand and its channel."""
     pack = country_pack("CO")
     assert pack is not None
-    raw = next(
-        json.loads(line)
-        for line in (Path(__file__).parents[1] / "evals" / "casos.jsonl")
-        .read_text("utf-8")
-        .splitlines()
-        if f'"{case_id}"' in line
-    )
-    case = _case(raw["texto"], extract_urls(raw["texto"]))
+    case = _eval_case(case_id)
     evidence = Evidence(signals=detect(case, pack), analyst=_analyst("scam", 0.92))
 
     verdict = build_verdict(case, evidence, pack)
@@ -435,6 +433,29 @@ def test_inc_marca_en_audio_ignores_asr_case_only_for_unambiguous_brands(
     if brand:
         channel = next(b.official_channel for b in pack.brands if b.name == brand)
         assert channel and channel in whatsapp_message(verdict, "es")
+
+
+@pytest.mark.parametrize(
+    ("case_id", "brand", "rail"), [("c-0230", "DIAN", "Nequi"), ("c-0231", "Nequi", None)]
+)
+def test_inc_riel_de_pago_names_the_impersonated_brand_not_the_wallet(
+    case_id: str, brand: str, rail: str | None
+) -> None:
+    """Incident 31 oct case 14: "DIAN ... pague por Nequi" was attributed to Nequi."""
+    pack = country_pack("CO")
+    assert pack is not None
+    case = _eval_case(case_id)
+    evidence = Evidence(signals=detect(case, pack), analyst=_analyst("scam", 0.92))
+
+    verdict = build_verdict(case, evidence, pack)
+    message = whatsapp_message(verdict, "es")
+
+    assert verdict.impersonated_brand == brand
+    channel = next(b.official_channel for b in pack.brands if b.name == brand)
+    assert channel and channel in message
+    if rail:
+        assert f"pide el pago a una cuenta de {rail}" in message
+        assert "nequi.com.co" not in message
 
 
 def _landed(via: str) -> Signal:
