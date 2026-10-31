@@ -20,6 +20,9 @@ aleja de la corrida con fecha más reciente en `evals/`.
 |---|---|---|---|---|---|---|---|---|---|
 | 2026-10-31 | 221 | 93,7% | 99,2% | 2,1% | 6,3% | $0,729 | 2,76 s | `7c54bc3` | aprobado, 0 regresiones |
 
+88 de los 221 veredictos salieron sin analista (`degradados` en el archivo de
+resultado): solo reglas y fusión.
+
 Meta (≥80 casos): `recall_estafa ≥ 0.90`, `fp_legitimo ≤ 0.10`,
 `dudosos ≤ 0.25`.
 

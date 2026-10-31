@@ -20,6 +20,9 @@ from the newest dated run in `evals/`.
 |---|---|---|---|---|---|---|---|---|---|
 | 2026-10-31 | 221 | 93.7% | 99.2% | 2.1% | 6.3% | $0.729 | 2.76 s | `7c54bc3` | passed, 0 regressions |
 
+88 of the 221 verdicts came without the analyst (`degradados` in the result
+file): rules and fusion alone.
+
 Target (≥80 cases): `recall_estafa ≥ 0.90`, `fp_legitimo ≤ 0.10`,
 `dudosos ≤ 0.25`.
 
