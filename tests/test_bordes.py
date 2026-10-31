@@ -225,6 +225,9 @@ def test_a19_accented_homograph_with_scheme_is_a_hard_lookalike() -> None:
         ("Actualícela en Bit.Ly/3xQnq antes de las 6", "bit.ly/3xQnq"),  # c-0233
         ("Confirm your card at Chase-Secure.Help/login now", "chase-secure.help/login"),  # c-0234
         ("PAGOS-DIAN.SUPPORT hoy", "pagos-dian.support"),
+        ("Reclame en dian-devolucion.tax/reclamo hoy", "dian-devolucion.tax/reclamo"),  # c-0241
+        ("Claim it at irs-refund.tax before Friday", "irs-refund.tax"),  # c-0242
+        ("Ingrese a Nequi-Alertas.Bank/x ya", "nequi-alertas.bank/x"),
     ],
 )
 def test_incident_31oct_unlisted_or_capitalized_tld_is_extracted(text: str, url: str) -> None:
@@ -253,6 +256,9 @@ def test_incident_31oct_unlisted_or_capitalized_tld_is_extracted(text: str, url:
         "juan.perez/compras y ventas.norte/sur",
         "db.local:5432",
         "Pague en dian-pagos.zzpago/x hoy",
+        "el contrato.final/firmado y la factura S.A.S/Ltda",  # c-0243
+        "nos vemos en la.casa a las 6",
+        "pagos-dian.soporte/x",  # not a TLD that exists (IANA)
     ],
 )
 def test_incident_31oct_prose_after_a_period_stays_prose(text: str) -> None:
