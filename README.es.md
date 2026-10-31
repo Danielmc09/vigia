@@ -44,13 +44,21 @@ make demo
 
 Levanta Postgres y la API con Docker Compose, inscribe un negocio de ejemplo
 con 3 miembros, envía 5 casos de ejemplo por el canal local, y abre el panel
-con los veredictos en `http://localhost:8000/panel?token=<VIGIA_PANEL_TOKEN>`
+con los veredictos en `http://localhost:18000/panel?token=<VIGIA_PANEL_TOKEN>`
 (imprime el link completo). No hay instancia hospedada: `make demo` en tu
 máquina es la forma de probarlo. El link pone una cookie HttpOnly y redirige a
 `/panel`, así el token sale de la barra de direcciones. Escapa el token si
 tiene `+`, `/` o `=`. Sin `MODEL_API_KEY` lo avisa y corre solo con reglas (sin
 analista). Las llaves de `.env.example` son llaves públicas de demo:
 `VIGIA_MODO=prod` las rechaza.
+
+El primer `make demo` descarga y construye las imágenes de Docker y puede tardar
+varios minutos; después tarda segundos. Sin `MODEL_API_KEY` VIGÍA nunca responde
+"legítimo" (esa decisión la toma el analista), así que el ejemplo legítimo sale
+"dudoso"; el panel lo explica. Postgres se publica en `127.0.0.1:55432` y la API en
+`127.0.0.1:18000`; si alguno está ocupado, define `VIGIA_DB_PORT` o `VIGIA_API_PORT`
+en `.env` (y el puerto en `DATABASE_URL`), corre `docker compose down` y otra vez
+`make demo`.
 
 Ver `DECLARACION.md` para lo que se construyó durante el evento.
 

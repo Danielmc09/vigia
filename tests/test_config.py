@@ -50,7 +50,7 @@ def test_empty_mode_is_still_rejected(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 def test_an_empty_required_int_is_rejected(monkeypatch: pytest.MonkeyPatch) -> None:
-    """D-087: empty means unset, so VIGIA_API_PORT= fails instead of using 8000."""
+    """D-087: empty means unset, so VIGIA_API_PORT= fails instead of using 18000."""
     monkeypatch.setenv("VIGIA_API_PORT", "")
 
     with pytest.raises(ValidationError, match="VIGIA_API_PORT"):

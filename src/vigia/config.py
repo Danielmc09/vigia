@@ -60,8 +60,8 @@ class Settings(BaseSettings):
 
     model_config = SettingsConfigDict(populate_by_name=True)
 
-    database_url: str = "postgresql://vigia_app:vigia_app@localhost:5432/vigia"
-    migration_database_url: str = "postgresql://postgres:postgres@localhost:5432/vigia"
+    database_url: str = "postgresql://vigia_app:vigia_app@localhost:55432/vigia"
+    migration_database_url: str = "postgresql://postgres:postgres@localhost:55432/vigia"
     mode: Literal["dev", "eval", "prod"] = Field("dev", validation_alias="VIGIA_MODO")
     kek: SecretStr | None = Field(None, validation_alias="VIGIA_KEK")
     pii_hmac_key: SecretStr | None = Field(None, validation_alias="PII_HMAC_KEY")
@@ -98,7 +98,7 @@ class Settings(BaseSettings):
     metrics_token: SecretStr | None = Field(None, validation_alias="METRICS_TOKEN")
     sentry_dsn: SecretStr | None = Field(None, validation_alias="SENTRY_DSN")
     operator_phone: str | None = Field(None, validation_alias="OPERADOR_TELEFONO")
-    api_port: int = Field(8000, validation_alias="VIGIA_API_PORT")
+    api_port: int = Field(18000, validation_alias="VIGIA_API_PORT")
 
     @field_validator("operator_phone", mode="before")
     @classmethod
