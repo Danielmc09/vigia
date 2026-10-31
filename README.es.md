@@ -10,17 +10,18 @@ del equipo también queda avisado.
 
 **GIF: pendiente, T-22 lo grabará.**
 
-## Métricas (última corrida con fecha)
+## Métricas (última corrida completa)
 
-Todavía no hay una cifra final limpia; esta es la última corrida con fecha,
-con su advertencia, sin inventar nada:
+Medidas por `tools/measure.py` sobre `evals/casos.jsonl`; el resultado crudo
+es `evals/2026-10-31.resultado.json`. `make docs-check` falla si esta fila se
+aleja de la corrida con fecha más reciente en `evals/`.
 
-| Fecha / commit | Casos | Recall de estafa | Falsas alarmas en legítimos | Dudosos | Costo | Nota |
-|---|---|---|---|---|---|---|
-| 31-10-2026, `859c500` | 205 | 98,2% | 2,3% | 8,3% | $0,750 | El gate automático marcó una regresión en exactitud y en la tasa de dudosos en esta corrida — no es una cifra final limpia, ver `ESTADO.md` |
+| Fecha | Casos | Exactitud | Recall de estafa | Falsas alarmas en legítimos | Dudosos | Costo | Latencia mediana | Commit | Gate |
+|---|---|---|---|---|---|---|---|---|---|
+| 2026-10-31 | 221 | 93,7% | 99,2% | 2,1% | 6,3% | $0,729 | 2,76 s | `7c54bc3` | aprobado, 0 regresiones |
 
-Meta (`OBJETIVOS.md`, ≥80 casos): `recall_estafa ≥ 0.90`, `fp_legitimo ≤
-0.10`, `dudosos ≤ 0.25`.
+Meta (≥80 casos): `recall_estafa ≥ 0.90`, `fp_legitimo ≤ 0.10`,
+`dudosos ≤ 0.25`.
 
 ## Correr la demo
 
@@ -68,17 +69,16 @@ modelo es Spark en `eval`/`prod` y, solo en `dev`, opcionalmente Jev.
 | SAM 3.1 | Recorta logos y códigos QR de una captura; el QR se decodifica después en código, no por el modelo |
 | Muse Voice Transcribe | Convierte una nota de voz de WhatsApp en texto, en código, antes de que cualquier señal o modelo la vea |
 
-## Rúbrica (`OBJETIVOS.md`, Objetivo 2 — maximizar la nota del jurado)
+## Para el jurado
 
-| Criterio | Peso | Lo que lo gana |
+Dónde se puede comprobar cada criterio de evaluación en este repo o en la demo:
+
+| Criterio | Peso | Dónde verlo |
 |---|---|---|
-| Impacto | 30% | Problema con cifras + pyme real en el video + onboarding sin app |
-| Meta tooling | 25% | Spark como agente orquestando SAM y Voice; QR recortado; audio; Glimmer si se logra |
-| Demo | 25% | Nota de voz abre el video; alerta al equipo; correo BEC; legítimo en 2 s |
-| Técnica | 20% | medir.py + gate, preregistro, adversarios, RLS, 3 capas |
-
-Bonus objetivo: Agentic (5k) y Open Weights (10k) por jueces; Community Vote
-(10k) por LinkedIn y grupos. Most Viral (X) no es objetivo.
+| Impacto | 30% | Una pyme sin equipo de seguridad recibe un veredicto por WhatsApp sin instalar ninguna app; si es estafa, todo el equipo queda avisado (`src/vigia/services/whatsapp.py`, `make demo`) |
+| Meta tooling | 25% | Muse Spark como analista con herramientas (`src/vigia/analyst/loop.py`), recortes de SAM 3.1 con el QR decodificado en código, Muse Voice Transcribe para notas de voz (ver "Qué hace cada modelo de Meta" arriba) |
+| Demo | 25% | `make demo`: casos de ejemplo por el canal local y el panel de operador con sus veredictos |
+| Técnica | 20% | Exactitud medida con gate de regresión (`tools/measure.py`, la fila de métricas de arriba), evals adversarios y a ciegas (`evals/adversarios.jsonl`, `evals/ciego-01.md`), seguridad por fila y cifrado (`docs/ARCHITECTURE.md`, `docs/THREAT_MODEL.md`), cada decisión como ADR (`docs/decisions/`) |
 
 ## Seguridad
 
@@ -94,19 +94,19 @@ Categorías OWASP que este repo prueba, mapeadas al test que las cubre:
 
 Documento completo: [`docs/THREAT_MODEL.md`](docs/THREAT_MODEL.md) y
 [`docs/PRIVACY.md`](docs/PRIVACY.md); diseño de cifrado en
-[`specs/16`](specs/16-cifrado-de-datos.md); cómo reportar una vulnerabilidad en
+[`ADR-020`](docs/decisions/ADR-020.md) y [`ADR-025`](docs/decisions/ADR-025.md);
+cómo reportar una vulnerabilidad en
 [`SECURITY.md`](SECURITY.md).
 
 ## Fuera de alcance
 
-Lo que NO es objetivo de esta hackathon: monetizar, multi-país completo, MCP
-para terceros, auditar chatbots ajenos, cubrir zero-click. Todo eso vive en
-"Ideas para después."
+No son objetivos de esta versión de la hackathon: monetización, cobertura
+multi-país completa, un servidor MCP para terceros, auditar chatbots de
+terceros y ataques zero-click.
 
 ## Benchmark
 
-Pendiente, ver `specs/14` §2 (VIGÍA-Bench, publicado por separado una vez
-construido).
+Pendiente: VIGÍA-Bench se publicará por separado una vez construido.
 
 ## Más
 
@@ -114,6 +114,6 @@ construido).
   responsabilidad.
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — diagramas de componentes y
   flujo, contratos de importación, multi-tenancy.
-- [`docs/api/`](docs/api/) — referencia de API generada (`pdoc`).
+- Referencia de API: se genera localmente con `make docs` (`pdoc`, en `docs/api/`).
 - [`docs/decisions/`](docs/decisions/) — cada decisión técnica (ADR-001 a
-  ADR-112), migrada al inglés desde `DECISIONES.md`.
+  ADR-112), migrada al inglés desde el registro de decisiones de trabajo.

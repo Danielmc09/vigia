@@ -4,7 +4,8 @@ This document is not legal advice. It describes how VIGÍA handles personal data
 today, against the laws of the countries its country packs cover, so a business
 or a judge can check the claim against the code. See
 [THREAT_MODEL.md](THREAT_MODEL.md) for attacker-facing threats and
-[`specs/16`](../specs/16-cifrado-de-datos.md) for the full encryption design.
+[ADR-020](decisions/ADR-020.md) and [ADR-025](decisions/ADR-025.md) for the
+encryption design.
 
 ## 1. What is stored, for how long
 
@@ -12,13 +13,12 @@ or a judge can check the claim against the code. See
 |---|---|---|
 | Messages and verdicts | 30 days | Stored encrypted (`cases.text_enc`, `verdicts.payload_enc`); no automated deletion job yet — see gap below |
 | Attachments (image, audio, PDF, .eml) | 7 days | Not persisted at all: decrypted in memory only to be read (Spark/SAM/Voice), then discarded; the case record keeps only the resulting text |
-| Campaign fingerprints (simhash, pHash, lookalike domain, account) | Forever | Stored in clear in `known_campaigns` — not PII, anonymous indicators shared across businesses (D-017) |
+| Known campaigns (simhash, pHash, registrable domains, brand, source URL) | Forever | Stored in clear in `known_campaigns` — no message text, sender or case id, only indicators shared across businesses (D-017, D-041). Owner-confirmed campaigns also keep `confirmed_by`: keyed HMACs of the confirming business ids, never the ids in clear (D-082) |
 | Metrics, costs, latencies | Forever | In clear by design, no PII |
 | Logs | Operational lifetime of the host | No PII; phone numbers are masked to a short prefix before they ever reach stdout (`telemetry.mask_phone`) |
 
-**Gap, stated plainly:** `specs/16` §4 calls for a daily job
-(`herramientas/retencion.py`) that physically deletes rows past their retention
-window. That job is not built yet. Retention today is a target, not an enforced
+**Gap, stated plainly:** the design calls for a daily job that physically
+deletes rows past their retention window. That job is not built yet. Retention today is a target, not an enforced
 behavior, and this document does not claim otherwise.
 
 ## 2. Where it runs
@@ -46,11 +46,19 @@ must be put behind a token first (see THREAT_MODEL.md §4).
   evidence behind a verdict, not a default. No separate audit log of operator
   panel views exists yet in the repo; auditing today is "Angel is the only
   person with the token."
-- **Cross-business campaign knowledge** exposes only `known: true/false` and
-  `public_source` to a business's own API responses and WhatsApp replies —
-  never another business's text, who reported it, or when (D-017,
-  `tests/test_owasp.py` A01 tests cover the isolation boundary this depends
-  on).
+- **Cross-business campaign knowledge** lives in `known_campaigns`, the one
+  global table (no `business_id`, no RLS; `vigia_app` has only `SELECT` on
+  it). Published campaigns are written by the schema owner from public
+  sources (official alerts, banks, press, police, forums). The app role adds a
+  campaign only through `vigia_confirm_campaign`, when an owner confirms a
+  scam: that function forces `source_type = 'usuario'`, stores only the
+  simhash, the registrable domains and the brand, and never touches a
+  published campaign. A confirmed campaign is visible to the businesses that
+  confirmed it, and to everyone else only after 2 different businesses
+  confirmed it (D-082). A match reaches a business as a `known_campaign`
+  signal with the campaign id, its `source_url` and how it matched (text,
+  domain or image distance) — never another business's text, identity or
+  case.
 
 ## 4. How it's deleted
 
@@ -65,18 +73,20 @@ backup cycles out (`tests/test_cifrado.py::test_deleting_a_business_shreds_its_k
 What is **not** built yet: an owner-facing, two-step "delete business"
 WhatsApp command (type it, get asked to confirm, then it runs). Today deletion
 is a store function an operator calls directly. This is a real gap against
-`specs/16` §4's "`eliminar negocio` en 2 pasos," named here rather than claimed
-as done (AGENTS.md rule 9).
+the design's two-step "delete business" command, named here rather than
+claimed as done.
 
-Anonymous campaign fingerprints (simhash, pHash, domain, account) are **not**
-deleted when a business is deleted — they carry no business identity once
-written (only a hashed `first_seen_business_id` for the operator's own
-debugging), and keeping them is what protects every other business from the
-same campaign (D-017).
+Known campaigns (simhash, pHash, domains, brand) are **not** deleted when a
+business is deleted: they hold no message text, and keeping them is what
+protects every other business from the same campaign (D-017). The
+`confirmed_by` HMACs of a deleted business also stay today; they cannot be
+reversed to a business id without `PII_HMAC_KEY`, but removing them on
+deletion is not built yet.
 
 ## 5. Encryption at rest and search
 
-Full design in [`specs/16`](../specs/16-cifrado-de-datos.md): envelope
+Full design in [ADR-020](decisions/ADR-020.md) and
+[ADR-025](decisions/ADR-025.md): envelope
 encryption (KEK wraps a per-business DEK), AES-256-GCM with the `cryptography`
 library for anything read back, keyed HMAC-SHA256 for anything only searched
 (phone, email — `WHERE phone_hash = hmac(value)`, never `LIKE`). Verified by
@@ -101,7 +111,7 @@ does about it today, so a gap is visible instead of implied.
 
 - **Meta Model API**, tier **Standard**: per Meta's own terms, Standard-tier
   calls are not used to train Meta's models. This is the only tier VIGÍA is
-  built to use (AGENTS.md rule 10).
+  built to use.
 - **Jev (TypeSafe)**: a development-only auxiliary judge. `Settings` refuses
   `JEV_BACKEND=real` unless `VIGIA_MODO=dev` is explicitly declared (D-085);
   at runtime (`eval`/`prod`) the gate's model fallback is always Spark, never

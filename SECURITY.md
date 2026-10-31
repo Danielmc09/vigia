@@ -10,14 +10,14 @@ Use GitHub's private vulnerability reporting (the repo's **Security** tab →
 **Report a vulnerability**) with a description of the issue, the steps
 to reproduce it, and, if you have one, the smallest proof of concept that
 shows the problem. Do not open a public GitHub issue for a vulnerability that
-has not been fixed yet — this repo is public from its first commit (AGENTS.md
-rule 18), so an unfixed report filed in public is itself a disclosure.
+has not been fixed yet — this repo is public from its first commit, so an unfixed report filed in public is itself a disclosure.
 
 ## What's in scope
 
 - The API in `src/vigia` (signal detection, verdict/policy logic, the operator
   panel, the WhatsApp/email channel adapters).
-- The data model and its encryption (`specs/16`, `src/vigia/store`).
+- The data model and its encryption (`src/vigia/store`; design in
+  `docs/decisions/ADR-020.md` and `ADR-025.md`).
 - The import contracts and multi-tenancy isolation (`docs/ARCHITECTURE.md`).
 
 ## What's out of scope

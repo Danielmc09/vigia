@@ -10,17 +10,18 @@ team is warned too.
 
 **GIF: pending, T-22 will record it.**
 
-## Metrics (last dated run)
+## Metrics (latest full run)
 
-No clean final number exists yet; this is the latest dated run, with its
-caveat, never invented:
+Measured by `tools/measure.py` over `evals/casos.jsonl`; the raw result is
+`evals/2026-10-31.resultado.json`. `make docs-check` fails if this row drifts
+from the newest dated run in `evals/`.
 
-| Date / commit | Cases | Scam recall | False alarms on legit | Doubtful | Cost | Note |
-|---|---|---|---|---|---|---|
-| 2026-10-31, `859c500` | 205 | 98.2% | 2.3% | 8.3% | $0.750 | The automated gate flagged a regression in accuracy and in doubtful rate on this run — not a clean passing number, see `ESTADO.md` |
+| Date | Cases | Accuracy | Scam recall | False alarms on legit | Doubtful | Cost | Median latency | Commit | Gate |
+|---|---|---|---|---|---|---|---|---|---|
+| 2026-10-31 | 221 | 93.7% | 99.2% | 2.1% | 6.3% | $0.729 | 2.76 s | `7c54bc3` | passed, 0 regressions |
 
-Target (`OBJETIVOS.md`, ≥80 cases): `recall_estafa ≥ 0.90`, `fp_legitimo ≤
-0.10`, `dudosos ≤ 0.25`.
+Target (≥80 cases): `recall_estafa ≥ 0.90`, `fp_legitimo ≤ 0.10`,
+`dudosos ≤ 0.25`.
 
 ## Run the demo
 
@@ -64,17 +65,16 @@ TypeSafe Jev is a **development-only** tool (judge of steps), never called at ru
 | SAM 3.1 | Crops logos and QR codes out of a screenshot; the QR is then decoded in code, not by the model |
 | Muse Voice Transcribe | Turns a WhatsApp voice note into text, in code, before any signal or model ever sees it |
 
-## Rubric (`OBJETIVOS.md`, Objetivo 2 — maximize the judges' score)
+## For the judges
 
-| Criterio | Peso | Lo que lo gana |
+Where each judging criterion can be checked in this repo or in the demo:
+
+| Criterion | Weight | Where to see it |
 |---|---|---|
-| Impacto | 30% | Problema con cifras + pyme real en el video + onboarding sin app |
-| Meta tooling | 25% | Spark como agente orquestando SAM y Voice; QR recortado; audio; Glimmer si se logra |
-| Demo | 25% | Nota de voz abre el video; alerta al equipo; correo BEC; legítimo en 2 s |
-| Técnica | 20% | medir.py + gate, preregistro, adversarios, RLS, 3 capas |
-
-Bonus objetivo: Agentic (5k) y Open Weights (10k) por jueces; Community Vote
-(10k) por LinkedIn y grupos. Most Viral (X) no es objetivo.
+| Impact | 30% | A small business with no security team gets a verdict on WhatsApp with no app to install; the whole team is warned on a scam (`src/vigia/services/whatsapp.py`, `make demo`) |
+| Meta tooling | 25% | Muse Spark as a tool-using analyst (`src/vigia/analyst/loop.py`), SAM 3.1 crops with the QR decoded in code, Muse Voice Transcribe for voice notes (see "What each Meta model does" above) |
+| Demo | 25% | `make demo`: sample cases through the local channel and the operator panel with their verdicts |
+| Technical | 20% | Measured accuracy with a regression gate (`tools/measure.py`, the metrics row above), adversarial and blind evals (`evals/adversarios.jsonl`, `evals/ciego-01.md`), row-level security and encryption (`docs/ARCHITECTURE.md`, `docs/THREAT_MODEL.md`), every decision as an ADR (`docs/decisions/`) |
 
 ## Security
 
@@ -90,18 +90,19 @@ OWASP categories this repo tests for, mapped to the test that covers them:
 
 Full write-up: [`docs/THREAT_MODEL.md`](docs/THREAT_MODEL.md) and
 [`docs/PRIVACY.md`](docs/PRIVACY.md); encryption design in
-[`specs/16`](specs/16-cifrado-de-datos.md); how to report a vulnerability in
+[`ADR-020`](docs/decisions/ADR-020.md) and [`ADR-025`](docs/decisions/ADR-025.md);
+how to report a vulnerability in
 [`SECURITY.md`](SECURITY.md).
 
 ## Out of scope
 
-Lo que NO es objetivo de esta hackathon: monetizar, multi-país completo, MCP
-para terceros, auditar chatbots ajenos, cubrir zero-click. Todo eso vive en
-"Ideas para después."
+Not goals of this hackathon build: monetization, full multi-country coverage,
+an MCP server for third parties, auditing third-party chatbots, and zero-click
+attacks.
 
 ## Benchmark
 
-Pending, see `specs/14` §2 (VIGÍA-Bench, published separately once built).
+Pending: VIGÍA-Bench will be published separately once built.
 
 ## More
 
@@ -109,6 +110,6 @@ Pending, see `specs/14` §2 (VIGÍA-Bench, published separately once built).
   responsibility.
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — component and flow
   diagrams, import contracts, multi-tenancy.
-- [`docs/api/`](docs/api/) — generated API reference (`pdoc`).
+- API reference: generated locally with `make docs` (`pdoc`, into `docs/api/`).
 - [`docs/decisions/`](docs/decisions/) — every technical decision (ADR-001
-  through ADR-112), migrated to English from `DECISIONES.md`.
+  through ADR-112), migrated to English from the working decision log.
