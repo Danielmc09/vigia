@@ -4,6 +4,7 @@
  "marcas": [
   {
    "marca": "Chase",
+   "ambigua": true,
    "dominios": [
     "chase.com"
    ],
@@ -58,6 +59,7 @@
   },
   {
    "marca": "UPS",
+   "ambigua": true,
    "dominios": [
     "ups.com"
    ],
@@ -105,6 +107,7 @@
   },
   {
    "marca": "Apple",
+   "ambigua": true,
    "dominios": [
     "apple.com"
    ],

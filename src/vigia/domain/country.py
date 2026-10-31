@@ -17,6 +17,8 @@ class Brand(BaseModel):
         official_channel: Where to check instead (app, site, phone line).
         kind: Sector (bank, wallet, state, carrier...).
         source_url: Official page where the domains were verified.
+        ambiguous: Its name is also a common word ("claro", "dale"), so all-lowercase
+            text does not name it (D-104).
     """
 
     model_config = ConfigDict(frozen=True)
@@ -26,6 +28,7 @@ class Brand(BaseModel):
     official_channel: str | None = Field(default=None, alias="canal_oficial")
     kind: str | None = Field(default=None, alias="tipo")
     source_url: str = Field(alias="fuente_url")
+    ambiguous: bool = Field(default=False, alias="ambigua")
 
 
 class ReportTo(BaseModel):

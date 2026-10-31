@@ -212,6 +212,7 @@
   },
   {
    "marca": "Dale",
+   "ambigua": true,
    "dominios": [
     "dale.com.co"
    ],
@@ -374,6 +375,7 @@
   },
   {
    "marca": "Coordinadora",
+   "ambigua": true,
    "dominios": [
     "coordinadora.com"
    ],
@@ -383,6 +385,7 @@
   },
   {
    "marca": "Envía",
+   "ambigua": true,
    "dominios": [
     "envia.co"
    ],
@@ -401,6 +404,7 @@
   },
   {
    "marca": "Deprisa",
+   "ambigua": true,
    "dominios": [
     "deprisa.com"
    ],
@@ -419,6 +423,7 @@
   },
   {
    "marca": "Claro",
+   "ambigua": true,
    "dominios": [
     "claro.com.co"
    ],
@@ -456,6 +461,7 @@
   },
   {
    "marca": "Mercado Libre",
+   "ambigua": true,
    "dominios": [
     "mercadolibre.com.co"
    ],
@@ -465,6 +471,7 @@
   },
   {
    "marca": "Éxito",
+   "ambigua": true,
    "dominios": [
     "exito.com"
    ],

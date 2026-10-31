@@ -77,16 +77,16 @@ def _impersonated_brand(signals: Sequence[Signal], pack: CountryPack) -> Brand |
 def _brand_in_body(text: str, pack: CountryPack) -> Brand | None:
     """The pack brand written as a whole word in the body (incident c-0211).
 
-    Case-insensitive ("CoordInadora"), but an all-lowercase match is skipped so plain
-    words like "dale" or "claro" do not name a brand.
+    Case-insensitive ("CoordInadora", an ASR "dian"), except that an all-lowercase
+    match of an ambiguous brand is skipped so plain words like "dale" or "claro" do not
+    name it (D-104).
     """
-    # ponytail: a brand that is also a word, capitalized at the start ("Dale clic"),
-    # is still named; a per-brand ambiguity flag in the pack if it shows up in evals.
+    # ponytail: an ambiguous brand capitalized at the start ("Dale clic") is still named.
     folded = fold(text).lower()
     for brand in pack.brands:
         name = re.escape(fold(brand.name).lower())
         for found in re.finditer(rf"(?<![a-z0-9]){name}(?![a-z0-9])", folded):
-            if not text[found.start() : found.end()].islower():
+            if not (brand.ambiguous and text[found.start() : found.end()].islower()):
                 return brand
     return None
 
