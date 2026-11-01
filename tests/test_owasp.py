@@ -120,7 +120,7 @@ async def test_a01_the_owner_cookie_never_opens_the_operator_view(
     committed: str, keyring: Keyring
 ) -> None:
     owner = _client(keyring)
-    owner.get(f"/entrar/{committed}", follow_redirects=False)
+    owner.post(f"/entrar/{committed}", follow_redirects=False)
 
     assert owner.get("/api/operator").status_code == 401
     assert owner.post("/api/operator/try", data={"text": "x"}).status_code == 401
@@ -243,7 +243,7 @@ async def test_a07_a_forged_session_is_refused_and_tls_makes_the_cookie_secure(
     forged.cookies.set("vigia_owner", "A" * 43)
     behind_tls = _client(keyring)
 
-    entered = behind_tls.get(
+    entered = behind_tls.post(
         f"/entrar/{committed}", headers={"x-forwarded-proto": "https"}, follow_redirects=False
     )
 

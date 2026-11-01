@@ -4,6 +4,7 @@ import hashlib
 import re
 from collections.abc import AsyncIterator
 from datetime import timedelta
+from html import escape
 
 import asyncpg
 import pytest
@@ -208,7 +209,7 @@ async def test_a_link_becomes_an_http_only_lax_cookie_that_works_without_tls(
 ) -> None:
     client = _client(keyring)
 
-    entered = client.get(f"/entrar/{committed}", follow_redirects=False)
+    entered = client.post(f"/entrar/{committed}", follow_redirects=False)
 
     assert entered.status_code == 303
     assert entered.headers["location"] == "/dueno"
@@ -225,15 +226,33 @@ async def test_a_link_becomes_an_http_only_lax_cookie_that_works_without_tls(
     assert client.get("/dueno").status_code == 200
 
 
+async def test_link_previews_cannot_spend_the_link(committed: str, keyring: Keyring) -> None:
+    """Incident: WhatsApp GETs every link it sends to draw a preview; that GET spent it."""
+    previewer = TestClient(_client(keyring).app)
+    client = _client(keyring)
+
+    previews = [previewer.get(f"/entrar/{committed}", follow_redirects=False) for _ in range(2)]
+    entered = client.post(f"/entrar/{committed}", follow_redirects=False)
+
+    for preview in previews:
+        assert preview.status_code == 200
+        assert "set-cookie" not in preview.headers
+        assert f'<form method="post" action="/entrar/{committed}">' in preview.text
+        assert escape(t("es", "panel.enter")) in preview.text
+    assert entered.status_code == 303
+    assert "vigia_owner=" in entered.headers["set-cookie"]
+    assert client.post(f"/entrar/{committed}", follow_redirects=False).status_code == 403
+
+
 async def test_a_spent_or_unknown_link_gets_the_same_refusal(
     committed: str, keyring: Keyring
 ) -> None:
     client = _client(keyring)
-    client.get(f"/entrar/{committed}", follow_redirects=False)
+    client.post(f"/entrar/{committed}", follow_redirects=False)
 
-    spent = TestClient(client.app).get(f"/entrar/{committed}", follow_redirects=False)
-    unknown = TestClient(client.app).get("/entrar/" + "A" * 43, follow_redirects=False)
-    huge = TestClient(client.app).get("/entrar/" + "A" * 500, follow_redirects=False)
+    spent = TestClient(client.app).post(f"/entrar/{committed}", follow_redirects=False)
+    unknown = TestClient(client.app).post("/entrar/" + "A" * 43, follow_redirects=False)
+    huge = TestClient(client.app).post("/entrar/" + "A" * 500, follow_redirects=False)
 
     assert spent.status_code == unknown.status_code == huge.status_code == 403
     assert spent.text == unknown.text == huge.text
@@ -242,7 +261,7 @@ async def test_a_spent_or_unknown_link_gets_the_same_refusal(
 
 async def test_each_view_has_its_own_authentication(committed: str, keyring: Keyring) -> None:
     owner = _client(keyring)
-    owner.get(f"/entrar/{committed}", follow_redirects=False)
+    owner.post(f"/entrar/{committed}", follow_redirects=False)
     operator = {"Authorization": "Bearer operador-de-prueba-con-32-caracteres"}
     stranger = _client(keyring)
 
