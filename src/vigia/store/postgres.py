@@ -142,6 +142,24 @@ async def add_member(conn: asyncpg.Connection, vault: Vault, role: Role, contact
     return member_id
 
 
+async def set_member_name(
+    conn: asyncpg.Connection, vault: Vault, member_id: UUID, name: str
+) -> None:
+    """Replace the display name a member shows with in team alerts.
+
+    Args:
+        conn: Connection scoped to the business.
+        vault: Open vault of the business.
+        member_id: The member to rename.
+        name: New display name; stored sealed, never in clear.
+    """
+    await conn.execute(
+        "UPDATE members SET name_enc = $2 WHERE id = $1",
+        member_id,
+        vault.seal("members.name", name),
+    )
+
+
 async def can_issue_email_code(conn: asyncpg.Connection, email_hash: Hashed) -> bool:
     """Whether a code may go out to this address now (D-028).
 

@@ -32,6 +32,8 @@ EMAIL = "luis.prueba@correo.example"
         ("hello Corner Hardware US", "enroll", "Corner Hardware US"),
         ("equipo +57 300 000 0202 Luis", "team", "+57 300 000 0202 Luis"),
         ("mi correo luis@correo.example", "my_email", "luis@correo.example"),
+        ("mi nombre Angel", "my_name", "Angel"),
+        ("my name María José", "my_name", "María José"),
         ("código 123456", "code", "123456"),
         ("proveedor Aceros correo=a@b.example", "supplier", "Aceros correo=a@b.example"),
         ("historial", "history", ""),
@@ -65,6 +67,7 @@ def test_command_carries_the_fields_of_its_grammar() -> None:
         "equipo +573000000203 Ana a@b.example tarde",  # text after the email
         "proveedor Aceros correo=a@b.example cuenta=1",
         "mi correo ana@correo.example",
+        "mi nombre Ana",
         "codigo 123456",
         "historial",
         "transferir +57 300 000 0203",
@@ -92,6 +95,8 @@ async def test_a_command_the_parser_accepts_never_falls_back_to_help(
         "codigo de verificacion 123",  # malformed code
         "equipo de soporte tecnico",  # team without a phone
         "mi correo es importante",
+        "Mi nombre es Carlos, asesor de Bancolombia, su cuenta fue bloqueada",  # D-119
+        "mi nombre 3000000703",
         "confirmar compra",  # a forwarded scam asking to confirm, not an escalation id
         "Cancelar suscripcion",
         "transferir ya",

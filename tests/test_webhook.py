@@ -380,6 +380,25 @@ async def test_a_scam_gets_a_verdict_a_reply_and_alerts_the_rest_of_the_team(
     assert [r["label"] for r in await app_conn.fetch("SELECT label FROM verdicts")] == ["scam"]
 
 
+@pytest.mark.parametrize("command", ["mi nombre Angel", "my name Angel"])
+async def test_inc_alerta_sin_nombre_the_owner_names_themselves_for_team_alerts(
+    app_conn: asyncpg.Connection, recorder: Recorder, keyring: Keyring, command: str
+) -> None:
+    """Incident 31 oct: the owner's alerts always said "Alguien del equipo"."""
+    await team(app_conn, recorder)
+    outbox = Outbox()
+    ch = channel(keyring, outbox)
+    await whatsapp.process(app_conn, ch, incoming("texto", EMPLOYEE, body="ayuda"))
+
+    await whatsapp.process(app_conn, ch, incoming("texto", OWNER, body=command))
+    await whatsapp.process(app_conn, ch, incoming("texto", OWNER))
+
+    assert outbox.to(OWNER)[0] == t("es", "name.saved", name="Angel")
+    alert = outbox.to(EMPLOYEE)[-1]
+    assert alert.startswith("⚠️ Angel reportó")
+    assert t("es", "team_alert.someone") not in alert
+
+
 async def test_a_legit_message_alerts_nobody(
     app_conn: asyncpg.Connection, recorder: Recorder, keyring: Keyring
 ) -> None:

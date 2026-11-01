@@ -20,6 +20,10 @@ _GRAMMAR = {
         rf"(?P<phone>{_PHONE})\s+(?P<name>[^\d\s+@][^@]*?)(?:\s+(?P<email>{_EMAIL}))?"
     ),
     "my_email": re.compile(rf"(?P<email>{_EMAIL})"),
+    # D-119: 1-4 words of letters; "mi nombre es Carlos, asesor de..." is a forward
+    "my_name": re.compile(
+        r"(?i)(?!(?:es|is)\b)(?=.{1,40}$)(?P<name>[^\W\d_]+(?:[ '-][^\W\d_]+){0,3})"
+    ),
     "code": re.compile(r"(?P<code>\d{6})"),
     "supplier": re.compile(r"(?P<name>[^=]+?)\s+(?P<pairs>\S+=\S+(?:\s+\S+=\S+)*)"),
     "history": re.compile(r""),
@@ -43,7 +47,7 @@ class Command:
     """A recognized command.
 
     Attributes:
-        name: Command id (``enroll``, ``team``, ``my_email``, ``code``, ``supplier``,
+        name: Command id (``enroll``, ``team``, ``my_email``, ``my_name``, ``code``, ``supplier``,
             ``history``, ``help``, ``transfer``, ``confirm``, ``cancel``, ``scam_confirmed``).
         args: Text after the keyword, stripped.
         lang: Language whose keyword matched; used to answer someone not yet enrolled.

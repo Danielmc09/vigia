@@ -176,6 +176,12 @@ async def _my_email(session: Session, fields: Fields) -> str:
     return await _send_code(session, session.member.id, fields["email"])
 
 
+async def _my_name(session: Session, fields: Fields) -> str:
+    """Set the name the sender shows with in team alerts (D-119)."""
+    await store.set_member_name(session.conn, session.vault, session.member.id, fields["name"])
+    return session.reply("name.saved", name=fields["name"])
+
+
 async def _code(session: Session, fields: Fields) -> str:
     """Redeem an email verification code."""
     result = await store.redeem_email_code(
@@ -316,6 +322,7 @@ _HANDLERS: dict[str, Callable[[Session, Fields], Awaitable[str]]] = {
     "enroll": _already_enrolled,
     "team": _team,
     "my_email": _my_email,
+    "my_name": _my_name,
     "code": _code,
     "supplier": _supplier,
     "history": _history,
