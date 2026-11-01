@@ -2,6 +2,7 @@
 // the owner's, behind the session cookie from /entrar. The server picks one in #root.
 import React, { useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
+import { ago, clip, costPerCase, isToday, metric } from "./triage.js";
 import { Chips, Rows, STYLE, Tag, has, t, when } from "./ui.jsx";
 
 const EXAMPLES = ["bank", "courier", "legit"];
@@ -32,23 +33,45 @@ function useApi(url) {
 }
 
 const fixed = (digits) => (n) => (n == null ? "" : Number(n).toFixed(digits));
+// Rules-only verdicts cost nothing and wait for no analyst: 0 there means "not measured".
+const spent = (digits) => (n) => (n ? fixed(digits)(n) : "");
+
+const chips = (names, kind) => (names.length ? <div className="chips"><Chips names={names} kind={kind} /></div> : "");
+
+function Signals({ names }) {
+  const { shown, more } = clip(names);
+  return (
+    <div className="chips" title={names.join(", ")}>
+      <Chips names={shown} kind="sig" />
+      {more > 0 && <span className="chip tool">+{more}</span>}
+    </div>
+  );
+}
 
 const VERDICT_COLUMNS = [
   { key: "label", title: t("panel.col.label"), lead: true, cell: (r) => <Tag label={r.label} /> },
-  { key: "brand", title: t("panel.col.brand"), lead: true, cell: (r) => r.brand || "" },
-  { key: "time", title: t("panel.col.time"), cell: (r) => when(r.created_at) },
+  {
+    key: "time",
+    title: t("panel.col.time"),
+    cell: (r) => <time dateTime={r.created_at} title={when(r.created_at)}>{ago(r.created_at, new Date(), t)}</time>,
+  },
   { key: "kind", title: t("panel.col.kind"), cell: (r) => r.kind || "" },
-  { key: "confidence", title: t("panel.col.confidence"), cell: (r) => fixed(2)(r.confidence) },
+  { key: "brand", title: t("panel.col.brand"), lead: true, cell: (r) => r.brand || "" },
   {
     key: "signals",
     title: t("panel.col.signals"),
-    cell: (r) =>
-      r.signal_types.length ? <div className="chips"><Chips names={r.signal_types} kind="sig" /></div> : "",
+    cell: (r) => (r.signal_types.length ? <Signals names={r.signal_types} /> : ""),
   },
+];
+
+/** What a row keeps out of the table: blank entries are dropped, so rules mode shows less. */
+const verdictDetail = (r) => [
+  { key: "confidence", title: t("panel.col.confidence"), value: fixed(2)(r.confidence) },
+  { key: "signals", title: t("panel.col.signals"), value: chips(r.signal_types, "sig") },
   {
     key: "tools",
     title: t("panel.col.tools"),
-    cell: (r) =>
+    value:
       r.tools.length || r.alert_rejections.length ? (
         <div className="chips">
           <Chips names={r.tools} kind="tool" />
@@ -56,26 +79,40 @@ const VERDICT_COLUMNS = [
         </div>
       ) : "",
   },
-  { key: "usd", title: t("panel.col.usd"), cell: (r) => fixed(4)(r.usd) },
-  { key: "ms", title: t("panel.col.ms"), cell: (r) => String(r.latency_ms) },
+  { key: "usd", title: t("panel.col.usd"), value: spent(4)(r.usd) },
+  { key: "ms", title: t("panel.col.ms"), value: spent(0)(r.latency_ms) },
 ];
 
-function Today({ today }) {
+const LABELS = ["scam", "legit", "doubtful"];
+
+/** Today's counts, each one a filter over the table; the pressed one is the active filter. */
+function Today({ today, filter, setFilter }) {
   return (
     <div className="today">
       {t("panel.today")}
-      {["scam", "legit", "doubtful"].map((label) => (
-        <div key={label} className="card">
+      {LABELS.map((label) => (
+        <button
+          key={label}
+          type="button"
+          aria-pressed={filter === label}
+          onClick={() => setFilter(filter === label ? null : label)}
+        >
           {t(`verdict.label.${label}`)}
           <b>{today[label] || 0}</b>
-        </div>
+        </button>
       ))}
+      {filter && (
+        <button type="button" className="clear" onClick={() => setFilter(null)}>
+          {t("panel.filter.clear")} ✕
+        </button>
+      )}
     </div>
   );
 }
 
 function Try({ rulesOnly, onTried }) {
   const [text, setText] = useState("");
+  const [file, setFile] = useState("");
   const [busy, setBusy] = useState(false);
   const [failed, setFailed] = useState(false);
   const [tried, setTried] = useState(null);
@@ -106,6 +143,14 @@ function Try({ rulesOnly, onTried }) {
     analyze(body);
   }
 
+  // Enter sends, Shift+Enter breaks the line (not while an IME is composing).
+  function keyDown(event) {
+    if (event.key === "Enter" && !event.shiftKey && !event.nativeEvent.isComposing) {
+      event.preventDefault();
+      event.currentTarget.form.requestSubmit();
+    }
+  }
+
   const notes = tried
     ? [
         tried.notice,
@@ -116,27 +161,38 @@ function Try({ rulesOnly, onTried }) {
   return (
     <section className="panel try" aria-busy={busy}>
       <h2>{t("panel.try.title")}</h2>
-      <form onSubmit={submit}>
-        <textarea name="text" rows={3} value={text} onChange={(e) => setText(e.target.value)} />
-        <div className="actions">
-          <label>
-            {t("panel.try.file")}
-            <input type="file" name="file" accept="audio/*,image/*,application/pdf" />
-          </label>
-          <button className={`primary${busy ? " busy" : ""}`} type="submit" disabled={busy}>
-            {busy ? t("panel.try.busy") : t("panel.try.button")}
-          </button>
+      <form onSubmit={submit} className="ask">
+        <textarea
+          name="text"
+          rows={1}
+          value={text}
+          placeholder={t("panel.try.placeholder")}
+          aria-label={t("panel.try.title")}
+          onChange={(e) => setText(e.target.value)}
+          onKeyDown={keyDown}
+        />
+        <label className="file" title={file || t("panel.try.file.hint")}>
+          {file || t("panel.try.file")}
+          <input
+            type="file"
+            name="file"
+            accept="audio/*,image/*,application/pdf"
+            onChange={(e) => setFile(e.target.files[0]?.name || "")}
+          />
+        </label>
+        <button className={`primary${busy ? " busy" : ""}`} type="submit" disabled={busy}>
+          {busy ? t("panel.try.busy") : t("panel.try.button")}
+        </button>
+        <div className="examples">
+          <span>{t("panel.try.examples")}</span>
+          {EXAMPLES.map((name) => (
+            <button key={name} className="quick" type="button" disabled={busy} onClick={() => example(name)}>
+              {t(`panel.try.example.${name}`)}
+            </button>
+          ))}
         </div>
-        <p className="note">{t("panel.try.wait")}</p>
       </form>
-      <div className="examples">
-        <span>{t("panel.try.examples")}</span>
-        {EXAMPLES.map((name) => (
-          <button key={name} className="quick" type="button" disabled={busy} onClick={() => example(name)}>
-            {t(`panel.try.example.${name}`)}
-          </button>
-        ))}
-      </div>
+      {busy && <p className="note">{t("panel.try.wait")}</p>}
       {failed && <p className="error" role="alert">{t("panel.try.error")}</p>}
       {(tried?.rules_only ?? rulesOnly) && <p className="note">{t("panel.try.rules_only")}</p>}
       {notes.map((note) => (
@@ -148,7 +204,7 @@ function Try({ rulesOnly, onTried }) {
             {t("panel.try.result")} {when(tried.row.created_at).slice(6)}
           </h3>
           <div className="frame">
-            <Rows columns={VERDICT_COLUMNS} rows={[tried.row]} />
+            <Rows columns={VERDICT_COLUMNS} rows={[tried.row]} detail={verdictDetail} />
           </div>
         </div>
       )}
@@ -156,51 +212,69 @@ function Try({ rulesOnly, onTried }) {
   );
 }
 
+const HEADLINE = ["recall_estafa", "fp_legitimo"];
+
+/** Three numbers that answer "is it working": scams caught, false alarms, cost per case. */
 function Metrics({ result }) {
   if (!result) return <p className="note">{t("panel.no_metrics")}</p>;
-  const scalars = Object.entries(result.metricas || {}).filter(([, v]) =>
-    ["number", "string"].includes(typeof v),
+  const m = result.metricas || {};
+  const rest = Object.entries(m).filter(
+    ([name, v]) => !HEADLINE.includes(name) && ["number", "string"].includes(typeof v),
   );
-  const show = (v) => (typeof v === "number" && !Number.isInteger(v) ? v.toFixed(3) : String(v));
+  const headline = [
+    [t("panel.metric.caught"), metric("recall_estafa", m.recall_estafa)],
+    [t("panel.metric.false_alarms"), metric("fp_legitimo", m.fp_legitimo)],
+    [t("panel.metric.cost"), costPerCase(m)],
+  ];
   return (
-    <section className="metrics">
+    <section className="panel metrics">
       <h2>
         {t("panel.metrics")}
         {result.fecha ? ` · ${result.fecha}` : ""}
       </h2>
       <div className="cards">
-        {scalars.map(([name, value]) => (
-          <div key={name} className="card">
-            {has(`metric.${name}`) ? t(`metric.${name}`) : name}
-            <b>{show(value)}</b>
+        {headline.map(([title, value]) => (
+          <div key={title} className="card">
+            {title}
+            <b>{value}</b>
           </div>
         ))}
       </div>
+      <p className="note">
+        {rest
+          .map(([name, v]) => `${has(`metric.${name}`) ? t(`metric.${name}`) : name} ${metric(name, v)}`)
+          .join(" · ")}
+      </p>
     </section>
   );
 }
 
 function Operator() {
   const [{ data, failed }, reload] = useApi("/api/operator");
+  const [filter, setFilter] = useState(null);
+  // A counter counts today only, so its filter shows today's rows only.
+  const now = new Date();
+  const rows = data ? data.rows.filter((r) => !filter || (r.label === filter && isToday(r.created_at, now))) : [];
   return (
     <main>
       <header className="top">
         <h1>{t("panel.title")}</h1>
-        {data && <Today today={data.today} />}
+        {data && <Today today={data.today} filter={filter} setFilter={setFilter} />}
       </header>
+      <Metrics result={data?.metrics} />
       <Try rulesOnly={data?.rules_only} onTried={reload} />
       {failed && <p className="error" role="alert">{t("panel.try.error")}</p>}
       {!data && !failed && <p className="note">{t("owner.loading")}</p>}
       {data && (
-        <>
-          <section>
-            <h2>{t("panel.verdicts")}</h2>
-            <div className="frame">
-              <Rows columns={VERDICT_COLUMNS} rows={data.rows} empty={t("panel.empty")} />
-            </div>
-          </section>
-          <Metrics result={data.metrics} />
-        </>
+        <section>
+          <h2>
+            {t("panel.verdicts")}
+            {filter && ` · ${t("panel.filter.only", { label: t(`verdict.label.${filter}`) })}`}
+          </h2>
+          <div className="frame">
+            <Rows columns={VERDICT_COLUMNS} rows={rows} empty={t("panel.empty")} detail={verdictDetail} />
+          </div>
+        </section>
       )}
     </main>
   );
