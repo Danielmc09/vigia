@@ -424,38 +424,38 @@ async def test_t18b_nobody_is_alerted_from_a_number_that_never_wrote(
     assert outbox.to(QUIET) == [] and outbox.templates == []
 
 
-async def _owner_out_of_window(admin_conn: asyncpg.Connection) -> None:
-    await admin_conn.execute(
+async def _owner_out_of_window(app_conn: asyncpg.Connection) -> None:
+    await app_conn.execute(
         "UPDATE members SET last_inbound_at = now() - interval '25 hours'"
         " WHERE last_inbound_at IS NOT NULL AND role = 'owner'"
     )
 
 
 async def test_t18b_out_of_window_without_template_leaves_a_visible_rejection(
-    admin_conn: asyncpg.Connection, recorder: Recorder, keyring: Keyring
+    app_conn: asyncpg.Connection, recorder: Recorder, keyring: Keyring
 ) -> None:
     """Never silence: the panel shows why the owner got no alert."""
-    await team(admin_conn, recorder)
-    await _owner_out_of_window(admin_conn)
+    await team(app_conn, recorder)
+    await _owner_out_of_window(app_conn)
     outbox = Outbox()
 
-    await whatsapp.process(admin_conn, channel(keyring, outbox), incoming("texto", EMPLOYEE))
+    await whatsapp.process(app_conn, channel(keyring, outbox), incoming("texto", EMPLOYEE))
 
     assert outbox.to(OWNER) == [] and outbox.templates == []
-    newest, *_ = await store.panel_verdicts(admin_conn, 5)  # superuser: RLS does not narrow
+    newest, *_ = await store.panel_verdicts(app_conn, 5)
     assert newest.alert_rejections == ["TEMPLATE_PENDING"]
 
 
 async def test_t18b_out_of_window_with_template_sends_the_approved_template(
-    admin_conn: asyncpg.Connection, recorder: Recorder, keyring: Keyring
+    app_conn: asyncpg.Connection, recorder: Recorder, keyring: Keyring
 ) -> None:
-    await team(admin_conn, recorder)
-    await _owner_out_of_window(admin_conn)
+    await team(app_conn, recorder)
+    await _owner_out_of_window(app_conn)
     outbox = Outbox()
     config = Settings(WAZENDA_ALERT_TEMPLATE="alerta_equipo_estafa")
     ch = channel(keyring, outbox, config=config)
 
-    await whatsapp.process(admin_conn, ch, incoming("texto", EMPLOYEE))
+    await whatsapp.process(app_conn, ch, incoming("texto", EMPLOYEE))
 
     assert outbox.to(OWNER) == []
     [sent] = outbox.templates
@@ -465,20 +465,20 @@ async def test_t18b_out_of_window_with_template_sends_the_approved_template(
 
 
 async def test_t18b_a_template_wazenda_refused_is_visible_too(
-    admin_conn: asyncpg.Connection, recorder: Recorder, keyring: Keyring
+    app_conn: asyncpg.Connection, recorder: Recorder, keyring: Keyring
 ) -> None:
     """Never silence: a send that fails is a rejection on the verdict, not a log line."""
-    await team(admin_conn, recorder)
-    await _owner_out_of_window(admin_conn)
+    await team(app_conn, recorder)
+    await _owner_out_of_window(app_conn)
     outbox = Outbox()
     outbox.templates_fail = True
     config = Settings(WAZENDA_ALERT_TEMPLATE="alerta_equipo_estafa")
 
     await whatsapp.process(
-        admin_conn, channel(keyring, outbox, config=config), incoming("texto", EMPLOYEE)
+        app_conn, channel(keyring, outbox, config=config), incoming("texto", EMPLOYEE)
     )
 
-    newest, *_ = await store.panel_verdicts(admin_conn, 5)
+    newest, *_ = await store.panel_verdicts(app_conn, 5)
     assert newest.alert_rejections == ["CHANNEL_UNAVAILABLE"]
 
 
