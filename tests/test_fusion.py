@@ -8,12 +8,13 @@ from uuid import uuid4
 import pytest
 from pydantic import ValidationError
 
-from vigia.channel.templates import whatsapp_message
+from vigia.channel.templates import team_alert_message, whatsapp_message
 from vigia.domain.analyst import AnalystResult, Evidence
 from vigia.domain.case import Case
 from vigia.domain.signal import Signal
 from vigia.domain.urls import extract_urls
 from vigia.domain.verdict import Verdict
+from vigia.i18n import t
 from vigia.signals.country_pack import country_pack
 from vigia.signals.detector import detect
 from vigia.verdict.build import build_verdict
@@ -537,6 +538,56 @@ def test_a_link_imitating_the_wallet_keeps_it_impersonated_beside_another_brand(
     verdict = build_verdict(case, Evidence(signals=detect(case, pack)), pack)
 
     assert verdict.impersonated_brand == "Nequi"
+
+
+@pytest.mark.parametrize("lang", ["es", "en"])
+def test_inc_cuenta_destino_a_bank_beside_an_account_number_is_the_rail_only(lang: str) -> None:
+    """Incident 31 oct case 19: a made-up supplier's invoice said "no viene de Bancolombia".
+
+    Bancolombia was only where the money goes, even as the only brand of the message and
+    even when the analyst names it; the team alert must not blame it either (D-118).
+    """
+    pack = country_pack("CO")
+    assert pack is not None
+    case = _eval_case("c-0246")
+    analyst = AnalystResult(
+        label="scam",
+        confidence=0.92,
+        signals=[
+            Signal(
+                type="brand_mentioned",
+                weight="hard",
+                source="analyst",
+                evidence={"brand": "Bancolombia"},
+            )
+        ],
+    )
+
+    verdict = build_verdict(case, Evidence(signals=detect(case, pack), analyst=analyst), pack)
+    alert = team_alert_message(lang, "Luis", verdict, case)
+
+    assert verdict.impersonated_brand is None
+    assert verdict.official_channel is None
+    assert verdict.user_explanation.startswith(
+        t("es", "verdict.scam.rail", rail="Bancolombia")
+    )
+    assert t(lang, "verdict.scam.rail", rail="Bancolombia") in whatsapp_message(verdict, lang)
+    assert "Bancolombia" not in alert
+
+
+@pytest.mark.parametrize(("case_id", "brand"), [("c-0001", "Bancolombia"), ("c-0231", "Nequi")])
+def test_a_bank_or_wallet_that_is_imitated_stays_impersonated(case_id: str, brand: str) -> None:
+    """D-118 guard: a lookalike link or "soy de Nequi" with no account number is the brand."""
+    pack = country_pack("CO")
+    assert pack is not None
+    case = _eval_case(case_id)
+
+    verdict = build_verdict(
+        case, Evidence(signals=detect(case, pack), analyst=_analyst("scam", 0.92)), pack
+    )
+
+    assert verdict.impersonated_brand == brand
+    assert verdict.user_explanation.startswith(t("es", "verdict.scam.brand", brand=brand))
 
 
 def _landed(via: str) -> Signal:
