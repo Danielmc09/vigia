@@ -568,9 +568,7 @@ def test_inc_cuenta_destino_a_bank_beside_an_account_number_is_the_rail_only(lan
 
     assert verdict.impersonated_brand is None
     assert verdict.official_channel is None
-    assert verdict.user_explanation.startswith(
-        t("es", "verdict.scam.rail", rail="Bancolombia")
-    )
+    assert verdict.user_explanation.startswith(t("es", "verdict.scam.rail", rail="Bancolombia"))
     assert "Bancolombia" not in alert
 
 
@@ -590,7 +588,8 @@ def test_a_bank_or_wallet_that_is_imitated_stays_impersonated(case_id: str, bran
 
 
 @pytest.mark.parametrize(
-    ("case_id", "country", "brand"), [("c-0247", "CO", "Bancolombia"), ("c-0249", "US", "Chase")]
+    ("case_id", "country", "brand"),
+    [("c-0247", "CO", "Bancolombia"), ("c-0249", "US", "Chase"), ("c-0250", "US", "Chase")],
 )
 def test_inc_su_cuenta_the_recipients_own_account_keeps_the_bank_impersonated(
     case_id: str, country: str, brand: str
@@ -605,9 +604,7 @@ def test_inc_su_cuenta_the_recipients_own_account_keeps_the_bank_impersonated(
     )
 
     assert verdict.impersonated_brand == brand
-    assert verdict.user_explanation.startswith(
-        t(pack.language, "verdict.scam.brand", brand=brand)
-    )
+    assert verdict.user_explanation.startswith(t(pack.language, "verdict.scam.brand", brand=brand))
 
 
 def test_inc_pay_to_chase_a_us_bank_the_money_goes_to_is_the_rail() -> None:
