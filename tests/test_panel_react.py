@@ -72,7 +72,7 @@ def test_the_react_operator_shell_sits_beside_the_panel_behind_the_same_token() 
     assert shell.status_code == 200
     assert '<script src="/app.js"' in shell.text
     assert "script-src 'self'" in shell.headers["content-security-policy"]
-    assert client.get("/panel").status_code == 200  # the server-rendered panel stays
+    assert '<script src="/app.js"' in client.get("/panel").text  # /panel is the shell too
 
 
 def test_the_shell_embeds_its_strings_as_data_not_code() -> None:

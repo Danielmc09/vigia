@@ -334,7 +334,10 @@ def test_panel_with_the_bearer_token_renders_without_caching(tmp_path: Path) -> 
     assert response.headers["content-type"].startswith("text/html")
     assert response.headers["cache-control"] == "no-store"
     assert "default-src 'none'" in response.headers["content-security-policy"]
-    assert "Bancolombia" in response.text and "0.97" in response.text
+    assert '<script src="/app.js"' in response.text  # the React shell, D-121
+    bearer = {"Authorization": f"Bearer {TOKEN}"}
+    data = _client(TOKEN, metrics).get("/api/operator", headers=bearer)
+    assert "Bancolombia" in data.text and "0.97" in data.text
 
 
 def test_panel_accepts_the_token_as_a_cookie() -> None:
@@ -481,14 +484,14 @@ def test_without_a_model_key_the_panel_says_rules_only() -> None:
     client = _client(TOKEN)
     client.cookies.set("vigia_panel", TOKEN)
 
-    assert "Rules only" in client.get("/panel").text
+    assert client.get("/api/operator").json()["rules_only"] is True
 
 
 def test_with_a_model_key_the_form_does_not_say_rules_only() -> None:
     client = _client(TOKEN, model_key="not-a-real-key")
     client.cookies.set("vigia_panel", TOKEN)
 
-    assert "Rules only" not in client.get("/panel").text
+    assert client.get("/api/operator").json()["rules_only"] is False
 
 
 def test_the_try_form_asks_the_analyst() -> None:

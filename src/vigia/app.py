@@ -136,7 +136,7 @@ async def _panel_page(
         form: The empty "try it" block (whether it says rules only).
 
     Returns:
-        The page (``/panel``) or the React shell (``/app``, D-121); 404 when no token is
+        The React operator shell (D-121), at ``/panel`` and ``/app``; 404 when no token is
         configured, 401 without the right one; a ``?token=`` link redirects to the same path
         with the token as a cookie (D-088).
     """
@@ -149,9 +149,7 @@ async def _panel_page(
         )
         return response
     _require_token(_presented_token(request), config.panel_token)
-    if request.url.path == "/app":
-        return HTMLResponse(render_shell("operator", LANG), headers=PANEL_HEADERS)
-    return await _panel_html(config, source, form)
+    return HTMLResponse(render_shell("operator", LANG), headers=PANEL_HEADERS)
 
 
 async def _panel_html(config: Settings, source: PanelSource, form: TryForm) -> HTMLResponse:
