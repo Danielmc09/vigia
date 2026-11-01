@@ -15,6 +15,7 @@ from vigia.domain.text import fold
 from vigia.domain.urls import split_url
 from vigia.domain.verdict import Action, Label, Verdict
 from vigia.i18n import has_key, t
+from vigia.signals.address_book import ACCOUNT_CONTEXT_CHARS, account_numbers
 from vigia.signals.urls import registrable_domain
 from vigia.verdict.fusion import LEGIT, SCAM, fuse, soften_citations
 
@@ -23,6 +24,8 @@ _SALE_ACTIONS: dict[str, Action] = {"extortion": "block_and_report", "already_pa
 
 RAIL_KINDS = frozenset({"billetera", "pagos"})
 """Where the money goes, not who is impersonated, when another brand is named (D-107)."""
+ACCOUNT_KINDS = RAIL_KINDS | {"banco"}
+"""Brands that hold accounts: one written beside an account number is the rail (D-118)."""
 
 MAX_EXPLANATION_SIGNALS = 3  # specs/05 template: "Señales: {hasta 3}"
 
@@ -101,6 +104,24 @@ def _brands_in_body(text: str, pack: CountryPack) -> list[Brand]:
     return [brand for _, brand in sorted(named, key=lambda pair: pair[0])]
 
 
+def _paid_to(text: str, pack: CountryPack) -> set[str]:
+    """Names of account-holding brands written beside an account number (D-118).
+
+    The money goes there, so they are the rail even as the only brand of the message.
+    """
+    return {
+        brand.name
+        for match in account_numbers(text, pack)
+        for brand in _brands_in_body(
+            text[
+                max(0, match.start() - ACCOUNT_CONTEXT_CHARS) : match.end() + ACCOUNT_CONTEXT_CHARS
+            ],
+            pack,
+        )
+        if brand.kind in ACCOUNT_KINDS
+    }
+
+
 def _impersonated(candidates: Sequence[Brand]) -> Brand | None:
     """The first brand that is not a payment rail; a lone wallet stays impersonated (D-107).
 
@@ -135,6 +156,8 @@ def _action(label: Label, signals: Sequence[Signal]) -> Action:
 
 def _header(lang: str, label: Label, brand: Brand | None, rail: Brand | None) -> str:
     """specs/05 rule 6 first line: who is impersonated and, if named, where the money goes."""
+    if label == SCAM and brand is None and rail is not None:
+        return t(lang, f"verdict.{SCAM}.rail", rail=rail.name)
     if label != SCAM or brand is None:
         return t(lang, f"verdict.{label}.header")
     if rail is None:
@@ -180,9 +203,14 @@ def build_verdict(case: Case, evidence: Evidence, pack: CountryPack) -> Verdict:
     named = _brands_in_body(case.text or "", pack) if label == SCAM else []
     detected = _hard_signal_brands([s for s in all_signals if s.source != "analyst"], pack)
     reported = _hard_signal_brands([s for s in all_signals if s.source == "analyst"], pack)
-    brand = detected[0] if detected else _impersonated(reported + named)
-    # D-065: the rail is a wallet the message names, never one only the model brings
-    rail = next((b for b in named if b.kind in RAIL_KINDS and b != brand), None)
+    # D-118: who it poses as comes from the detector; a bank beside an account is the rail
+    paid_to = _paid_to(case.text or "", pack) if label == SCAM else set()
+    candidates = [b for b in reported + named if b.name not in paid_to]
+    brand = detected[0] if detected else _impersonated(candidates)
+    # D-065: the rail is a brand the message names, never one only the model brings
+    rail = next(
+        (b for b in named if (b.kind in RAIL_KINDS or b.name in paid_to) and b != brand), None
+    )
     return Verdict(
         case_id=str(case.id),
         business_id=str(case.business_id),

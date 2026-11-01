@@ -4,7 +4,7 @@ The book arrives already resolved (decrypted by the store), so the rules stay pu
 """
 
 import re
-from collections.abc import Sequence
+from collections.abc import Iterator, Sequence
 
 from vigia.domain.case import Case
 from vigia.domain.country import CountryPack
@@ -32,15 +32,27 @@ def _same_origin(sender: str, known: str) -> bool:
     )
 
 
-def _accounts(text: str, pack: CountryPack) -> set[str]:
-    """Numbers that come right after an account keyword of the pack (not phones or amounts)."""
-    found = set()
+def account_numbers(text: str, pack: CountryPack) -> Iterator[re.Match[str]]:
+    """Numbers that come right after an account keyword of the pack (not phones or amounts).
+
+    Args:
+        text: Text to search.
+        pack: Country pack with the account keywords.
+
+    Yields:
+        Each account number match; offsets are valid in ``text``.
+    """
     for match in _NUMBER.finditer(text):
         before = text[max(0, match.start() - ACCOUNT_CONTEXT_CHARS) : match.start()]
-        digits = only_digits(match.group())
-        if len(digits) >= MIN_ACCOUNT_DIGITS and find_pattern(before, pack, "cuenta_bancaria"):
-            found.add(digits)
-    return found
+        if len(only_digits(match.group())) >= MIN_ACCOUNT_DIGITS and find_pattern(
+            before, pack, "cuenta_bancaria"
+        ):
+            yield match
+
+
+def _accounts(text: str, pack: CountryPack) -> set[str]:
+    """The digits of every account number of the text."""
+    return {only_digits(match.group()) for match in account_numbers(text, pack)}
 
 
 def address_book_signals(

@@ -2,6 +2,7 @@
   "verdict.scam.header": "This is a scam.",
   "verdict.scam.brand": "This is a scam: it does not come from {brand}.",
   "verdict.scam.brand_rail": "This is a scam: it poses as {brand} and asks for payment to a {rail} account.",
+  "verdict.scam.rail": "This is a scam: it asks for payment to a {rail} account, and you cannot tell who is asking.",
   "verdict.legit.header": "This is legitimate.",
   "verdict.doubtful.header": "Unclear: handle it with care.",
   "command.enroll": "hello",

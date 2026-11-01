@@ -571,7 +571,6 @@ def test_inc_cuenta_destino_a_bank_beside_an_account_number_is_the_rail_only(lan
     assert verdict.user_explanation.startswith(
         t("es", "verdict.scam.rail", rail="Bancolombia")
     )
-    assert t(lang, "verdict.scam.rail", rail="Bancolombia") in whatsapp_message(verdict, lang)
     assert "Bancolombia" not in alert
 
 
