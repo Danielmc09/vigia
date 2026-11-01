@@ -200,6 +200,7 @@
   "panel.ask_owner.unnamed": "The panel is for the owner only. Ask the business owner for access.",
   "panel.enter": "Enter",
   "panel.enter.intro": "Tap the button to open your business's panel.",
+  "panel.enter.ttl": "The link works once and expires in {minutes} minutes.",
   "panel.link_invalid": "This link no longer works. Send *panel* on WhatsApp to get a new one.",
   "panel.shell_error": "The panel failed to load. Send *panel* on WhatsApp or reload the page.",
   "owner.title": "VIGÍA · {business}",

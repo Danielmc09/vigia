@@ -350,3 +350,64 @@ async def test_each_view_has_its_own_authentication(committed: str, keyring: Key
     assert stranger.get("/api/owner", headers=operator).status_code == 401
     assert owner.get("/api/operator").status_code == 401
     assert stranger.get("/api/operator", headers=operator).status_code == 200
+
+
+async def test_the_door_is_a_card_in_one_language(committed: str, keyring: Keyring) -> None:
+    """D-128: a centered card, system font, one language picked by Accept-Language."""
+    client = _client(keyring)
+
+    spanish = client.get(f"/entrar/{committed}", follow_redirects=False)
+    english = client.get(
+        f"/entrar/{committed}",
+        follow_redirects=False,
+        headers={"Accept-Language": "en-US,en;q=0.9"},
+    )
+
+    for page, lang in ((spanish, "es"), (english, "en")):
+        assert f'<html lang="{lang}">' in page.text
+        assert page.text.count("<form") == 1  # one button, no stacked languages
+        assert escape(t(lang, "panel.enter")) in page.text
+        other = "en" if lang == "es" else "es"
+        assert escape(t(other, "panel.enter")) not in page.text
+        minutes = int(store.PANEL_LINK_TTL.total_seconds() // 60)
+        assert escape(t(lang, "panel.enter.ttl", minutes=minutes)) in page.text
+    assert "VIGÍA" in spanish.text
+
+
+async def test_a_spent_link_shows_the_card_styled_refusal(
+    committed: str, keyring: Keyring
+) -> None:
+    client = _client(keyring)
+    client.post(f"/entrar/{committed}", follow_redirects=False)  # spends it
+
+    spent = client.post(f"/entrar/{committed}", follow_redirects=False)
+    english = TestClient(client.app).post(
+        f"/entrar/{committed}", follow_redirects=False, headers={"Accept-Language": "en"}
+    )
+
+    assert spent.status_code == english.status_code == 403
+    assert spent.headers["content-type"].startswith("text/html")
+    assert escape(t("es", "panel.link_invalid")) in spent.text
+    assert escape(t("en", "panel.link_invalid")) in english.text
+    assert escape(t("es", "panel.link_invalid")) not in english.text
+    assert '<form method="post"' not in spent.text
+
+
+async def test_an_expired_link_shows_the_card_styled_refusal(
+    committed: str, keyring: Keyring
+) -> None:
+    conn = await asyncpg.connect(Settings().database_url)
+    try:
+        async with conn.transaction():
+            member = await store.find_member(conn, keyring.hash("+573000000221"))
+            assert member is not None
+            stale = await store.issue_panel_link(conn, member, ttl=timedelta(seconds=-1))
+    finally:
+        await conn.close()
+
+    expired = _client(keyring).post(f"/entrar/{stale}", follow_redirects=False)
+
+    assert expired.status_code == 403
+    assert expired.headers["content-type"].startswith("text/html")
+    assert escape(t("es", "panel.link_invalid")) in expired.text
+    assert '<div class="card">' in expired.text
