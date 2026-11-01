@@ -304,6 +304,37 @@ async def test_history_lists_the_last_five_verdicts_newest_first(
     assert len(lines) == 6
 
 
+@pytest.mark.parametrize(
+    ("owner", "hello", "lang"),
+    [(OWNER, "hola Ferreteria El Tornillo CO", "es"), (US_OWNER, "hello Corner Hardware US", "en")],
+)
+async def test_history_line_says_which_case_brand_and_kind(
+    app_conn: asyncpg.Connection, recorder: Recorder, owner: str, hello: str, lang: str
+) -> None:
+    """Incident 31 oct: five lines saying "estafa" without saying of what."""
+    await handle(app_conn, recorder.ports, message(owner, hello))
+    await app_conn.execute(
+        "WITH c AS (INSERT INTO cases (business_id, kind, origin, ref)"
+        " SELECT id, 'audio', 'local', 22 FROM businesses RETURNING id, business_id)"
+        " INSERT INTO verdicts (business_id, case_id, label, brand, kind, created_at)"
+        " SELECT business_id, id, 'scam', 'Bancolombia', 'audio',"
+        " make_timestamptz(2026, 10, 30, 12, 0, 0) FROM c"
+    )
+
+    reply = await handle(app_conn, recorder.ports, message(owner, t(lang, "command.history")))
+
+    assert reply is not None
+    assert reply.splitlines()[1] == " · ".join(
+        [
+            "2026-10-30",
+            t(lang, "history.case", ref="22"),
+            t(lang, "verdict.label.scam"),
+            "Bancolombia",
+            t(lang, "team_alert.kind.audio"),
+        ]
+    )
+
+
 async def test_help_lists_the_commands(app_conn: asyncpg.Connection, recorder: Recorder) -> None:
     await _enroll_owner(app_conn, recorder)
 
