@@ -48,11 +48,13 @@ class Contact:
         phone: E.164 phone number.
         name: Display name, if known.
         last_inbound_at: When they last wrote to VIGIA; ``None`` if they never did.
+        id: Member id, to match the reporter of a case (D-127).
     """
 
     phone: str
     name: str | None = None
     last_inbound_at: datetime | None = None
+    id: UUID | None = None
 
 
 @dataclass(frozen=True)

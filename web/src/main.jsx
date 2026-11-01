@@ -302,7 +302,7 @@ function Report({ report, now }) {
         <Tag label={report.label} />
         {report.brand && <b>{report.brand}</b>}
         <span className="note">
-          {kind(report.kind)} ·{" "}
+          {report.reporter} · {kind(report.kind)} ·{" "}
           <time dateTime={report.at} title={when(report.at)}>{ago(report.at, now, t)}</time>
         </span>
       </div>

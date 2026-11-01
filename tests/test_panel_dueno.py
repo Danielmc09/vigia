@@ -211,6 +211,30 @@ async def test_owner_reads_the_same_reason_and_action_the_team_got(
     assert "brand_off_domain" not in repr(view)
 
 
+async def test_owner_view_shows_who_reported_each_case(
+    app_conn: asyncpg.Connection, recorder: Recorder
+) -> None:
+    """The owner's first question: who sent it. Same name/fallback as the team alert (D-127)."""
+    await _business(app_conn, recorder)
+    business_id, vault = await _open(app_conn, recorder.keyring)
+    luis = await store.find_member(app_conn, recorder.keyring.hash(EMPLOYEE))
+    assert luis is not None
+    case = _case(business_id)
+    await store.save_case(app_conn, vault, case, member_id=luis.id)
+    await store.save_verdict(app_conn, vault, case, _verdict(case))
+    session = await store.enter_panel(app_conn, await _link(app_conn, recorder))
+    assert session is not None
+
+    view = await owner_view(app_conn, recorder.keyring, session)
+
+    assert view is not None
+    assert all("member_id" not in c for c in view["cases"])  # the raw id never leaves
+    reporters = [c["reporter"] for c in view["cases"]]
+    assert "Luis" in reporters
+    # _business's directly-inserted verdict has no case/member: falls back like the team alert.
+    assert t("es", "team_alert.someone") in reporters
+
+
 async def test_owner_view_needs_a_live_owner_session(
     app_conn: asyncpg.Connection, recorder: Recorder
 ) -> None:

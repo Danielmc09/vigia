@@ -11,6 +11,7 @@ import asyncpg
 
 from vigia.channel.templates import reason_and_action
 from vigia.domain.verdict import Verdict
+from vigia.i18n import t
 from vigia.store import postgres as store
 from vigia.store.crypto import Keyring
 
@@ -47,16 +48,23 @@ async def owner_view(
             return None
         business, vault = await store.open_business(conn, keyring, business_id)
         cases = await store.owner_cases(conn, vault, limit=OWNER_CASES)
+        team = await store.team(conn, vault)
+        # Same resolution as the WhatsApp team alert (D-127): a name, or the same fallback.
+        someone = t(business.language, "team_alert.someone")
+        names = {m.id: m.name for m in team if m.name}
         return {
             "business": await store.business_name(conn, vault),
             "language": business.language,
             "cases": [
-                {**c._asdict(), "at": c.at.isoformat(), **_said(v, business.language)}
+                {
+                    **{k: v for k, v in c._asdict().items() if k != "member_id"},
+                    "at": c.at.isoformat(),
+                    "reporter": names.get(c.member_id) or someone,
+                    **_said(v, business.language),
+                }
                 for c, v in cases
             ],
             # Last four digits only: enough to tell two Luises apart, not a phone book.
-            "team": [
-                {"name": m.name, "phone": "…" + m.phone[-4:]} for m in await store.team(conn, vault)
-            ],
+            "team": [{"name": m.name, "phone": "…" + m.phone[-4:]} for m in team],
             "suppliers": [asdict(s) for s in await store.suppliers(conn, vault)],
         }

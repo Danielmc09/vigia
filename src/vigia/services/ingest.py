@@ -93,7 +93,7 @@ async def handle(conn: asyncpg.Connection, ports: Ports, msg: IncomingMessage) -
         again := await repeated(conn, vault, key, business.language)
     ):
         return again
-    ref = await store.save_case(conn, vault, case)
+    ref = await store.save_case(conn, vault, case, member_id=member.id)
     if ref is None:
         telemetry.count("rejected", "duplicate")
         return t(business.language, "case.duplicate")

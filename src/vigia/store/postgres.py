@@ -333,13 +333,16 @@ async def add_supplier(conn: asyncpg.Connection, vault: Vault, supplier: Supplie
     )
 
 
-async def save_case(conn: asyncpg.Connection, vault: Vault, case: Case) -> int | None:
+async def save_case(
+    conn: asyncpg.Connection, vault: Vault, case: Case, member_id: UUID | None = None
+) -> int | None:
     """Store a case once per channel message id, with the next number of its business.
 
     Args:
         conn: Connection scoped to the business.
         vault: Open vault of the business.
         case: Normalized case.
+        member_id: Who reported it, for the owner panel (D-127); ``None`` when unknown.
 
     Returns:
         The case number the member sees (D-091), or ``None`` if a case with the same
@@ -353,7 +356,7 @@ async def save_case(conn: asyncpg.Connection, vault: Vault, case: Case) -> int |
         "WITH n AS (UPDATE businesses SET case_seq = case_seq + 1 WHERE id = $2"
         " RETURNING case_seq)"
         " INSERT INTO cases (id, business_id, kind, origin, message_id_hash, text_enc, ref,"
-        " content_hash) SELECT $1, $2, $3, $4, $5, $6, n.case_seq, $7 FROM n"
+        " content_hash, member_id) SELECT $1, $2, $3, $4, $5, $6, n.case_seq, $7, $8 FROM n"
         " ON CONFLICT (business_id, message_id_hash) DO NOTHING RETURNING ref",
         case.id,
         vault.business_id,
@@ -362,6 +365,7 @@ async def save_case(conn: asyncpg.Connection, vault: Vault, case: Case) -> int |
         message_hash,
         vault.seal("cases.text", case.text) if case.text else None,
         _content_hash(vault, content) if content else None,
+        member_id,
     )
     return ref
 
@@ -435,6 +439,7 @@ class HistoryRow(NamedTuple):
         label: ``scam``, ``legit`` or ``doubtful``.
         brand: Impersonated brand, if any.
         kind: Case kind (``text``, ``audio``...), if recorded.
+        member_id: Who reported it (D-127), ``None`` for cases stored without one.
     """
 
     at: datetime
@@ -442,6 +447,7 @@ class HistoryRow(NamedTuple):
     label: Label
     brand: str | None
     kind: str | None
+    member_id: UUID | None
 
 
 async def recent_verdicts(conn: asyncpg.Connection, limit: int = 5) -> list[HistoryRow]:
@@ -462,12 +468,16 @@ async def _verdict_rows(
 ) -> list[tuple[HistoryRow, bytes | None]]:
     """Latest verdicts, newest first, each with its sealed payload (``None`` on old rows)."""
     rows = await conn.fetch(
-        "SELECT v.created_at AS at, c.ref, v.label, v.brand, v.kind, v.payload_enc FROM verdicts v"
-        " LEFT JOIN cases c ON c.id = v.case_id ORDER BY v.created_at DESC LIMIT $1",
+        "SELECT v.created_at AS at, c.ref, v.label, v.brand, v.kind, c.member_id,"
+        " v.payload_enc FROM verdicts v LEFT JOIN cases c ON c.id = v.case_id"
+        " ORDER BY v.created_at DESC LIMIT $1",
         limit,
     )
     return [
-        (HistoryRow(r["at"], r["ref"], r["label"], r["brand"], r["kind"]), r["payload_enc"])
+        (
+            HistoryRow(r["at"], r["ref"], r["label"], r["brand"], r["kind"], r["member_id"]),
+            r["payload_enc"],
+        )
         for r in rows
     ]
 
@@ -640,7 +650,7 @@ async def team(conn: asyncpg.Connection, vault: Vault) -> list[Contact]:
         Their contacts, oldest member first; the owner first on a tie (one transaction).
     """
     rows = await conn.fetch(
-        "SELECT phone_enc, name_enc, last_inbound_at FROM members"
+        "SELECT id, phone_enc, name_enc, last_inbound_at FROM members"
         " WHERE business_id = $1 ORDER BY created_at, role <> 'owner', id",
         vault.business_id,
     )
@@ -649,6 +659,7 @@ async def team(conn: asyncpg.Connection, vault: Vault) -> list[Contact]:
             vault.open("members.phone", r["phone_enc"]),
             vault.open("members.name", r["name_enc"]) if r["name_enc"] else None,
             r["last_inbound_at"],
+            r["id"],
         )
         for r in rows
     ]

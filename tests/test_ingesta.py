@@ -10,6 +10,7 @@ from vigia.domain.attachment import Attachment
 from vigia.domain.urls import extract_urls
 from vigia.i18n import t
 from vigia.services.ingest import handle
+from vigia.store import postgres as store
 
 OWNER = "+573000000301"
 STRANGER = "+573000000399"
@@ -92,6 +93,10 @@ async def test_text_from_member_becomes_a_case_with_urls(
     assert (case.kind, case.country, case.text) == ("text", "CO", text)
     assert case.urls == ["bancolombia-seguro.co/v"]
     assert await app_conn.fetchval("SELECT count(*) FROM cases") == 1
+    # The owner panel shows who reported it (D-127).
+    sender = await store.find_member(app_conn, recorder.keyring.hash(OWNER))
+    assert sender is not None
+    assert await app_conn.fetchval("SELECT member_id FROM cases") == sender.id
 
 
 async def test_message_that_is_only_a_link_is_a_url_case(
