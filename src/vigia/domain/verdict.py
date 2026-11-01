@@ -93,6 +93,7 @@ class VerdictRow(BaseModel, frozen=True):
         confidence: Verdict confidence, if recorded.
         signal_types: Deterministic signal types only; the analyst's never (D-060).
         tools: Distinct tool and model names the case used.
+        steps: Every analyst call in order (``name``, ``ms`` or None if unmeasured) (D-129).
         usd: Spend of the case.
         latency_ms: End-to-end time of the case.
         alert_rejections: Why a team alert could not go out (``TEMPLATE_PENDING``).
@@ -105,6 +106,7 @@ class VerdictRow(BaseModel, frozen=True):
     confidence: float | None = None
     signal_types: list[str] = Field(default_factory=list)
     tools: list[str] = Field(default_factory=list)
+    steps: list[dict[str, Any]] = Field(default_factory=list)
     usd: float = 0.0
     latency_ms: int = 0
     alert_rejections: list[str] = Field(default_factory=list)
@@ -131,6 +133,7 @@ class VerdictRow(BaseModel, frozen=True):
                 dict.fromkeys(s.type for s in verdict.signals if s.source != "analyst")
             ),
             tools=list(dict.fromkeys(str(tool.get("name")) for tool in verdict.tools_used)),
+            steps=[{"name": str(t.get("name")), "ms": t.get("ms")} for t in verdict.tools_used],
             usd=verdict.usd,
             latency_ms=verdict.total_latency_ms,
         )

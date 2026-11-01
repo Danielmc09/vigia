@@ -62,3 +62,16 @@ export function shownColumns(columns, rows) {
 export function clip(names, keep = 2) {
   return { shown: names.slice(0, keep), more: Math.max(0, names.length - keep) };
 }
+
+/** Each call in the order the case made it, with its time, then what was decided (D-129). */
+export function sequence(r, t) {
+  if (!r.steps.length) return [];
+  const verdict = t("panel.step.verdict", {
+    label: t(`verdict.label.${r.label}`),
+    confidence: r.confidence == null ? "–" : r.confidence.toFixed(2),
+  });
+  return [
+    ...r.steps.map((s, i) => [`${i ? "→ " : ""}${s.name}`, s.ms == null ? "" : `${s.ms} ${t("panel.col.ms")}`]),
+    [`→ ${verdict}`, ""],
+  ];
+}

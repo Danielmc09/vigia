@@ -105,6 +105,11 @@ async def test_panel_rows_carry_only_non_pii_columns(
     assert row.confidence == pytest.approx(0.9)
     assert row.signal_types == ["brand_off_domain"]  # analyst types never leave (D-060)
     assert row.tools == ["analyze_url", "muse-spark-1.3"]
+    assert row.steps == [  # in call order, repeats kept: the panel shows what the model chose
+        {"name": "analyze_url", "ms": 10},
+        {"name": "muse-spark-1.3", "ms": 900},
+        {"name": "muse-spark-1.3", "ms": 800},
+    ]
     assert row.usd == pytest.approx(0.005)
     assert row.latency_ms == 1750
     dumped = row.model_dump_json()

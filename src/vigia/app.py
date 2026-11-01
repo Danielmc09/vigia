@@ -354,7 +354,7 @@ def _form_fields(content_type: str, body: bytes) -> dict[str, bytes]:
 
 
 def _read_steps(media: whatsapp.Media) -> list[str]:
-    """What read the file before the verdict, for the row's tools."""
+    """What read the file before the verdict, for the row's tools and steps."""
     found = {"audio": ["transcribe"], "image": ["read_image"], "document": ["read_pdf"]}
     return found.get(media.kind, []) + (["decode_qr"] if media.transcript.qr_urls else [])
 
@@ -588,7 +588,9 @@ def _try_it(
         row = VerdictRow.of(verdict, media.kind, datetime.now(UTC))
         # The read is paid too: the row shows the whole case, like the webhook's stages.
         usd = row.usd + media.transcript.usd
-        row = row.model_copy(update={"tools": _read_steps(media) + row.tools, "usd": usd})
+        read = _read_steps(media)
+        steps = [{"name": name} for name in read] + row.steps
+        row = row.model_copy(update={"tools": read + row.tools, "steps": steps, "usd": usd})
         return TryForm(row=row, read=text, links=media.transcript.qr_urls)
 
     return try_it, analyst is None and chat is None

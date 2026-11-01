@@ -204,6 +204,10 @@ padding:1px 8px;font-size:13px;font-weight:600}
 .l-doubtful{color:var(--maybe);background:var(--maybe-bg);border-style:dashed}
 .l-doubtful::before{content:"?";margin-right:.35em}
 .chips{display:flex;flex-wrap:wrap;gap:4px}
+.steps{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:auto auto;
+justify-content:start;column-gap:16px;font:12px/1.6 ui-monospace,SFMono-Regular,Menlo,monospace}
+.steps li{display:contents}
+.steps .num{text-align:right;color:var(--muted)}
 .chip{border-radius:4px;padding:1px 6px;font-size:12px;overflow-wrap:break-word;
 font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
 .sig{color:var(--sig);background:var(--sig-bg);border-left:3px solid var(--sig-edge)}

@@ -119,6 +119,7 @@
   "panel.col.confidence": "Confidence",
   "panel.col.signals": "Signals",
   "panel.col.tools": "Tools",
+  "panel.step.verdict": "verdict: {label} ({confidence})",
   "panel.col.usd": "USD",
   "panel.col.ms": "ms",
   "panel.try.title": "Try it",

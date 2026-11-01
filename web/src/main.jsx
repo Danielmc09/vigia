@@ -2,7 +2,7 @@
 // the owner's, behind the session cookie from /entrar. The server picks one in #root.
 import React, { useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
-import { ago, clip, costPerCase, isToday, metric } from "./triage.js";
+import { ago, clip, costPerCase, isToday, metric, sequence } from "./triage.js";
 import { Chips, Rows, STYLE, Tag, has, t, when } from "./ui.jsx";
 
 const EXAMPLES = ["bank", "courier", "legit"];
@@ -48,6 +48,21 @@ function Signals({ names }) {
   );
 }
 
+/** The calls in the order the case made them: where the panel shows the model deciding. */
+function Steps({ r }) {
+  const lines = sequence(r, t);
+  return lines.length ? (
+    <ol className="steps">
+      {lines.map(([name, ms], i) => (
+        <li key={i}>
+          <span>{name}</span>
+          <span className="num">{ms}</span>
+        </li>
+      ))}
+    </ol>
+  ) : null;
+}
+
 const VERDICT_COLUMNS = [
   { key: "label", title: t("panel.col.label"), lead: true, cell: (r) => <Tag label={r.label} /> },
   {
@@ -73,10 +88,13 @@ const verdictDetail = (r) => [
     title: t("panel.col.tools"),
     value:
       r.tools.length || r.alert_rejections.length ? (
-        <div className="chips">
-          <Chips names={r.tools} kind="tool" />
-          <Chips names={r.alert_rejections} kind="warn" />
-        </div>
+        <>
+          <Steps r={r} />
+          <div className="chips">
+            {!r.steps.length && <Chips names={r.tools} kind="tool" />}
+            <Chips names={r.alert_rejections} kind="warn" />
+          </div>
+        </>
       ) : "",
   },
   { key: "usd", title: t("panel.col.usd"), value: spent(4)(r.usd) },

@@ -1,6 +1,6 @@
 // `bun test` (make web-test): the pure helpers of the operator's triage console.
 import { expect, test } from "bun:test";
-import { ago, blank, clip, costPerCase, isToday, metric, shownColumns } from "./triage.js";
+import { ago, blank, clip, costPerCase, isToday, metric, sequence, shownColumns } from "./triage.js";
 
 const t = (key, values = {}) => `${key}${JSON.stringify(values)}`;
 // 2026-11-01 12:00 in Bogota (UTC-5, no daylight saving).
@@ -53,4 +53,28 @@ test("signals beyond the first two collapse into +N", () => {
 test("today is the Colombia day the counters count, not the last 24 h", () => {
   expect(isToday("2026-11-01T05:01:00Z", NOW)).toBe(true); // 00:01 in Bogota
   expect(isToday("2026-11-01T04:59:00Z", NOW)).toBe(false); // 23:59 yesterday in Bogota
+});
+
+test("the analyst's calls read in order with their time, then what it decided", () => {
+  const row = {
+    label: "scam",
+    confidence: 0.95,
+    steps: [
+      { name: "muse-spark-1.3", ms: 1176 },
+      { name: "analyze_url", ms: 312 },
+      { name: "check_country", ms: 204 },
+      { name: "transcribe" },
+    ],
+  };
+  expect(sequence(row, t)).toEqual([
+    ["muse-spark-1.3", "1176 panel.col.ms{}"],
+    ["→ analyze_url", "312 panel.col.ms{}"],
+    ["→ check_country", "204 panel.col.ms{}"],
+    ["→ transcribe", ""],
+    ['→ panel.step.verdict{"label":"verdict.label.scam{}","confidence":"0.95"}', ""],
+  ]);
+});
+
+test("a verdict without analyst steps has no sequence", () => {
+  expect(sequence({ label: "legit", confidence: null, steps: [] }, t)).toEqual([]);
 });

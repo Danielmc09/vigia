@@ -6,6 +6,7 @@ set by ``open_business``/``create_business`` (RLS on ``app.business_id``).
 """
 
 import hashlib
+import json
 import secrets
 from datetime import UTC, datetime, timedelta
 from typing import NamedTuple
@@ -517,8 +518,8 @@ async def save_verdict(
     row = VerdictRow.of(verdict, case.kind, datetime.now(UTC))
     await conn.execute(
         "INSERT INTO verdicts (business_id, case_id, label, payload_enc, kind, brand, confidence,"
-        " signal_types, tools, usd, latency_ms)"
-        " VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)",
+        " signal_types, tools, usd, latency_ms, steps)"
+        " VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12::jsonb)",
         vault.business_id,
         case.id,
         verdict.label,
@@ -530,6 +531,7 @@ async def save_verdict(
         row.tools,
         row.usd,
         row.latency_ms,
+        json.dumps(row.steps),
     )
 
 
@@ -544,7 +546,7 @@ async def panel_verdicts(conn: asyncpg.Connection, limit: int) -> list[VerdictRo
         Rows newest first.
     """
     rows = await conn.fetch("SELECT * FROM vigia_panel_verdicts($1)", limit)
-    return [VerdictRow(**dict(row)) for row in rows]
+    return [VerdictRow(**{**dict(row), "steps": json.loads(row["steps"])}) for row in rows]
 
 
 async def verdicts_today(conn: asyncpg.Connection) -> dict[str, int]:
