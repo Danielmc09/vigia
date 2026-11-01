@@ -613,7 +613,7 @@ def test_inc_su_cuenta_the_recipients_own_account_keeps_the_bank_impersonated(
     assert verdict.user_explanation.startswith(t(pack.language, "verdict.scam.brand", brand=brand))
 
 
-@pytest.mark.parametrize("case_id", ["c-0248", "c-0252"])
+@pytest.mark.parametrize("case_id", ["c-0248", "c-0252", "c-0254"])
 def test_inc_pay_to_chase_a_us_bank_the_money_goes_to_is_the_rail(case_id: str) -> None:
     """Juez of D-118/D-120: "pay ... to Chase account", "your payment to account" are the payee."""
     pack = country_pack("US")
