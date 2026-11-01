@@ -254,10 +254,10 @@ text-transform:uppercase;letter-spacing:.04em}
 .rows tbody tr.detail{margin-top:-12px;border-top:0;border-radius:0 0 12px 12px}
 .rows tr.detail td{padding:8px 0 0}
 .c-signals .chips{flex-wrap:wrap}
-.rows td.c-time,.rows td.c-kind{display:inline;width:auto;padding:0;font-size:12px;
-color:var(--muted)}
+.rows td.c-time,.rows td.c-kind,.rows td.c-phone{display:inline;width:auto;padding:0;
+font-size:12px;color:var(--muted)}
 .rows td.c-time::before{content:none}
-.rows td.c-kind::before{content:"\\00b7\\0020"}
+.rows td.c-kind::before,.rows td.c-phone::before{content:"\\00b7\\0020"}
 .examples{flex-wrap:nowrap;overflow-x:auto;padding-bottom:2px}
 .examples span,.quick{flex:0 0 auto}
 .metrics .cards{grid-template-columns:1fr}
