@@ -205,17 +205,23 @@ async def _supplier(session: Session, fields: Fields) -> str:
 
 
 async def _history(session: Session, _: Fields) -> str:
-    """List the latest verdict labels of the business."""
+    """List the latest verdicts of the business: date, case, label, brand and kind."""
     verdicts = await store.recent_verdicts(session.conn)
     if not verdicts:
         return session.reply("history.empty")
     lines = [
-        session.reply(
-            "history.line",
-            date=at.date().isoformat(),
-            label=session.reply(f"verdict.label.{label}"),
+        " · ".join(
+            part
+            for part in (
+                row.at.date().isoformat(),
+                row.ref and session.reply("history.case", ref=str(row.ref)),
+                session.reply(f"verdict.label.{row.label}"),
+                row.brand,
+                row.kind and session.reply(f"team_alert.kind.{row.kind}"),
+            )
+            if part
         )
-        for at, label in verdicts
+        for row in verdicts
     ]
     return "\n".join([session.reply("history.header"), *lines])
 

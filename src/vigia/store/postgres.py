@@ -421,20 +421,40 @@ async def fresh_verdict(
     return Seen(row["ref"], row["created_at"], Verdict.model_validate_json(payload))
 
 
-async def recent_verdicts(conn: asyncpg.Connection, limit: int = 5) -> list[tuple[datetime, Label]]:
-    """Latest verdict labels of the business in context, newest first.
+class HistoryRow(NamedTuple):
+    """One line of the ``historial`` command.
+
+    Attributes:
+        at: When the verdict was given.
+        ref: Case number, ``None`` for cases stored before it existed (D-091).
+        label: ``scam``, ``legit`` or ``doubtful``.
+        brand: Impersonated brand, if any.
+        kind: Case kind (``text``, ``audio``...), if recorded.
+    """
+
+    at: datetime
+    ref: int | None
+    label: Label
+    brand: str | None
+    kind: str | None
+
+
+async def recent_verdicts(conn: asyncpg.Connection, limit: int = 5) -> list[HistoryRow]:
+    """Latest verdicts of the business in context, newest first.
 
     Args:
         conn: Connection scoped to the business.
         limit: How many to return.
 
     Returns:
-        ``(created_at, label)`` pairs.
+        One row per verdict.
     """
     rows = await conn.fetch(
-        "SELECT created_at, label FROM verdicts ORDER BY created_at DESC LIMIT $1", limit
+        "SELECT v.created_at AS at, c.ref, v.label, v.brand, v.kind FROM verdicts v"
+        " LEFT JOIN cases c ON c.id = v.case_id ORDER BY v.created_at DESC LIMIT $1",
+        limit,
     )
-    return [(r["created_at"], r["label"]) for r in rows]
+    return [HistoryRow(**r) for r in rows]
 
 
 async def save_verdict(

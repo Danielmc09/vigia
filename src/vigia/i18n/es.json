@@ -33,7 +33,7 @@
   "supplier.added": "Proveedor {name} guardado en tu libreta.",
   "history.empty": "Aún no hay veredictos en tu negocio.",
   "history.header": "Últimos veredictos:",
-  "history.line": "{date} · {label}",
+  "history.case": "caso {ref}",
   "verdict.label.scam": "estafa",
   "verdict.label.legit": "legítimo",
   "verdict.label.doubtful": "dudoso",

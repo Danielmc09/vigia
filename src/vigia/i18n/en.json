@@ -33,7 +33,7 @@
   "supplier.added": "Supplier {name} saved to your address book.",
   "history.empty": "Your business has no verdicts yet.",
   "history.header": "Latest verdicts:",
-  "history.line": "{date} · {label}",
+  "history.case": "case {ref}",
   "verdict.label.scam": "scam",
   "verdict.label.legit": "legitimate",
   "verdict.label.doubtful": "unclear",

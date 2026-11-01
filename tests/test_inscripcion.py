@@ -298,20 +298,20 @@ async def test_history_lists_the_last_five_verdicts_newest_first(
     assert reply is not None
     lines = reply.splitlines()
     assert lines[0] == t("es", "history.header")
-    assert lines[1] == t(
-        "es", "history.line", date="2026-10-06", label=t("es", "verdict.label.scam")
-    )
+    # rows without case, brand or kind (stored before they were recorded) skip those parts
+    assert lines[1] == f"2026-10-06 · {t('es', 'verdict.label.scam')}"
     assert len(lines) == 6
 
 
 @pytest.mark.parametrize(
-    ("owner", "hello", "lang"),
-    [(OWNER, "hola Ferreteria El Tornillo CO", "es"), (US_OWNER, "hello Corner Hardware US", "en")],
+    ("owner", "hello"),
+    [(OWNER, "hola Ferreteria El Tornillo CO"), (US_OWNER, "hello Corner Hardware US")],
 )
 async def test_history_line_says_which_case_brand_and_kind(
-    app_conn: asyncpg.Connection, recorder: Recorder, owner: str, hello: str, lang: str
+    app_conn: asyncpg.Connection, recorder: Recorder, owner: str, hello: str
 ) -> None:
     """Incident 31 oct: five lines saying "estafa" without saying of what."""
+    lang = "es" if owner == OWNER else "en"
     await handle(app_conn, recorder.ports, message(owner, hello))
     await app_conn.execute(
         "WITH c AS (INSERT INTO cases (business_id, kind, origin, ref)"
