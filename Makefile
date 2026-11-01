@@ -1,13 +1,14 @@
-.PHONY: check lint test arch dup security docs docs-check i18n db run evals evals-rapido demo
+.PHONY: check lint test web-test arch dup security docs docs-check i18n db run evals evals-rapido demo
 lint: ; uv run ruff check src tests tools && uv run mypy src/vigia/domain src/vigia/signals src/vigia/verdict src/vigia/policy src/vigia/jev src/vigia/analyst src/vigia/model src/vigia/services --strict
 arch: ; uv run lint-imports
 dup:  ; uv run pylint --disable=all --enable=duplicate-code --min-similarity-lines=8 src/
-security: ; uv run bandit -q -r src && uv run pip-audit && uv run pytest -q tests/test_owasp.py
+security: ; uv run bandit -q -r src && (if curl -fsS --max-time 3 https://pypi.org >/dev/null 2>&1; then uv run pip-audit; else echo "pip-audit: omitido, sin conexión"; fi) && uv run pytest -q tests/test_owasp.py
 test: ; uv run pytest -q
 docs: ; uv run python tools/repo_map.py > docs/MAP.md && uv run pdoc vigia -o docs/api && uv run git-cliff -o CHANGELOG.md
 docs-check: ; uv run interrogate -q --fail-under 90 src && uv run python tools/repo_map.py | diff -q - docs/MAP.md && uv run python tools/check_architecture_doc.py && uv run python tools/check_public_docs.py
 i18n: ; uv run pytest -q tests/test_i18n.py
-check: lint arch dup security docs-check i18n test
+web-test: ; @if command -v bun >/dev/null; then cd web && bun test; else echo "web-test skipped: bun not installed"; fi
+check: lint arch dup security docs-check i18n web-test test
 db: ; docker compose up -d --wait postgres
 run: ; docker compose up --build
 evals: ; uv run --env-file .env python tools/measure.py --max-usd 2.0

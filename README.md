@@ -103,6 +103,8 @@ OWASP categories this repo tests for, mapped to the test that covers them:
 | A09 — Logging and monitoring failures | `tests/test_owasp.py` (`test_a09_case_logs_carry_ids_but_no_pii`, `test_a09_uvicorn_errors_are_json_without_pii`) |
 | A10 — Server-side request forgery | `tests/test_net.py`, over `src/vigia/net/unroll.py` (D-099): short-link unrolling refuses non-public addresses, caps hops and time, never forwards cookies |
 
+`make check` runs `pip-audit` as part of `security`, and it's blocking: any real vulnerability fails the build. It needs network access to fetch the vulnerability database; without it, the check detects the missing connection and skips with "pip-audit: omitido, sin conexión" instead of failing for an unrelated reason (D-124).
+
 Full write-up: [`docs/THREAT_MODEL.md`](docs/THREAT_MODEL.md) and
 [`docs/PRIVACY.md`](docs/PRIVACY.md); encryption design in
 [`ADR-020`](docs/decisions/ADR-020.md) and [`ADR-025`](docs/decisions/ADR-025.md);
