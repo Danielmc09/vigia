@@ -24,3 +24,4 @@ __pycache__/
 docs/api/
 .venv/
 CHANGELOG.md
+web/node_modules/

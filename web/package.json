@@ -1,0 +1,9 @@
+{
+  "name": "vigia-panel",
+  "private": true,
+  "description": "Source of src/vigia/channel/app.js; rebuild with `make bundle` (D-121).",
+  "dependencies": {
+    "react": "18.3.1",
+    "react-dom": "18.3.1"
+  }
+}

@@ -43,3 +43,16 @@ def has_key(lang: str, key: str) -> bool:
         True if :func:`t` can render it.
     """
     return key in _catalog(lang)
+
+
+def strings(lang: str, prefixes: tuple[str, ...]) -> dict[str, str]:
+    """The catalog entries whose key starts with one of ``prefixes``, for a browser view.
+
+    Args:
+        lang: Language code (``es`` or ``en``).
+        prefixes: Key prefixes the view renders, e.g. ``("panel.",)``.
+
+    Returns:
+        Key to raw message, placeholders unrendered.
+    """
+    return {k: v for k, v in _catalog(lang).items() if k.startswith(prefixes)}

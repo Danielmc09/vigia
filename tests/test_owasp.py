@@ -17,14 +17,22 @@ import uvicorn.config
 from fastapi.testclient import TestClient
 from structlog.testing import capture_logs
 
+from tests import test_panel_dueno
+from tests.conftest import Recorder
+from tests.test_panel_dueno import _business, _client, _link
 from vigia import telemetry
 from vigia.app import create_app
 from vigia.channel.templates import team_alert_message, whatsapp_message
 from vigia.config import Settings
 from vigia.domain.gate import mock_judge
+from vigia.services.owner_panel import owner_view
 from vigia.services.process_case import judge_case
 from vigia.signals.knowledge import seeded_pack
+from vigia.store import postgres as store
+from vigia.store.crypto import Keyring
 from vigia.store.db import set_business
+
+committed = test_panel_dueno.committed  # a fixture is registered by its module name
 
 SRC = Path(__file__).parents[1] / "src" / "vigia"
 
@@ -88,6 +96,35 @@ async def test_a01_cannot_write_rows_for_another_business(app_conn: asyncpg.Conn
             business_b,
             b"x",
         )
+
+
+@pytest.mark.anyio
+async def test_a01_an_owner_session_shows_only_its_own_business(
+    app_conn: asyncpg.Connection, recorder: Recorder
+) -> None:
+    """T-17b: the owner panel is scoped by the session, never by anything the browser sends."""
+    await _business(app_conn, recorder, "+573000000231")
+    await _business(app_conn, recorder, "+573000000211")
+    session = await store.enter_panel(app_conn, await _link(app_conn, recorder, "+573000000211"))
+    assert session is not None
+
+    view = await owner_view(app_conn, recorder.keyring, session)
+
+    assert view is not None
+    assert [m["phone"] for m in view["team"]] == ["…0211", "…0212"]
+    assert len(view["cases"]) == 1
+
+
+@pytest.mark.anyio
+async def test_a01_the_owner_cookie_never_opens_the_operator_view(
+    committed: str, keyring: Keyring
+) -> None:
+    owner = _client(keyring)
+    owner.get(f"/entrar/{committed}", follow_redirects=False)
+
+    assert owner.get("/api/operator").status_code == 401
+    assert owner.post("/api/operator/try", data={"text": "x"}).status_code == 401
+    assert owner.get("/app").status_code == 401
 
 
 # --- A03 Injection: SQL parameters are always bound --------------------------------
@@ -193,6 +230,28 @@ def test_a05_public_texts_never_name_internal_signals() -> None:
 
     assert len(verdicts) > 50
     assert leaks == []
+
+
+# --- A07 Identification failures: the owner's one-time link and its session -------
+
+
+@pytest.mark.anyio
+async def test_a07_a_forged_session_is_refused_and_tls_makes_the_cookie_secure(
+    committed: str, keyring: Keyring
+) -> None:
+    forged = _client(keyring)
+    forged.cookies.set("vigia_owner", "A" * 43)
+    behind_tls = _client(keyring)
+
+    entered = behind_tls.get(
+        f"/entrar/{committed}", headers={"x-forwarded-proto": "https"}, follow_redirects=False
+    )
+
+    assert forged.get("/api/owner").status_code == 401
+    assert forged.get("/dueno").status_code == 403
+    assert entered.status_code == 303
+    assert "secure" in entered.headers["set-cookie"].lower()
+    assert len(committed) == 43  # token_urlsafe(32): 256 bits, nothing to guess
 
 
 # --- A09 Logging failures: every case event is traceable and carries no PII --------

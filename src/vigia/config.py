@@ -56,6 +56,8 @@ class Settings(BaseSettings):
         sentry_dsn: Sentry DSN; unset leaves error reporting off (D-084).
         operator_phone: WhatsApp number the sentinel alerts (specs/11 section 4).
         api_port: Host port compose publishes the API on; `make demo` opens the panel there.
+        public_url: Origin the owner's panel link points to (T-17b); unset means
+            ``http://localhost:<api_port>``, which is how a judge runs it.
     """
 
     model_config = SettingsConfigDict(populate_by_name=True)
@@ -99,6 +101,12 @@ class Settings(BaseSettings):
     sentry_dsn: SecretStr | None = Field(None, validation_alias="SENTRY_DSN")
     operator_phone: str | None = Field(None, validation_alias="OPERADOR_TELEFONO")
     api_port: int = Field(18000, validation_alias="VIGIA_API_PORT")
+    public_url_override: str | None = Field(None, validation_alias="VIGIA_PUBLIC_URL")
+
+    @property
+    def public_url(self) -> str:
+        """Origin of links sent over WhatsApp, without a trailing slash."""
+        return (self.public_url_override or f"http://localhost:{self.api_port}").rstrip("/")
 
     @field_validator("operator_phone", mode="before")
     @classmethod

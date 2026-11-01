@@ -8,6 +8,7 @@ from uuid import UUID, uuid4
 
 import asyncpg
 
+from vigia.config import settings
 from vigia.domain.case import Origin
 from vigia.domain.escalation import Escalation
 from vigia.domain.member import (
@@ -182,6 +183,19 @@ async def _my_name(session: Session, fields: Fields) -> str:
     return session.reply("name.saved", name=fields["name"])
 
 
+async def _panel(session: Session, _fields: Fields) -> str:
+    """Send the owner a one-time panel link; an employee is told whom to ask (T-17b)."""
+    if session.member.role == "owner":
+        token = await store.issue_panel_link(session.conn, session.member)
+        return session.reply("panel.link", url=f"{settings.public_url}/entrar/{token}")
+    owner = await store.owner_name(session.conn, session.vault)
+    return (
+        session.reply("panel.ask_owner", owner=owner)
+        if owner
+        else session.reply("panel.ask_owner.unnamed")
+    )
+
+
 async def _code(session: Session, fields: Fields) -> str:
     """Redeem an email verification code."""
     result = await store.redeem_email_code(
@@ -332,6 +346,7 @@ _HANDLERS: dict[str, Callable[[Session, Fields], Awaitable[str]]] = {
     "code": _code,
     "supplier": _supplier,
     "history": _history,
+    "panel": _panel,
     "help": _help,
     "transfer": _transfer,
     "confirm": _confirm,

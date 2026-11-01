@@ -1,0 +1,252 @@
+"""Owner panel (T-17b): ``panel`` on WhatsApp, a one-time link, a 24 h session cookie."""
+
+import hashlib
+import re
+from collections.abc import AsyncIterator
+from datetime import timedelta
+
+import asyncpg
+import pytest
+from fastapi.testclient import TestClient
+
+from tests.conftest import Recorder, message
+from vigia.app import create_app
+from vigia.channel.wazenda import MAX_MESSAGE_CHARS
+from vigia.config import Settings, settings
+from vigia.i18n import t
+from vigia.services.commands import parse_command
+from vigia.services.ingest import handle
+from vigia.services.owner_panel import owner_view
+from vigia.store import postgres as store
+from vigia.store.crypto import Keyring
+
+OWNER = "+573000000211"
+EMPLOYEE = "+573000000212"
+LINK = re.compile(r"/entrar/([A-Za-z0-9_-]{43})")
+SIGNAL = "lookalike_domain"
+
+pytestmark = pytest.mark.anyio
+
+
+def test_panel_is_a_command() -> None:
+    command = parse_command("Panel")
+
+    assert command is not None
+    assert (command.name, command.args) == ("panel", "")
+
+
+async def _business(conn: asyncpg.Connection, recorder: Recorder, phone: str = OWNER) -> None:
+    await handle(conn, recorder.ports, message(phone, "hola Ferreteria El Tornillo CO"))
+    await handle(conn, recorder.ports, message(phone, "mi nombre Angel"))
+    employee = "+573000000" + str(int(phone[-3:]) + 1)
+    await handle(conn, recorder.ports, message(phone, f"equipo {employee} Luis"))
+    await handle(conn, recorder.ports, message(phone, "proveedor Aceros cuenta=0011223344"))
+    await conn.execute(
+        "INSERT INTO verdicts (business_id, label, brand, kind, signal_types)"
+        " SELECT id, 'scam', 'Bancolombia', 'text', $1 FROM businesses"
+        " WHERE id = NULLIF(current_setting('app.business_id', true), '')::uuid",
+        [SIGNAL],
+    )
+
+
+async def _link(conn: asyncpg.Connection, recorder: Recorder, phone: str = OWNER) -> str:
+    reply = await handle(conn, recorder.ports, message(phone, "panel"))
+    assert reply is not None
+    found = LINK.search(reply)
+    assert found is not None, reply
+    return found.group(1)
+
+
+async def test_owner_gets_a_one_time_link_and_only_its_hash_is_stored(
+    admin_conn: asyncpg.Connection, recorder: Recorder
+) -> None:
+    await _business(admin_conn, recorder)
+
+    token = await _link(admin_conn, recorder)
+
+    reply = t("es", "panel.link", url=f"{settings.public_url}/entrar/{token}")
+    assert (await handle(admin_conn, recorder.ports, message(OWNER, "panel"))) != reply  # fresh
+    row = await admin_conn.fetchrow(
+        "SELECT kind, expires_at - now() AS ttl, used_at FROM panel_tokens WHERE token_hash = $1",
+        hashlib.sha256(token.encode()).digest(),
+    )
+    assert row is not None
+    assert row["kind"] == "link"
+    assert row["used_at"] is None
+    assert timedelta(minutes=14) < row["ttl"] <= timedelta(minutes=15)
+    stored = await admin_conn.fetch("SELECT token_hash::text AS h FROM panel_tokens")
+    assert all(token not in r["h"] for r in stored)
+
+
+@pytest.mark.parametrize(
+    ("named", "key"), [(True, "panel.ask_owner"), (False, "panel.ask_owner.unnamed")]
+)
+async def test_an_employee_is_told_to_ask_the_owner(
+    app_conn: asyncpg.Connection, recorder: Recorder, named: bool, key: str
+) -> None:
+    await handle(app_conn, recorder.ports, message(OWNER, "hola Ferreteria El Tornillo CO"))
+    if named:
+        await handle(app_conn, recorder.ports, message(OWNER, "mi nombre Angel"))
+    await handle(app_conn, recorder.ports, message(OWNER, f"equipo {EMPLOYEE} Luis"))
+
+    reply = await handle(app_conn, recorder.ports, message(EMPLOYEE, "panel"))
+
+    assert reply == t("es", key, owner="Angel")
+    assert "/entrar/" not in reply
+
+
+async def test_owner_help_mentions_panel(app_conn: asyncpg.Connection, recorder: Recorder) -> None:
+    assert t("es", "command.panel") in t("es", "help.owner").lower()
+    assert t("en", "command.panel") in t("en", "help.owner").lower()
+
+
+@pytest.mark.parametrize("lang", ["es", "en"])
+def test_owner_help_fits_one_whatsapp_message(lang: str) -> None:
+    """Incident: the *panel* line pushed the owner's help past the cap and it was cut."""
+    assert len(t(lang, "help") + "\n\n" + t(lang, "help.owner")) <= MAX_MESSAGE_CHARS
+
+
+async def test_a_link_opens_one_session_once(
+    app_conn: asyncpg.Connection, recorder: Recorder
+) -> None:
+    await _business(app_conn, recorder)
+    link = await _link(app_conn, recorder)
+
+    first = await store.enter_panel(app_conn, link)
+    again = await store.enter_panel(app_conn, link)
+
+    assert first is not None
+    assert again is None
+    assert await store.panel_session(app_conn, first) is not None
+
+
+async def test_an_expired_link_or_session_opens_nothing(
+    app_conn: asyncpg.Connection, recorder: Recorder
+) -> None:
+    await _business(app_conn, recorder)
+    member = await store.find_member(app_conn, recorder.keyring.hash(OWNER))
+    assert member is not None
+    stale = await store.issue_panel_link(app_conn, member, ttl=timedelta(seconds=-1))
+    link = await _link(app_conn, recorder)
+
+    session = await store.enter_panel(app_conn, link, ttl=timedelta(seconds=-1))
+
+    assert await store.enter_panel(app_conn, stale) is None
+    assert session is not None
+    assert await store.panel_session(app_conn, session) is None
+
+
+async def test_a_session_ends_when_its_member_is_no_longer_the_owner(
+    admin_conn: asyncpg.Connection, recorder: Recorder
+) -> None:
+    await _business(admin_conn, recorder)
+    session = await store.enter_panel(admin_conn, await _link(admin_conn, recorder))
+    assert session is not None
+
+    await admin_conn.execute("UPDATE members SET role = 'employee' WHERE role = 'owner'")
+
+    assert await store.panel_session(admin_conn, session) is None
+
+
+async def test_owner_view_shows_cases_team_and_suppliers_without_signal_names(
+    app_conn: asyncpg.Connection, recorder: Recorder
+) -> None:
+    """D-111: the owner never sees internal signal names."""
+    await _business(app_conn, recorder)
+    session = await store.enter_panel(app_conn, await _link(app_conn, recorder))
+    assert session is not None
+
+    view = await owner_view(app_conn, recorder.keyring, session)
+
+    assert view is not None
+    assert view["business"] == "Ferreteria El Tornillo"
+    assert view["language"] == "es"
+    assert [m["name"] for m in view["team"]] == ["Angel", "Luis"]
+    assert view["suppliers"] == [{"name": "Aceros", "email": None, "account": "0011223344"}]
+    assert [(c["label"], c["brand"], c["kind"]) for c in view["cases"]] == [
+        ("scam", "Bancolombia", "text")
+    ]
+    assert SIGNAL not in repr(view)
+
+
+async def test_owner_view_needs_a_live_owner_session(
+    app_conn: asyncpg.Connection, recorder: Recorder
+) -> None:
+    assert await owner_view(app_conn, recorder.keyring, "x" * 43) is None
+
+
+# --- HTTP, over plain http://localhost like a judge runs it --------------------------
+
+
+@pytest.fixture
+async def committed(admin_dsn: str, keyring: Keyring) -> AsyncIterator[str]:
+    """A committed business with a fresh link, deleted afterwards; yields the link token."""
+    recorder = Recorder(keyring)
+    conn = await asyncpg.connect(Settings().database_url)
+    try:
+        async with conn.transaction():
+            await _business(conn, recorder, "+573000000221")
+            token = await _link(conn, recorder, "+573000000221")
+        yield token
+    finally:
+        member = await store.find_member(conn, keyring.hash("+573000000221"))
+        admin = await asyncpg.connect(admin_dsn)
+        if member is not None:
+            await admin.execute("DELETE FROM businesses WHERE id = $1", member.business_id)
+        await admin.close()
+        await conn.close()
+
+
+def _client(keyring: Keyring) -> TestClient:
+    app = create_app(Settings(VIGIA_PANEL_TOKEN="operador-de-prueba-con-32-caracteres"))
+    app.state.keyring = keyring
+    return TestClient(app, base_url="http://localhost")
+
+
+async def test_a_link_becomes_an_http_only_lax_cookie_that_works_without_tls(
+    committed: str, keyring: Keyring
+) -> None:
+    client = _client(keyring)
+
+    entered = client.get(f"/entrar/{committed}", follow_redirects=False)
+
+    assert entered.status_code == 303
+    assert entered.headers["location"] == "/dueno"
+    cookie = entered.headers["set-cookie"].lower()
+    assert "vigia_owner=" in cookie
+    assert "httponly" in cookie
+    assert "samesite=lax" in cookie
+    assert "max-age=86400" in cookie
+    assert "secure" not in cookie  # a judge runs over http://localhost
+    view = client.get("/api/owner")
+    assert view.status_code == 200
+    assert view.json()["business"] == "Ferreteria El Tornillo"
+    assert SIGNAL not in view.text
+    assert client.get("/dueno").status_code == 200
+
+
+async def test_a_spent_or_unknown_link_gets_the_same_refusal(
+    committed: str, keyring: Keyring
+) -> None:
+    client = _client(keyring)
+    client.get(f"/entrar/{committed}", follow_redirects=False)
+
+    spent = TestClient(client.app).get(f"/entrar/{committed}", follow_redirects=False)
+    unknown = TestClient(client.app).get("/entrar/" + "A" * 43, follow_redirects=False)
+    huge = TestClient(client.app).get("/entrar/" + "A" * 500, follow_redirects=False)
+
+    assert spent.status_code == unknown.status_code == huge.status_code == 403
+    assert spent.text == unknown.text == huge.text
+    assert "set-cookie" not in spent.headers
+
+
+async def test_each_view_has_its_own_authentication(committed: str, keyring: Keyring) -> None:
+    owner = _client(keyring)
+    owner.get(f"/entrar/{committed}", follow_redirects=False)
+    operator = {"Authorization": "Bearer operador-de-prueba-con-32-caracteres"}
+    stranger = _client(keyring)
+
+    assert stranger.get("/api/owner").status_code == 401
+    assert stranger.get("/api/owner", headers=operator).status_code == 401
+    assert owner.get("/api/operator").status_code == 401
+    assert stranger.get("/api/operator", headers=operator).status_code == 200

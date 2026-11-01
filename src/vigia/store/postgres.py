@@ -5,6 +5,7 @@ Every function except ``find_member``, ``record_rejection`` and the operator pan
 set by ``open_business``/``create_business`` (RLS on ``app.business_id``).
 """
 
+import hashlib
 import secrets
 from datetime import UTC, datetime, timedelta
 from typing import NamedTuple
@@ -603,11 +604,11 @@ async def team(conn: asyncpg.Connection, vault: Vault) -> list[Contact]:
         vault: Open vault of the business.
 
     Returns:
-        Their contacts, oldest member first.
+        Their contacts, oldest member first; the owner first on a tie (one transaction).
     """
     rows = await conn.fetch(
         "SELECT phone_enc, name_enc, last_inbound_at FROM members"
-        " WHERE business_id = $1 ORDER BY created_at",
+        " WHERE business_id = $1 ORDER BY created_at, role <> 'owner', id",
         vault.business_id,
     )
     return [
@@ -728,3 +729,89 @@ async def case_text(
         return None
     text = vault.open("cases.text", row["text_enc"]) if row["text_enc"] else ""
     return text, row["brand"]
+
+
+PANEL_LINK_TTL = timedelta(minutes=15)  # T-17b: the WhatsApp link is a 15-minute, one-time key
+PANEL_SESSION_TTL = timedelta(hours=24)  # T-17b: the owner stays in for a day
+
+
+def _token_hash(token: str) -> bytes:
+    """SHA-256 of a panel token: what the table keeps instead of the token (specs/16)."""
+    return hashlib.sha256(token.encode()).digest()
+
+
+async def issue_panel_link(
+    conn: asyncpg.Connection, member: Member, ttl: timedelta = PANEL_LINK_TTL
+) -> str:
+    """Issue a one-time panel link token for a member (T-17b).
+
+    Args:
+        conn: Connection inside a transaction.
+        member: Who the link opens the panel for.
+        ttl: How long the link stays usable.
+
+    Returns:
+        The token: 32 random bytes, URL-safe. Only its hash is stored.
+    """
+    token = secrets.token_urlsafe(32)
+    await set_business(conn, member.business_id)
+    await conn.execute(
+        "INSERT INTO panel_tokens (token_hash, business_id, member_id, kind, expires_at)"
+        " VALUES ($1, $2, $3, 'link', now() + $4)",
+        _token_hash(token),
+        member.business_id,
+        member.id,
+        ttl,
+    )
+    return token
+
+
+async def enter_panel(
+    conn: asyncpg.Connection, link: str, ttl: timedelta = PANEL_SESSION_TTL
+) -> str | None:
+    """Spend a panel link once and open a session for the same member.
+
+    Args:
+        conn: Connection with the application role; no business context needed.
+        link: The token from the link.
+        ttl: How long the session lasts.
+
+    Returns:
+        The session token, or ``None`` when the link is unknown, spent or expired.
+    """
+    session = secrets.token_urlsafe(32)
+    opened = await conn.fetchval(
+        "SELECT vigia_panel_enter($1, $2, $3)", _token_hash(link), _token_hash(session), ttl
+    )
+    return session if opened else None
+
+
+async def panel_session(conn: asyncpg.Connection, session: str) -> UUID | None:
+    """The business of a live session whose member still owns it.
+
+    Args:
+        conn: Connection with the application role; no business context needed.
+        session: The session token from the cookie.
+
+    Returns:
+        The business id, or ``None`` when the session is unknown, expired or not an owner's.
+    """
+    found: UUID | None = await conn.fetchval("SELECT vigia_panel_session($1)", _token_hash(session))
+    return found
+
+
+async def owner_name(conn: asyncpg.Connection, vault: Vault) -> str | None:
+    """The display name of the owner of the business in context, opened.
+
+    Args:
+        conn: Connection scoped to the business.
+        vault: Open vault of the business.
+
+    Returns:
+        The name, or ``None`` if the owner never set one.
+    """
+    sealed = await conn.fetchval(
+        "SELECT name_enc FROM members WHERE business_id = $1 AND role = 'owner'",
+        vault.business_id,
+    )
+    return vault.open("members.name", sealed) if sealed else None

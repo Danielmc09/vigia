@@ -17,6 +17,7 @@ forbidden_modules =
     vigia.jev
     vigia.services
     vigia.app
+    vigia.owner_web
     vigia.telemetry
     vigia.net
 
@@ -35,6 +36,7 @@ forbidden_modules =
     vigia.store
     vigia.services
     vigia.app
+    vigia.owner_web
     vigia.telemetry
     vigia.net
 

@@ -4,16 +4,30 @@ Every value goes through :func:`html.escape`; the page has no script, so the res
 ship a ``default-src 'none'`` CSP. User-facing labels come from ``i18n`` (``panel.*``).
 """
 
+import json
 from collections.abc import Mapping, Sequence
 from datetime import timedelta, timezone
 from html import escape
 from pathlib import Path
 from typing import Any, NamedTuple, get_args
 
+from starlette.requests import Request
+
 from vigia.domain.verdict import Label, VerdictRow
-from vigia.i18n import has_key, t
+from vigia.i18n import has_key, strings, t
 
 PANEL_JS = Path(__file__).with_name("panel.js").read_text(encoding="utf-8")
+APP_JS = Path(__file__).with_name("app.js").read_text(encoding="utf-8")
+"""The React views' bundle, built by ``make bundle`` from ``web/`` and committed (D-121)."""
+PANEL_HEADERS = {
+    "Content-Security-Policy": (
+        "default-src 'none'; style-src 'unsafe-inline'; script-src 'self'; connect-src 'self'"
+    ),
+    "Cache-Control": "no-store",
+    "Referrer-Policy": "no-referrer",
+}
+"""Every panel response: own script and fetch only, never cached, no referrer (D-072)."""
+SHELL_STRINGS = ("panel.", "owner.", "verdict.label.", "metric.")
 LANG = "en"  # ponytail: one operator, one language; per-operator language with T-17b
 COLOMBIA = timezone(timedelta(hours=-5))  # no DST in Colombia
 EXAMPLES = ("bank", "courier", "legit")
@@ -133,9 +147,7 @@ def _metrics(result: Mapping[str, Any] | None) -> str:
         if isinstance(value, int | float | str)
     }
     date = f" · {escape(str(result['fecha']))}" if result.get("fecha") else ""
-    cards = "".join(
-        _card(_metric_label(name), _metric(value)) for name, value in scalars.items()
-    )
+    cards = "".join(_card(_metric_label(name), _metric(value)) for name, value in scalars.items())
     return (
         f'<section class="metrics"><h2>{escape(t(LANG, "panel.metrics"))}{date}</h2>'
         f'<div class="cards">{cards}</div></section>'
@@ -197,7 +209,7 @@ def _try(head: str, form: TryForm) -> str:
     result = row and (
         f'<div id="resultado" class="result">'
         f'<h3 class="result-head">{escape(t(LANG, "panel.try.result"))} '
-        f'{escape(row.created_at.astimezone(COLOMBIA).strftime("%H:%M"))}</h3>'
+        f"{escape(row.created_at.astimezone(COLOMBIA).strftime('%H:%M'))}</h3>"
         f'<div class="scroll"><table class="tried"><thead><tr>{head}</tr></thead>'
         f"<tbody>{_row(row)}</tbody></table></div></div>"
     )
@@ -211,7 +223,7 @@ def _try(head: str, form: TryForm) -> str:
     return (
         f'<section class="panel try" data-busy="{escape(t(LANG, "panel.try.busy"))}"'
         f' data-error="{escape(t(LANG, "panel.try.error"))}">'
-        f'<h2>{escape(t(LANG, "panel.try.title"))}</h2>'
+        f"<h2>{escape(t(LANG, 'panel.try.title'))}</h2>"
         '<form method="post" action="/panel" enctype="multipart/form-data">'
         f'<textarea name="text" rows="3">{escape(form.text)}</textarea><div class="actions">'
         f"<label>{escape(t(LANG, 'panel.try.file'))} "
@@ -263,3 +275,35 @@ def render_panel(
         f"{_metrics(metrics)}"
         "</main></body></html>"
     )
+
+
+def render_shell(view: str, lang: str) -> str:
+    """The HTML the React views mount on: their strings as JSON data, their bundle (D-121).
+
+    Args:
+        view: ``operator`` or ``owner``; the bundle picks the view from it.
+        lang: Language of the strings (the operator's, or the owner's business).
+
+    Returns:
+        A page with no inline script: the strings ride a ``type="application/json"`` block,
+        which no browser runs, so the CSP stays ``script-src 'self'``.
+    """
+    data = json.dumps(strings(lang, SHELL_STRINGS), ensure_ascii=False).replace("<", "\\u003c")
+    return (
+        f'<!doctype html><html lang="{escape(lang)}"><head><meta charset="utf-8">'
+        '<meta name="viewport" content="width=device-width,initial-scale=1">'
+        '<meta name="color-scheme" content="light dark">'
+        f"<title>{escape(t(lang, 'panel.brand'))}</title>"
+        f'<script type="application/json" id="strings">{data}</script>'
+        '<script src="/app.js" defer></script></head>'
+        f'<body><div id="root" data-view="{escape(view)}"></div></body></html>'
+    )
+
+
+def served_over_https(request: Request) -> bool:
+    """Whether the browser reached us over TLS, directly or through a proxy.
+
+    A cookie is ``Secure`` only then: a judge runs over plain ``http://localhost``.
+    """
+    proxied = request.headers.get("x-forwarded-proto", "").split(",")[0].strip().lower()
+    return request.url.scheme == "https" or proxied == "https"

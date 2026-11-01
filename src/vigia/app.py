@@ -22,7 +22,16 @@ from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 from pydantic import BaseModel, Field, SecretStr
 
 from vigia import telemetry
-from vigia.channel.panel import LANG, PANEL_JS, TryForm, render_panel
+from vigia.channel.panel import (
+    APP_JS,
+    LANG,
+    PANEL_HEADERS,
+    PANEL_JS,
+    TryForm,
+    render_panel,
+    render_shell,
+    served_over_https,
+)
 from vigia.channel.wazenda import signed_payload, to_message
 from vigia.config import WEBHOOK_CONCURRENCY, Settings, settings
 from vigia.domain.attachment import MAX_ATTACHMENT_BYTES, Attachment, read_capped
@@ -34,6 +43,7 @@ from vigia.i18n import t
 from vigia.model import jev, spark
 from vigia.model.sam import make_sam
 from vigia.net.unroll import unroller
+from vigia.owner_web import owner_router
 from vigia.services import process_case, whatsapp
 from vigia.services.backend import has_chat, make_chat
 from vigia.services.ingest import normalize
@@ -44,13 +54,6 @@ from vigia.signals.urls import Resolver
 from vigia.store import postgres as store
 
 _SECURITY_HEADERS = {"X-Content-Type-Options": "nosniff", "X-Frame-Options": "DENY"}
-_PANEL_HEADERS = {
-    "Content-Security-Policy": (
-        "default-src 'none'; style-src 'unsafe-inline'; script-src 'self'; connect-src 'self'"
-    ),
-    "Cache-Control": "no-store",
-    "Referrer-Policy": "no-referrer",
-}
 log = logging.getLogger(__name__)
 PANEL_COOKIE = "vigia_panel"
 MAX_CLOCK_SKEW_S = 300  # specs/01: a webhook older or newer than 5 minutes is ignored
@@ -133,18 +136,21 @@ async def _panel_page(
         form: The empty "try it" block (whether it says rules only).
 
     Returns:
-        The page; 404 when no token is configured, 401 without the right one; a
-        ``?token=`` link redirects to ``/panel`` with the token as a cookie (D-088).
+        The page (``/panel``) or the React shell (``/app``, D-121); 404 when no token is
+        configured, 401 without the right one; a ``?token=`` link redirects to the same path
+        with the token as a cookie (D-088).
     """
     if (link := request.query_params.get("token")) is not None:
         # A browser cannot send Bearer: trade the link for a cookie, off the URL (D-088).
         _require_token(link, config.panel_token)
-        response = RedirectResponse("/panel", status_code=303, headers=_PANEL_HEADERS)
-        proxied = request.headers.get("x-forwarded-proto", "").split(",")[0].strip().lower()
-        https = request.url.scheme == "https" or proxied == "https"
-        response.set_cookie(PANEL_COOKIE, link, httponly=True, samesite="lax", secure=https)
+        response = RedirectResponse(request.url.path, status_code=303, headers=PANEL_HEADERS)
+        response.set_cookie(
+            PANEL_COOKIE, link, httponly=True, samesite="lax", secure=served_over_https(request)
+        )
         return response
     _require_token(_presented_token(request), config.panel_token)
+    if request.url.path == "/app":
+        return HTMLResponse(render_shell("operator", LANG), headers=PANEL_HEADERS)
     return await _panel_html(config, source, form)
 
 
@@ -152,7 +158,7 @@ async def _panel_html(config: Settings, source: PanelSource, form: TryForm) -> H
     """Render the panel, with a text tried from its form and its verdict if there is one."""
     rows, today = await source()
     page = render_panel(rows, today, _latest_metrics(config), form)
-    return HTMLResponse(page, headers=_PANEL_HEADERS)
+    return HTMLResponse(page, headers=PANEL_HEADERS)
 
 
 async def _postgres_ok(config: Settings) -> bool:
@@ -359,6 +365,26 @@ TryIt = Callable[[str, bytes], Awaitable[TryForm]]
 """Judges the form's text, or its file when there is one (``b""`` when not)."""
 
 
+async def _tried(request: Request, config: Settings, try_it: TryIt, rules_only: bool) -> TryForm:
+    """The form or API post judged: a text, a file, or why neither could be (422)."""
+    _require_token(_presented_token(request), config.panel_token)
+    body = await read_capped(request.stream(), MAX_ATTACHMENT_BYTES + FORM_OVERHEAD)
+    fields = (
+        _form_fields(request.headers.get("content-type", ""), body)
+        if isinstance(body, bytes)
+        else {}
+    )
+    data = fields.get("file", b"")
+    if not isinstance(body, bytes) or len(data) > MAX_ATTACHMENT_BYTES:
+        return TryForm(rules_only=rules_only, notice=t(LANG, "attachment.too_large"))
+    text = fields.get("text", b"").decode(errors="replace").strip()
+    if not text and not data:
+        raise HTTPException(status_code=422, detail="empty text")
+    if len(text) > MAX_CASE_CHARS:
+        raise HTTPException(status_code=422, detail="text too long")
+    return (await try_it(text, data))._replace(rules_only=rules_only)
+
+
 def _panel(config: Settings, source: PanelSource, try_it: TryIt, rules_only: bool) -> APIRouter:
     """The operator panel and its "try it" form (specs/07, D-072, D-073, T-22d, D-090, T-22f)."""
     router = APIRouter()
@@ -373,7 +399,7 @@ def _panel(config: Settings, source: PanelSource, try_it: TryIt, rules_only: boo
     async def panel_js(request: Request) -> Response:
         """The panel's own progressive-enhancement script, same origin only (D-110)."""
         _require_token(_presented_token(request), config.panel_token)
-        return Response(PANEL_JS, media_type="text/javascript", headers=_PANEL_HEADERS)
+        return Response(PANEL_JS, media_type="text/javascript", headers=PANEL_HEADERS)
 
     @router.post("/panel", response_class=HTMLResponse)
     async def try_text(request: Request) -> Response:
@@ -382,24 +408,37 @@ def _panel(config: Settings, source: PanelSource, try_it: TryIt, rules_only: boo
         A plain form post that works without JS; panel.js reuses it (D-110). The ``SameSite=Lax``
         cookie never rides a cross-site post.
         """
+        return await _panel_html(config, source, await _tried(request, config, try_it, rules_only))
+
+    @router.get("/app", response_class=HTMLResponse)
+    async def operator_app(request: Request) -> Response:
+        """The React operator view, beside ``/panel`` until it replaces it (D-121)."""
+        return await _panel_page(request, config, source, blank)
+
+    @router.get("/app.js")
+    async def app_js() -> Response:
+        """The React bundle: public, it carries code and no data (D-121)."""
+        return Response(APP_JS, media_type="text/javascript", headers=PANEL_HEADERS)
+
+    @router.get("/api/operator")
+    async def operator_api(request: Request) -> JSONResponse:
+        """What the operator view shows: rows (with signal names, D-111), counts, metrics."""
         _require_token(_presented_token(request), config.panel_token)
-        body = await read_capped(request.stream(), MAX_ATTACHMENT_BYTES + FORM_OVERHEAD)
-        fields = (
-            _form_fields(request.headers.get("content-type", ""), body)
-            if isinstance(body, bytes)
-            else {}
-        )
-        data = fields.get("file", b"")
-        if not isinstance(body, bytes) or len(data) > MAX_ATTACHMENT_BYTES:
-            too_large = blank._replace(notice=t(LANG, "attachment.too_large"))
-            return await _panel_html(config, source, too_large)
-        text = fields.get("text", b"").decode(errors="replace").strip()
-        if not text and not data:
-            raise HTTPException(status_code=422, detail="empty text")
-        if len(text) > MAX_CASE_CHARS:
-            raise HTTPException(status_code=422, detail="text too long")
-        form = await try_it(text, data)
-        return await _panel_html(config, source, form._replace(rules_only=rules_only))
+        rows, today = await source()
+        body = {
+            "rows": [row.model_dump(mode="json") for row in rows],
+            "today": today,
+            "metrics": _latest_metrics(config),
+            "rules_only": rules_only,
+        }
+        return JSONResponse(body, headers=PANEL_HEADERS)
+
+    @router.post("/api/operator/try")
+    async def operator_try(request: Request) -> JSONResponse:
+        """The "try it" form as JSON for the React view; same checks as ``POST /panel``."""
+        form = await _tried(request, config, try_it, rules_only)
+        body = form._asdict() | {"row": form.row and form.row.model_dump(mode="json")}
+        return JSONResponse(body, headers=PANEL_HEADERS)
 
     return router
 
@@ -436,6 +475,7 @@ def create_app(
         lifespan=_lifespan,
     )
     api.state.wazenda = None
+    api.state.keyring = None
     api.state.metrics = telemetry.Metrics()
     api.state.health_http = None
     api.state.health_cache = None
@@ -505,6 +545,7 @@ def create_app(
 
     try_it, rules_only = _try_it(config, analyst, judge_text)
     api.include_router(_panel(config, panel_source, try_it, rules_only))
+    api.include_router(owner_router(config))
 
     return api
 

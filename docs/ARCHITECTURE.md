@@ -13,6 +13,7 @@ dependency, allowed by the import contracts but not written yet.
 graph TD
   subgraph application
     vigia.app
+    vigia.owner_web
     vigia.services
   end
   subgraph rules
@@ -57,6 +58,10 @@ graph TD
   vigia.store --> vigia.domain
   vigia.net -.-> vigia.domain
   vigia.app -.-> vigia.net
+  vigia.app --> vigia.owner_web
+  vigia.owner_web --> vigia.services
+  vigia.owner_web --> vigia.store
+  vigia.owner_web --> vigia.channel
   vigia.store --> PG[(Postgres, RLS by app.business_id)]
 ```
 
