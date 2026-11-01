@@ -61,13 +61,13 @@ async def _owner(conn: asyncpg.Connection, recorder: Recorder) -> None:
 async def test_unknown_sender_is_ignored_and_recorded(
     admin_conn: asyncpg.Connection, recorder: Recorder
 ) -> None:
-    before = await admin_conn.fetchval("SELECT count(*) FROM rejected_attempts")
-
     reply = await handle(admin_conn, recorder.ports, message(STRANGER, "Su paquete esta retenido"))
 
     assert reply is None
     assert recorder.analyzed == []
-    assert await admin_conn.fetchval("SELECT count(*) FROM rejected_attempts") == before + 1
+    # Only this transaction's rows: now() is its start time, shared by what it inserts.
+    mine = "SELECT count(*) FROM rejected_attempts WHERE created_at = now()"
+    assert await admin_conn.fetchval(mine) == 1
 
 
 async def test_app_role_cannot_read_rejected_attempts(

@@ -726,14 +726,24 @@ async def test_inc_reenvio_viejo_an_old_verdict_is_analyzed_again(
     outbox, fake = Outbox(_png()), FakeReader()
     ch = channel(keyring, outbox, {"image": fake})
 
-    before = await admin_conn.fetchval("SELECT count(*) FROM verdicts")
+    await admin_conn.execute("SET ROLE vigia_app")  # RLS on, as in production
     await whatsapp.process(admin_conn, ch, incoming("imagen", EMPLOYEE, message_id="wamid.o0"))
-    await admin_conn.execute("UPDATE verdicts SET created_at = created_at - interval '2 days'")
+    await admin_conn.execute("RESET ROLE")
+    # Only this test's verdict: now() is the transaction's start, shared by its own rows.
+    mine = "SELECT business_id FROM verdicts WHERE created_at = now()"
+    business = await admin_conn.fetchval(mine)
+    await admin_conn.execute(
+        "UPDATE verdicts SET created_at = created_at - interval '2 days' WHERE business_id = $1",
+        business,
+    )
+    await admin_conn.execute("SET ROLE vigia_app")
     await whatsapp.process(admin_conn, ch, incoming("imagen", EMPLOYEE, message_id="wamid.o1"))
+    await admin_conn.execute("RESET ROLE")
 
     assert len(fake.calls) == 2
     assert not outbox.to(EMPLOYEE)[1].startswith("Ya lo revisé")
-    assert await admin_conn.fetchval("SELECT count(*) FROM verdicts") == before + 2
+    count = "SELECT count(*) FROM verdicts WHERE business_id = $1"
+    assert await admin_conn.fetchval(count, business) == 2
 
 
 async def test_inc_reenvio_concurrente_two_copies_at_once_are_read_once(

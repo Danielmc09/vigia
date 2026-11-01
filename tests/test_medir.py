@@ -13,6 +13,19 @@ from vigia.model.jev import JevJudge
 from vigia.model.spark_judge import SparkJudge
 
 REPO = Path(__file__).parents[1]
+TODAY = date(2026, 10, 27)
+
+
+class _FrozenDate(date):
+    @classmethod
+    def today(cls) -> date:
+        return TODAY
+
+
+@pytest.fixture(autouse=True)
+def _frozen_today(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Result files are named by date; a run crossing midnight must not split them."""
+    monkeypatch.setattr(measure, "date", _FrozenDate)
 BASE = {
     "tipo": "texto",
     "pais": "CO",
@@ -63,7 +76,7 @@ def _run(tmp_path: Path, classify: measure.Classifier | None, *args: str) -> int
     return measure.main([str(path), *args], classify=classify, out_dir=tmp_path)
 
 
-def _result(tmp_path: Path, name: str = f"{date.today()}.resultado.json") -> dict:
+def _result(tmp_path: Path, name: str = f"{TODAY}.resultado.json") -> dict:
     return json.loads((tmp_path / name).read_text(encoding="utf-8"))
 
 
@@ -242,7 +255,7 @@ def test_adversarial_run_reports_caught_and_passes_when_all_expectations_hold(
 
     code = measure.main(["--adversarios"], out_dir=tmp_path)
 
-    result = _result(tmp_path, f"{date.today()}.adversarios.resultado.json")
+    result = _result(tmp_path, f"{TODAY}.adversarios.resultado.json")
     assert code == 0
     assert result["metricas"] == {
         "secuencias": 2,
@@ -265,10 +278,10 @@ def test_adversarial_run_fails_when_an_expectation_does_not_hold(tmp_path: Path)
 
     code = measure.main(["--adversarios"], out_dir=tmp_path)
 
-    result = _result(tmp_path, f"{date.today()}.adversarios.resultado.json")
+    result = _result(tmp_path, f"{TODAY}.adversarios.resultado.json")
     assert code == 1
     assert [r["paso"] for r in result["casos"]] == [True, False]
-    assert not (tmp_path / f"{date.today()}.resultado.json").exists()
+    assert not (tmp_path / f"{TODAY}.resultado.json").exists()
     assert not (tmp_path / "ultimo.resultado.json").exists()
 
 
@@ -279,7 +292,7 @@ def test_adversarial_history_carries_an_earlier_injection_to_the_last_turn(
     _write_adv(tmp_path, crescendo)
 
     assert measure.main(["--adversarios"], out_dir=tmp_path) == 0
-    record = _result(tmp_path, f"{date.today()}.adversarios.resultado.json")["casos"][0]
+    record = _result(tmp_path, f"{TODAY}.adversarios.resultado.json")["casos"][0]
     assert record["marcados"] == [True, True, True]
 
 
@@ -290,7 +303,7 @@ def test_repository_adversarial_set_passes_and_catches_the_first_two(tmp_path: P
 
     code = measure.main(["--adversarios"], out_dir=tmp_path)
 
-    records = _result(tmp_path, f"{date.today()}.adversarios.resultado.json")["casos"]
+    records = _result(tmp_path, f"{TODAY}.adversarios.resultado.json")["casos"]
     assert code == 0
     assert all(r["atrapado"] for r in records[:2])
 
@@ -355,7 +368,7 @@ def test_a_legit_case_flagged_by_the_gate_floor_fails_the_deterministic_run(
 
     code = measure.main([str(path), "--solo-deterministas"], out_dir=tmp_path)
 
-    result = _result(tmp_path, f"{date.today()}.deterministas.resultado.json")
+    result = _result(tmp_path, f"{TODAY}.deterministas.resultado.json")
     assert code == 1
     assert result["metricas"]["manipulacion_legitimo"] == 1.0
     assert result["gate"] == ["manipulacion_legitimo"]
@@ -391,7 +404,7 @@ def test_full_mode_still_fails_on_accuracy_and_doubtful_regressions(tmp_path: Pa
 
 
 RULES_BASELINE = "ultimo.deterministas.resultado.json"
-RULES_RESULT = f"{date.today()}.deterministas.resultado.json"
+RULES_RESULT = f"{TODAY}.deterministas.resultado.json"
 
 
 def _rules_run(tmp_path: Path, answers: dict[str, str], *cases: dict[str, object]) -> int:

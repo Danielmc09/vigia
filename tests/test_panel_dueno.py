@@ -144,7 +144,10 @@ async def test_a_session_ends_when_its_member_is_no_longer_the_owner(
     session = await store.enter_panel(admin_conn, await _link(admin_conn, recorder))
     assert session is not None
 
-    await admin_conn.execute("UPDATE members SET role = 'employee' WHERE role = 'owner'")
+    # Only this test's owner: now() is the transaction's start, shared by its own rows.
+    await admin_conn.execute(
+        "UPDATE members SET role = 'employee' WHERE role = 'owner' AND created_at = now()"
+    )
 
     assert await store.panel_session(admin_conn, session) is None
 
