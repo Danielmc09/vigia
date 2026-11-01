@@ -10,6 +10,7 @@ from fastapi.testclient import TestClient
 from tests.test_panel import TOKEN, _client
 from vigia.app import MAX_CASE_CHARS
 from vigia.channel.panel import APP_JS
+from vigia.i18n import t
 
 ROOT = Path(__file__).parents[1]
 BEARER = {"Authorization": f"Bearer {TOKEN}"}
@@ -87,6 +88,20 @@ def test_the_shell_embeds_its_strings_as_data_not_code() -> None:
     assert strings["panel.try.title"] == "Try it"
     assert strings["verdict.label.scam"] == "scam"
     assert "<script>" not in page  # the CSP runs no inline script; the shell needs none
+
+
+def test_the_shell_shows_a_readable_message_if_the_bundle_never_mounts() -> None:
+    """A blank page is the worst first impression for a judge; React clears #root on mount."""
+    client = _client(TOKEN)
+    client.cookies.set("vigia_panel", TOKEN)
+
+    page = client.get("/app").text
+
+    root = re.search(r'<div id="root"[^>]*>(.*?)</div>', page, re.S)
+    assert root is not None
+    message = t("en", "panel.shell_error")
+    assert message in root.group(1)
+    assert f"<noscript>{message}</noscript>" in page
 
 
 def test_the_bundle_is_served_same_origin() -> None:

@@ -296,7 +296,10 @@ def render_shell(view: str, lang: str) -> str:
         f"<title>{escape(t(lang, 'panel.brand'))}</title>"
         f'<script type="application/json" id="strings">{data}</script>'
         '<script src="/app.js" defer></script></head>'
-        f'<body><div id="root" data-view="{escape(view)}"></div></body></html>'
+        f'<body><div id="root" data-view="{escape(view)}">'
+        f"<p>{escape(t(lang, 'panel.shell_error'))}</p></div>"
+        f"<noscript>{escape(t(lang, 'panel.shell_error'))}</noscript>"
+        "</body></html>"
     )
 
 

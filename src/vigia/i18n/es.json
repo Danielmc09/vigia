@@ -188,6 +188,7 @@
   "panel.enter": "Entrar",
   "panel.enter.intro": "Toca el botón para abrir el panel de tu negocio.",
   "panel.link_invalid": "Este enlace ya no sirve. Escribe *panel* en WhatsApp para recibir uno nuevo.",
+  "panel.shell_error": "No se pudo cargar el panel. Escribe *panel* en WhatsApp o recarga la página.",
   "owner.title": "VIGÍA · {business}",
   "owner.cases": "Casos del negocio",
   "owner.team": "Equipo",
