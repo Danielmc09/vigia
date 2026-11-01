@@ -283,13 +283,6 @@ function Operator() {
 const kind = (k) => (k && has(`owner.kind.${k}`) ? t(`owner.kind.${k}`) : k || "");
 
 const OWNER_TABLES = {
-  cases: [
-    { key: "label", title: t("owner.col.label"), lead: true, cell: (c) => <Tag label={c.label} /> },
-    { key: "brand", title: t("owner.col.brand"), lead: true, cell: (c) => c.brand || "" },
-    { key: "when", title: t("owner.col.when"), cell: (c) => when(c.at) },
-    { key: "case", title: t("owner.col.case"), cell: (c) => (c.ref == null ? "" : String(c.ref)) },
-    { key: "kind", title: t("owner.col.kind"), cell: (c) => kind(c.kind) },
-  ],
   team: [
     { key: "name", title: t("owner.col.name"), lead: true, cell: (m) => m.name || "" },
     { key: "phone", title: t("owner.col.phone"), cell: (m) => m.phone },
@@ -301,10 +294,29 @@ const OWNER_TABLES = {
   ],
 };
 
+/** One thing the team forwarded, in the words WhatsApp used: what it is and what to do. */
+function Report({ report, now }) {
+  return (
+    <article className={`report r-${report.label}`}>
+      <div className="report-head">
+        <Tag label={report.label} />
+        {report.brand && <b>{report.brand}</b>}
+        <span className="note">
+          {kind(report.kind)} ·{" "}
+          <time dateTime={report.at} title={when(report.at)}>{ago(report.at, now, t)}</time>
+        </span>
+      </div>
+      {report.explanation && <p>{report.explanation}</p>}
+      {report.action && <p className="todo">{report.action}</p>}
+    </article>
+  );
+}
+
 function Owner() {
   const [{ data, failed }] = useApi("/api/owner");
   if (failed) return <main><p className="error" role="alert">{t("owner.error")}</p></main>;
   if (!data) return <main><p className="note">{t("owner.loading")}</p></main>;
+  const now = new Date();
   const table = (name) => (
     <section>
       <h2>{t(`owner.${name}`)}</h2>
@@ -315,11 +327,20 @@ function Owner() {
   );
   document.title = t("owner.title", { business: data.business });
   return (
-    <main>
+    <main className="owner">
       <header className="top">
         <h1>{document.title}</h1>
       </header>
-      {table("cases")}
+      <section>
+        <h2>{t("owner.cases")}</h2>
+        {data.cases.length ? (
+          <div className="reports">
+            {data.cases.map((c, i) => <Report key={`${c.at}-${i}`} report={c} now={now} />)}
+          </div>
+        ) : (
+          <p className="note">{t("owner.empty.cases")}</p>
+        )}
+      </section>
       <div className="split">
         {table("team")}
         {table("suppliers")}

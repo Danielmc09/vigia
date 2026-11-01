@@ -28,6 +28,19 @@ _QUOTE_MIN_WORDS = 3
 _WORD = re.compile(r"\W*[^\W\d_]{2,}\W*")
 
 
+def reason_and_action(verdict: Verdict, lang: str) -> tuple[str, str]:
+    """The first two lines of every verdict reply: why, and what to do.
+
+    Args:
+        verdict: The case's verdict; its ``user_explanation`` is already code-built.
+        lang: Language of the business.
+
+    Returns:
+        The explanation and the action line.
+    """
+    return verdict.user_explanation, t(lang, f"action.{verdict.action}")
+
+
 def whatsapp_message(
     verdict: Verdict,
     lang: str,
@@ -48,7 +61,7 @@ def whatsapp_message(
     Returns:
         The message text.
     """
-    lines = [verdict.user_explanation, t(lang, f"action.{verdict.action}")]
+    lines = list(reason_and_action(verdict, lang))
     if verdict.official_channel:
         lines.append(
             t(lang, "message.official_channel_line", official_channel=verdict.official_channel)

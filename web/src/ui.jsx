@@ -222,6 +222,15 @@ font-size:13px}
 .today button[aria-pressed=true]{background:var(--fg);border-color:var(--fg);color:var(--bg)}
 .today button[aria-pressed=true] b{color:var(--bg)}
 .today .clear{color:var(--accent);border-color:var(--accent)}
+.owner{max-width:880px}
+.reports{display:grid;gap:12px}
+.report{background:var(--surface);border:1px solid var(--line);border-left:4px solid var(--line);
+border-radius:12px;padding:12px 16px}
+.r-scam{border-left-color:var(--bad)}.r-doubtful{border-left-color:var(--maybe)}
+.report-head{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px}
+.report-head .note{margin:0}
+.report p{margin:8px 0 0;overflow-wrap:anywhere}
+.todo{font-weight:600}.r-legit .todo{font-weight:400;color:var(--muted)}
 .split{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,360px),1fr));gap:24px}
 @media (max-width:1100px){
 main{padding:16px;gap:16px}.panel{padding:16px}

@@ -418,8 +418,12 @@ async def fresh_verdict(
     )
     if row is None:
         return None
-    payload = vault.open("verdicts.payload", row["payload_enc"])
-    return Seen(row["ref"], row["created_at"], Verdict.model_validate_json(payload))
+    return Seen(row["ref"], row["created_at"], _open_verdict(vault, row["payload_enc"]))
+
+
+def _open_verdict(vault: Vault, sealed: bytes) -> Verdict:
+    """Open a sealed ``verdicts.payload``."""
+    return Verdict.model_validate_json(vault.open("verdicts.payload", sealed))
 
 
 class HistoryRow(NamedTuple):
@@ -450,12 +454,41 @@ async def recent_verdicts(conn: asyncpg.Connection, limit: int = 5) -> list[Hist
     Returns:
         One row per verdict.
     """
+    return [row for row, _ in await _verdict_rows(conn, limit)]
+
+
+async def _verdict_rows(
+    conn: asyncpg.Connection, limit: int
+) -> list[tuple[HistoryRow, bytes | None]]:
+    """Latest verdicts, newest first, each with its sealed payload (``None`` on old rows)."""
     rows = await conn.fetch(
-        "SELECT v.created_at AS at, c.ref, v.label, v.brand, v.kind FROM verdicts v"
+        "SELECT v.created_at AS at, c.ref, v.label, v.brand, v.kind, v.payload_enc FROM verdicts v"
         " LEFT JOIN cases c ON c.id = v.case_id ORDER BY v.created_at DESC LIMIT $1",
         limit,
     )
-    return [HistoryRow(**r) for r in rows]
+    return [
+        (HistoryRow(r["at"], r["ref"], r["label"], r["brand"], r["kind"]), r["payload_enc"])
+        for r in rows
+    ]
+
+
+async def owner_cases(
+    conn: asyncpg.Connection, vault: Vault, limit: int
+) -> list[tuple[HistoryRow, Verdict | None]]:
+    """Latest verdicts of the business with the sealed verdict opened, newest first.
+
+    Args:
+        conn: Connection scoped to the business.
+        vault: Open vault of the business.
+        limit: How many to return.
+
+    Returns:
+        Each row with its verdict, ``None`` for rows stored without one.
+    """
+    return [
+        (row, None if sealed is None else _open_verdict(vault, sealed))
+        for row, sealed in await _verdict_rows(conn, limit)
+    ]
 
 
 async def save_verdict(

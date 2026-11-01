@@ -5,13 +5,16 @@ import re
 from collections.abc import AsyncIterator
 from datetime import timedelta
 from html import escape
+from uuid import UUID
 
 import asyncpg
 import pytest
 from fastapi.testclient import TestClient
 
 from tests.conftest import Recorder, message
+from tests.test_panel import _case, _verdict
 from vigia.app import create_app
+from vigia.channel.templates import whatsapp_message
 from vigia.channel.wazenda import MAX_MESSAGE_CHARS
 from vigia.config import Settings, settings
 from vigia.i18n import t
@@ -19,7 +22,7 @@ from vigia.services.commands import parse_command
 from vigia.services.ingest import handle
 from vigia.services.owner_panel import owner_view
 from vigia.store import postgres as store
-from vigia.store.crypto import Keyring
+from vigia.store.crypto import Keyring, Vault
 
 OWNER = "+573000000211"
 EMPLOYEE = "+573000000212"
@@ -48,6 +51,13 @@ async def _business(conn: asyncpg.Connection, recorder: Recorder, phone: str = O
         " WHERE id = NULLIF(current_setting('app.business_id', true), '')::uuid",
         [SIGNAL],
     )
+
+
+async def _open(conn: asyncpg.Connection, keyring: Keyring) -> tuple[UUID, Vault]:
+    """The business the connection is scoped to, with its vault open."""
+    business_id = await conn.fetchval("SELECT current_setting('app.business_id')::uuid")
+    _, vault = await store.open_business(conn, keyring, business_id)
+    return business_id, vault
 
 
 async def _link(conn: asyncpg.Connection, recorder: Recorder, phone: str = OWNER) -> str:
@@ -171,6 +181,34 @@ async def test_owner_view_shows_cases_team_and_suppliers_without_signal_names(
         ("scam", "Bancolombia", "text")
     ]
     assert SIGNAL not in repr(view)
+
+
+async def test_owner_reads_the_same_reason_and_action_the_team_got(
+    app_conn: asyncpg.Connection, recorder: Recorder
+) -> None:
+    """The owner gets the plain words of the WhatsApp reply, not signal names (D-111)."""
+    await _business(app_conn, recorder)
+    business_id, vault = await _open(app_conn, recorder.keyring)
+    case = _case(business_id)
+    verdict = _verdict(case).model_copy(update={"user_explanation": "Esto es una estafa."})
+    await store.save_case(app_conn, vault, case)
+    await store.save_verdict(app_conn, vault, case, verdict)
+    reply = whatsapp_message(verdict, "es")
+    session = await store.enter_panel(app_conn, await _link(app_conn, recorder))
+    assert session is not None
+
+    view = await owner_view(app_conn, recorder.keyring, session)
+
+    assert view is not None
+    # both share now(): the transaction's clock, so the order between them is a tie
+    said = [(c["explanation"], c["action"]) for c in view["cases"]]
+    # _business stores an older verdict without a sealed payload: it shows no words
+    assert (None, None) in said
+    said.remove((None, None))
+    [(explanation, action)] = said
+    assert explanation and explanation in reply
+    assert action and action in reply
+    assert "brand_off_domain" not in repr(view)
 
 
 async def test_owner_view_needs_a_live_owner_session(
