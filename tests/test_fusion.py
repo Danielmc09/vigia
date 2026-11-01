@@ -589,7 +589,12 @@ def test_a_bank_or_wallet_that_is_imitated_stays_impersonated(case_id: str, bran
 
 @pytest.mark.parametrize(
     ("case_id", "country", "brand"),
-    [("c-0247", "CO", "Bancolombia"), ("c-0249", "US", "Chase"), ("c-0250", "US", "Chase")],
+    [
+        ("c-0247", "CO", "Bancolombia"),
+        ("c-0249", "US", "Chase"),
+        ("c-0250", "US", "Chase"),
+        ("c-0251", "US", "Wells Fargo"),
+    ],
 )
 def test_inc_su_cuenta_the_recipients_own_account_keeps_the_bank_impersonated(
     case_id: str, country: str, brand: str
@@ -607,11 +612,12 @@ def test_inc_su_cuenta_the_recipients_own_account_keeps_the_bank_impersonated(
     assert verdict.user_explanation.startswith(t(pack.language, "verdict.scam.brand", brand=brand))
 
 
-def test_inc_pay_to_chase_a_us_bank_the_money_goes_to_is_the_rail() -> None:
-    """Juez of D-118: the US pack had no rail case; "pay ... to Chase account" is the payee."""
+@pytest.mark.parametrize("case_id", ["c-0248", "c-0252"])
+def test_inc_pay_to_chase_a_us_bank_the_money_goes_to_is_the_rail(case_id: str) -> None:
+    """Juez of D-118/D-120: "pay ... to Chase account", "your payment to account" are the payee."""
     pack = country_pack("US")
     assert pack is not None
-    case = _eval_case("c-0248")
+    case = _eval_case(case_id)
 
     verdict = build_verdict(
         case, Evidence(signals=detect(case, pack), analyst=_analyst("scam", 0.92)), pack
