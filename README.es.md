@@ -18,15 +18,15 @@ aleja de la corrida con fecha más reciente en `evals/`.
 
 | Fecha | Casos | Exactitud | Recall de estafa | Falsas alarmas en legítimos | Dudosos | Costo | Latencia mediana | Commit | Gate |
 |---|---|---|---|---|---|---|---|---|---|
-| 2026-10-31 | 221 | 93,7% | 99,2% | 2,1% | 6,3% | $0,729 | 2,76 s | `7c54bc3` | aprobado, 0 regresiones |
+| 2026-10-31 | 231 | 93,5% | 98,5% | 2,1% | 6,5% | $0,879 | 3,22 s | `a474a96` | aprobado, 0 regresiones |
 
-En 73 de los 221 casos las reglas deterministas ya eran concluyentes, así que VIGÍA
+En 73 de los 231 casos las reglas deterministas ya eran concluyentes, así que VIGÍA
 se saltó el analista a propósito ([`ADR-061`](docs/decisions/ADR-061.md)): solo el
-chequeo de manipulación de la compuerta llamó a un modelo, con una mediana de $0,0014 y
-1,3 s por caso, contra $0,0038 y 3,6 s con el analista. En otros 15, Muse Spark leyó el
+chequeo de manipulación de la compuerta llamó a un modelo, con una mediana de $0,0015 y
+1,5 s por caso, contra $0,0047 y 4,0 s con el analista. En otros 15, Muse Spark leyó el
 PDF o la captura y las reglas decidieron sobre el texto extraído. El analista corrió en
-los 133 restantes. El archivo de resultado cuenta esos 88 como `degradados` (sin
-analista); ninguno de los 221 se quedó sin analista por un modelo no disponible o un
+los 143 restantes. El archivo de resultado cuenta esos 88 como `degradados` (sin
+analista); ninguno de los 231 se quedó sin analista por un modelo no disponible o un
 rechazo.
 
 Meta (≥80 casos): `recall_estafa ≥ 0.90`, `fp_legitimo ≤ 0.10`,

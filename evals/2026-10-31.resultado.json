@@ -3,11 +3,11 @@
  "modo": "completo",
  "filtro": null,
  "metricas": {
-  "casos": 221,
-  "exactitud": 0.9366515837104072,
-  "recall_estafa": 0.9918032786885246,
+  "casos": 231,
+  "exactitud": 0.935064935064935,
+  "recall_estafa": 0.9848484848484849,
   "fp_legitimo": 0.021052631578947368,
-  "dudosos": 0.06334841628959276,
+  "dudosos": 0.06493506493506493,
   "manipulacion_legitimo": 0.0,
   "por_categoria": {
    "banco": 1.0,
@@ -20,28 +20,28 @@
    "legitimo_otro": 0.8518518518518519,
    "telco": 1.0,
    "premio": 1.0,
-   "bec_proveedor": 1.0,
+   "bec_proveedor": 0.8571428571428571,
    "bec_jefe": 1.0,
    "compraventa": 0.8974358974358975,
    "comercio": 1.0,
    "legitimo_proveedor": 0.8387096774193549
   },
   "por_tipo": {
-   "texto": 0.9202453987730062,
+   "texto": 0.9190751445086706,
    "conversacion": 0.9090909090909091,
    "audio": 1.0,
    "pdf": 1.0,
    "imagen": 1.0
   },
   "por_pais": {
-   "CO": 0.9221556886227545,
-   "US": 0.9814814814814815
+   "CO": 0.9289940828402367,
+   "US": 0.9516129032258065
   },
-  "mediana_ms": 2758.7,
-  "usd_total": 0.72932935,
-  "tokens_total": 514284,
+  "mediana_ms": 3217.6,
+  "usd_total": 0.8794831500000001,
+  "tokens_total": 540087,
   "degradados": 88,
-  "hipotesis_confirmadas": 207
+  "hipotesis_confirmadas": 216
  },
  "gate": [],
  "regresiones": [],
@@ -64,9 +64,9 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 2114.8,
-   "usd": 0.0013554,
-   "tokens": 586,
+   "ms": 1980.3,
+   "usd": 0.0014845,
+   "tokens": 554,
    "error": null
   },
   {
@@ -87,9 +87,9 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 1722.2,
-   "usd": 0.0017109,
-   "tokens": 664,
+   "ms": 1225.9,
+   "usd": 0.00157225,
+   "tokens": 569,
    "error": null
   },
   {
@@ -108,9 +108,9 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 1089.2,
-   "usd": 0.0009661499999999998,
-   "tokens": 493,
+   "ms": 1912.0,
+   "usd": 0.00136725,
+   "tokens": 525,
    "error": null
   },
   {
@@ -130,8 +130,8 @@
    "herramientas_usadas": [
     {
      "name": "muse-spark-1.3",
-     "ms": 1242,
-     "usd": 0.00099065
+     "ms": 1431,
+     "usd": 0.00257025
     },
     {
      "name": "check_country",
@@ -140,15 +140,15 @@
     },
     {
      "name": "muse-spark-1.3",
-     "ms": 972,
-     "usd": 0.0012384000000000002
+     "ms": 1204,
+     "usd": 0.00077035
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 3446.8,
-   "usd": 0.0032977000000000006,
-   "tokens": 4320,
+   "ms": 5058.4,
+   "usd": 0.005086600000000001,
+   "tokens": 4318,
    "error": null
   },
   {
@@ -168,9 +168,9 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 1878.3,
-   "usd": 0.001559399999999999,
-   "tokens": 634,
+   "ms": 1117.7,
+   "usd": 0.0011614999999999993,
+   "tokens": 478,
    "error": null
   },
   {
@@ -182,26 +182,26 @@
    "obtenido": "estafa",
    "paso": true,
    "hipotesis_confirmada": true,
-   "confianza": 0.85,
+   "confianza": 0.86,
    "senales": [
     "family",
     "family_impersonation",
     "new_number_claim",
     "urgency",
-    "call_avoidance"
+    "cannot_call_excuse"
    ],
    "herramientas_usadas": [
     {
      "name": "muse-spark-1.3",
-     "ms": 1579,
-     "usd": 0.00152315
+     "ms": 2042,
+     "usd": 0.0036085
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 3152.4,
-   "usd": 0.0034193,
-   "tokens": 2642,
+   "ms": 4091.2,
+   "usd": 0.0054085,
+   "tokens": 2654,
    "error": null
   },
   {
@@ -215,13 +215,14 @@
    "hipotesis_confirmada": true,
    "confianza": 0.85,
    "senales": [
-    "official_phone_match"
+    "official_phone_match",
+    "no_credential_request"
    ],
    "herramientas_usadas": [
     {
      "name": "muse-spark-1.3",
-     "ms": 977,
-     "usd": 0.0015978499999999998
+     "ms": 930,
+     "usd": 0.0027205
     },
     {
      "name": "check_country",
@@ -230,15 +231,15 @@
     },
     {
      "name": "muse-spark-1.3",
-     "ms": 1538,
-     "usd": 0.0016726
+     "ms": 1913,
+     "usd": 0.00121785
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 4558.8,
-   "usd": 0.005184850000000001,
-   "tokens": 4683,
+   "ms": 4592.9,
+   "usd": 0.0056206,
+   "tokens": 4462,
    "error": null
   },
   {
@@ -258,9 +259,9 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 1471.3,
-   "usd": 0.0012026499999999996,
-   "tokens": 543,
+   "ms": 1690.8,
+   "usd": 0.0014507500000000007,
+   "tokens": 539,
    "error": null
   },
   {
@@ -281,7 +282,7 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": true,
-   "ms": 17.4,
+   "ms": 16.2,
    "usd": 0.0,
    "tokens": 0,
    "error": null
@@ -295,16 +296,17 @@
    "obtenido": "legitimo",
    "paso": true,
    "hipotesis_confirmada": true,
-   "confianza": 0.9,
+   "confianza": 0.92,
    "senales": [
     "official_domain",
-    "official_domain"
+    "official_domain",
+    "routine_notification"
    ],
    "herramientas_usadas": [
     {
      "name": "muse-spark-1.3",
-     "ms": 902,
-     "usd": 0.0010766500000000002
+     "ms": 961,
+     "usd": 0.002601
     },
     {
      "name": "check_country",
@@ -313,15 +315,15 @@
     },
     {
      "name": "muse-spark-1.3",
-     "ms": 922,
-     "usd": 0.0015505999999999999
+     "ms": 1162,
+     "usd": 0.002958
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 3948.6,
-   "usd": 0.004630499999999996,
-   "tokens": 4426,
+   "ms": 3726.1,
+   "usd": 0.006979999999999997,
+   "tokens": 4324,
    "error": null
   },
   {
@@ -341,9 +343,9 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 1379.5,
-   "usd": 0.0013996500000000023,
-   "tokens": 595,
+   "ms": 1934.3,
+   "usd": 0.0017964999999999995,
+   "tokens": 626,
    "error": null
   },
   {
@@ -355,25 +357,25 @@
    "obtenido": "estafa",
    "paso": true,
    "hipotesis_confirmada": true,
-   "confianza": 0.92,
+   "confianza": 0.9,
    "senales": [
     "credentials_request",
     "verification_code_request",
-    "bank_impersonation",
-    "otp_theft_attempt"
+    "account_takeover_pretext",
+    "callback_phone_request"
    ],
    "herramientas_usadas": [
     {
      "name": "muse-spark-1.3",
-     "ms": 1197,
-     "usd": 0.00294175
+     "ms": 2390,
+     "usd": 0.00377475
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 2758.7,
-   "usd": 0.004379399999999999,
-   "tokens": 2494,
+   "ms": 3995.5,
+   "usd": 0.00577925,
+   "tokens": 2761,
    "error": null
   },
   {
@@ -394,9 +396,9 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 1399.2,
-   "usd": 0.0013331500000000017,
-   "tokens": 585,
+   "ms": 1312.6,
+   "usd": 0.0017894999999999994,
+   "tokens": 630,
    "error": null
   },
   {
@@ -419,9 +421,9 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 1432.6,
-   "usd": 0.001001399999999996,
-   "tokens": 502,
+   "ms": 1105.0,
+   "usd": 0.0013940000000000063,
+   "tokens": 532,
    "error": null
   },
   {
@@ -433,24 +435,25 @@
    "obtenido": "dudoso",
    "paso": false,
    "hipotesis_confirmada": false,
-   "confianza": 0.5,
+   "confianza": 0.55,
    "senales": [
     "personal_payment",
-    "unsolicited_refund_request",
-    "personal_payment"
+    "alleged_mistaken_transfer",
+    "refund_request",
+    "emotional_appeal"
    ],
    "herramientas_usadas": [
     {
      "name": "muse-spark-1.3",
-     "ms": 2021,
-     "usd": 0.0015848499999999998
+     "ms": 1891,
+     "usd": 0.00322875
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 3901.4,
-   "usd": 0.003590000000000003,
-   "tokens": 2776,
+   "ms": 4045.5,
+   "usd": 0.005630749999999997,
+   "tokens": 2767,
    "error": null
   },
   {
@@ -471,9 +474,9 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 1113.8,
-   "usd": 0.0011199,
-   "tokens": 532,
+   "ms": 1064.3,
+   "usd": 0.001000899999999999,
+   "tokens": 504,
    "error": null
   },
   {
@@ -493,9 +496,9 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 1004.0,
-   "usd": 0.0008534000000000042,
-   "tokens": 470,
+   "ms": 1307.8,
+   "usd": 0.0015520000000000048,
+   "tokens": 572,
    "error": null
   },
   {
@@ -517,9 +520,9 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 1926.5,
-   "usd": 0.001431149999999999,
-   "tokens": 601,
+   "ms": 2438.4,
+   "usd": 0.0026737499999999956,
+   "tokens": 831,
    "error": null
   },
   {
@@ -541,9 +544,9 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 1121.0,
-   "usd": 0.0012044000000000013,
-   "tokens": 554,
+   "ms": 1151.3,
+   "usd": 0.0010301500000000005,
+   "tokens": 513,
    "error": null
   },
   {
@@ -562,9 +565,9 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 1703.1,
-   "usd": 0.001439900000000001,
-   "tokens": 608,
+   "ms": 2136.5,
+   "usd": 0.0014526499999999998,
+   "tokens": 611,
    "error": null
   },
   {
@@ -583,9 +586,9 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 1858.9,
-   "usd": 0.0016346500000000014,
-   "tokens": 651,
+   "ms": 1806.3,
+   "usd": 0.0020910000000000026,
+   "tokens": 696,
    "error": null
   },
   {
@@ -605,9 +608,9 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 1267.1,
-   "usd": 0.000978149999999997,
-   "tokens": 493,
+   "ms": 1326.2,
+   "usd": 0.0010249000000000022,
+   "tokens": 504,
    "error": null
   },
   {
@@ -619,26 +622,24 @@
    "obtenido": "estafa",
    "paso": true,
    "hipotesis_confirmada": true,
-   "confianza": 0.92,
+   "confianza": 0.95,
    "senales": [
     "urgency",
-    "account_suspension_threat",
-    "urgency_pressure",
-    "id_document_request",
+    "id_photo_request",
     "otp_code_request"
    ],
    "herramientas_usadas": [
     {
      "name": "muse-spark-1.3",
-     "ms": 2065,
-     "usd": 0.00164615
+     "ms": 1792,
+     "usd": 0.0020521
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 2959.7,
-   "usd": 0.002783050000000002,
-   "tokens": 2505,
+   "ms": 2812.6,
+   "usd": 0.0031693500000000013,
+   "tokens": 2401,
    "error": null
   },
   {
@@ -659,9 +660,9 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 916.0,
-   "usd": 0.0011173999999999976,
-   "tokens": 530,
+   "ms": 1039.5,
+   "usd": 0.001416500000000001,
+   "tokens": 538,
    "error": null
   },
   {
@@ -681,9 +682,9 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 784.8,
-   "usd": 0.0012256500000000017,
-   "tokens": 559,
+   "ms": 1258.8,
+   "usd": 0.0014865000000000017,
+   "tokens": 558,
    "error": null
   },
   {
@@ -695,25 +696,25 @@
    "obtenido": "estafa",
    "paso": true,
    "hipotesis_confirmada": true,
-   "confianza": 0.85,
+   "confianza": 0.88,
    "senales": [
     "family",
     "family_impersonation",
-    "new_number_claim",
+    "new_number_request",
     "money_request"
    ],
    "herramientas_usadas": [
     {
      "name": "muse-spark-1.3",
-     "ms": 1331,
-     "usd": 0.0013491500000000001
+     "ms": 1825,
+     "usd": 0.003307
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 3453.6,
-   "usd": 0.0041928000000000035,
-   "tokens": 2836,
+   "ms": 5426.7,
+   "usd": 0.0069725000000000065,
+   "tokens": 3034,
    "error": null
   },
   {
@@ -725,7 +726,7 @@
    "obtenido": "estafa",
    "paso": true,
    "hipotesis_confirmada": true,
-   "confianza": 0.9,
+   "confianza": 0.92,
    "senales": [
     "new_account_request",
     "third_party_account",
@@ -734,15 +735,15 @@
    "herramientas_usadas": [
     {
      "name": "muse-spark-1.3",
-     "ms": 1789,
-     "usd": 0.0015124000000000001
+     "ms": 1535,
+     "usd": 0.0013509000000000001
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 3010.5,
-   "usd": 0.003011549999999995,
-   "tokens": 2551,
+   "ms": 3639.7,
+   "usd": 0.0037271499999999846,
+   "tokens": 2657,
    "error": null
   },
   {
@@ -759,20 +760,20 @@
     "boss_impersonation",
     "gift_card_request",
     "code_request",
-    "urgency_pressure"
+    "urgency"
    ],
    "herramientas_usadas": [
     {
      "name": "muse-spark-1.3",
-     "ms": 1048,
-     "usd": 0.0016188499999999998
+     "ms": 1315,
+     "usd": 0.00123415
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 2392.3,
-   "usd": 0.002822750000000006,
-   "tokens": 2367,
+   "ms": 3869.2,
+   "usd": 0.003952650000000002,
+   "tokens": 2703,
    "error": null
   },
   {
@@ -795,9 +796,9 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 1627.8,
-   "usd": 0.0016279000000000016,
-   "tokens": 660,
+   "ms": 1676.1,
+   "usd": 0.0019482500000000125,
+   "tokens": 673,
    "error": null
   },
   {
@@ -818,9 +819,9 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 1542.7,
-   "usd": 0.0017506499999999994,
-   "tokens": 679,
+   "ms": 1618.3,
+   "usd": 0.001521149999999999,
+   "tokens": 625,
    "error": null
   },
   {
@@ -843,9 +844,9 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 936.8,
-   "usd": 0.0012241499999999933,
-   "tokens": 553,
+   "ms": 1199.7,
+   "usd": 0.0015912499999999885,
+   "tokens": 577,
    "error": null
   },
   {
@@ -860,15 +861,16 @@
    "confianza": 0.85,
    "senales": [
     "personal_payment",
-    "brand_impersonation",
-    "callback_request",
-    "urgency"
+    "bank_impersonation",
+    "unofficial_callback",
+    "urgency",
+    "zelle_payment_lure"
    ],
    "herramientas_usadas": [
     {
      "name": "muse-spark-1.3",
-     "ms": 1118,
-     "usd": 0.0008216
+     "ms": 999,
+     "usd": 0.0025675
     },
     {
      "name": "check_country",
@@ -877,15 +879,15 @@
     },
     {
      "name": "muse-spark-1.3",
-     "ms": 1928,
-     "usd": 0.0020114
+     "ms": 2649,
+     "usd": 0.00385025
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 4416.4,
-   "usd": 0.004723400000000003,
-   "tokens": 4654,
+   "ms": 5501.5,
+   "usd": 0.008393150000000016,
+   "tokens": 4697,
    "error": null
   },
   {
@@ -905,9 +907,9 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 1047.9,
-   "usd": 0.0011351500000000014,
-   "tokens": 525,
+   "ms": 1372.5,
+   "usd": 0.0014682499999999904,
+   "tokens": 541,
    "error": null
   },
   {
@@ -919,23 +921,22 @@
    "obtenido": "legitimo",
    "paso": true,
    "hipotesis_confirmada": true,
-   "confianza": 0.95,
+   "confianza": 0.9,
    "senales": [
-    "credentials_request",
-    "no_url_no_request"
+    "credentials_request"
    ],
    "herramientas_usadas": [
     {
      "name": "muse-spark-1.3",
-     "ms": 1439,
-     "usd": 0.0016239000000000002
+     "ms": 1520,
+     "usd": 0.0030165
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 2790.3,
-   "usd": 0.0030282999999999977,
-   "tokens": 2550,
+   "ms": 3442.1,
+   "usd": 0.004913899999999999,
+   "tokens": 2600,
    "error": null
   },
   {
@@ -947,24 +948,25 @@
    "obtenido": "legitimo",
    "paso": true,
    "hipotesis_confirmada": true,
-   "confianza": 0.9,
+   "confianza": 0.85,
    "senales": [
     "personal_payment",
     "no_links",
-    "no_credential_request"
+    "no_credential_request",
+    "check_in_app"
    ],
    "herramientas_usadas": [
     {
      "name": "muse-spark-1.3",
-     "ms": 2092,
-     "usd": 0.00221235
+     "ms": 1244,
+     "usd": 0.002791
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 3595.7,
-   "usd": 0.003858750000000008,
-   "tokens": 2603,
+   "ms": 3010.0,
+   "usd": 0.004541000000000003,
+   "tokens": 2440,
    "error": null
   },
   {
@@ -976,24 +978,33 @@
    "obtenido": "legitimo",
    "paso": true,
    "hipotesis_confirmada": true,
-   "confianza": 0.95,
+   "confianza": 0.9,
    "senales": [
     "official_domain",
-    "official_domain",
-    "no_credential_request"
+    "official_domain"
    ],
    "herramientas_usadas": [
     {
      "name": "muse-spark-1.3",
-     "ms": 1183,
-     "usd": 0.0012354
+     "ms": 848,
+     "usd": 0.002662
+    },
+    {
+     "name": "check_country",
+     "ms": 1,
+     "usd": 0.0
+    },
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1113,
+     "usd": 0.00277125
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 2318.7,
-   "usd": 0.002522300000000005,
-   "tokens": 2462,
+   "ms": 3416.1,
+   "usd": 0.006730249999999993,
+   "tokens": 4285,
    "error": null
   },
   {
@@ -1013,8 +1024,8 @@
    "herramientas_usadas": [
     {
      "name": "muse-spark-1.3",
-     "ms": 613,
-     "usd": 0.00091515
+     "ms": 795,
+     "usd": 0.00278375
     },
     {
      "name": "check_country",
@@ -1023,25 +1034,15 @@
     },
     {
      "name": "muse-spark-1.3",
-     "ms": 863,
-     "usd": 0.00192585
-    },
-    {
-     "name": "analyze_url",
-     "ms": 0,
-     "usd": 0.0
-    },
-    {
-     "name": "muse-spark-1.3",
-     "ms": 881,
-     "usd": 0.0013583
+     "ms": 1248,
+     "usd": 0.00204485
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 4223.7,
-   "usd": 0.006030449999999993,
-   "tokens": 6813,
+   "ms": 4514.6,
+   "usd": 0.006523750000000009,
+   "tokens": 4639,
    "error": null
   },
   {
@@ -1053,7 +1054,7 @@
    "obtenido": "legitimo",
    "paso": true,
    "hipotesis_confirmada": true,
-   "confianza": 0.92,
+   "confianza": 0.9,
    "senales": [
     "official_domain",
     "official_domain"
@@ -1061,25 +1062,25 @@
    "herramientas_usadas": [
     {
      "name": "muse-spark-1.3",
-     "ms": 736,
-     "usd": 0.0009189
+     "ms": 807,
+     "usd": 0.0008424
     },
     {
      "name": "check_country",
-     "ms": 0,
+     "ms": 1,
      "usd": 0.0
     },
     {
      "name": "muse-spark-1.3",
-     "ms": 748,
-     "usd": 0.0008971000000000001
+     "ms": 1022,
+     "usd": 0.00092435
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 2600.9,
-   "usd": 0.003032899999999991,
-   "tokens": 4288,
+   "ms": 3685.0,
+   "usd": 0.004379250000000001,
+   "tokens": 4541,
    "error": null
   },
   {
@@ -1091,20 +1092,20 @@
    "obtenido": "legitimo",
    "paso": true,
    "hipotesis_confirmada": true,
-   "confianza": 0.85,
+   "confianza": 0.75,
    "senales": [],
    "herramientas_usadas": [
     {
      "name": "muse-spark-1.3",
-     "ms": 1284,
-     "usd": 0.00139115
+     "ms": 1735,
+     "usd": 0.0035045
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 3654.7,
-   "usd": 0.0037082999999999977,
-   "tokens": 2698,
+   "ms": 4145.8,
+   "usd": 0.00543914999999999,
+   "tokens": 2761,
    "error": null
   },
   {
@@ -1119,31 +1120,30 @@
    "confianza": 0.9,
    "senales": [
     "official_domain",
-    "official_domain_link",
-    "no_credential_request"
+    "official_domain"
    ],
    "herramientas_usadas": [
     {
      "name": "muse-spark-1.3",
-     "ms": 505,
-     "usd": 0.00087815
+     "ms": 1201,
+     "usd": 0.0026235
     },
     {
      "name": "check_country",
-     "ms": 0,
+     "ms": 1,
      "usd": 0.0
     },
     {
      "name": "muse-spark-1.3",
-     "ms": 1228,
-     "usd": 0.0011626
+     "ms": 571,
+     "usd": 0.00086085
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 3053.0,
-   "usd": 0.003472900000000001,
-   "tokens": 4388,
+   "ms": 3241.7,
+   "usd": 0.005035500000000026,
+   "tokens": 4362,
    "error": null
   },
   {
@@ -1155,20 +1155,22 @@
    "obtenido": "legitimo",
    "paso": true,
    "hipotesis_confirmada": true,
-   "confianza": 0.85,
-   "senales": [],
+   "confianza": 0.75,
+   "senales": [
+    "no_link_no_request"
+   ],
    "herramientas_usadas": [
     {
      "name": "muse-spark-1.3",
-     "ms": 1161,
-     "usd": 0.0013406
+     "ms": 1974,
+     "usd": 0.00145765
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 3242.9,
-   "usd": 0.0039027500000000104,
-   "tokens": 2815,
+   "ms": 3407.1,
+   "usd": 0.0031995499999999955,
+   "tokens": 2567,
    "error": null
   },
   {
@@ -1185,8 +1187,8 @@
    "herramientas_usadas": [
     {
      "name": "muse-spark-1.3",
-     "ms": 999,
-     "usd": 0.0012394
+     "ms": 1095,
+     "usd": 0.0012819
     },
     {
      "name": "check_address_book",
@@ -1195,15 +1197,15 @@
     },
     {
      "name": "muse-spark-1.3",
-     "ms": 1090,
-     "usd": 0.0011615999999999998
+     "ms": 967,
+     "usd": 0.00282675
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 3686.6,
-   "usd": 0.004409150000000001,
-   "tokens": 4513,
+   "ms": 3381.5,
+   "usd": 0.00578265,
+   "tokens": 4347,
    "error": null
   },
   {
@@ -1215,20 +1217,20 @@
    "obtenido": "legitimo",
    "paso": true,
    "hipotesis_confirmada": true,
-   "confianza": 0.9,
+   "confianza": 0.95,
    "senales": [],
    "herramientas_usadas": [
     {
      "name": "muse-spark-1.3",
-     "ms": 1041,
-     "usd": 0.0013029
+     "ms": 1003,
+     "usd": 0.0026955
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 2056.2,
-   "usd": 0.002562800000000004,
-   "tokens": 2420,
+   "ms": 2373.3,
+   "usd": 0.004133900000000024,
+   "tokens": 2396,
    "error": null
   },
   {
@@ -1245,15 +1247,15 @@
    "herramientas_usadas": [
     {
      "name": "muse-spark-1.3",
-     "ms": 1522,
-     "usd": 0.0016594000000000001
+     "ms": 1047,
+     "usd": 0.0012599
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 2680.9,
-   "usd": 0.0028805499999999956,
-   "tokens": 2499,
+   "ms": 1969.8,
+   "usd": 0.00220904999999999,
+   "tokens": 2341,
    "error": null
   },
   {
@@ -1265,16 +1267,18 @@
    "obtenido": "legitimo",
    "paso": true,
    "hipotesis_confirmada": true,
-   "confianza": 0.9,
+   "confianza": 0.85,
    "senales": [
     "official_domain",
-    "official_domain"
+    "official_domain",
+    "official_channel_match",
+    "no_credential_request"
    ],
    "herramientas_usadas": [
     {
      "name": "muse-spark-1.3",
-     "ms": 1193,
-     "usd": 0.00082365
+     "ms": 1248,
+     "usd": 0.002705
     },
     {
      "name": "check_country",
@@ -1283,15 +1287,25 @@
     },
     {
      "name": "muse-spark-1.3",
-     "ms": 929,
-     "usd": 0.0013526500000000002
+     "ms": 1246,
+     "usd": 0.0009828999999999999
+    },
+    {
+     "name": "check_country",
+     "ms": 0,
+     "usd": 0.0
+    },
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1300,
+     "usd": 0.00329
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 3446.0,
-   "usd": 0.003472700000000009,
-   "tokens": 4364,
+   "ms": 5064.4,
+   "usd": 0.008091549999999975,
+   "tokens": 6435,
    "error": null
   },
   {
@@ -1303,30 +1317,20 @@
    "obtenido": "legitimo",
    "paso": true,
    "hipotesis_confirmada": true,
-   "confianza": 0.85,
+   "confianza": 0.8,
    "senales": [],
    "herramientas_usadas": [
     {
      "name": "muse-spark-1.3",
-     "ms": 1357,
-     "usd": 0.0019111
-    },
-    {
-     "name": "check_country",
-     "ms": 0,
-     "usd": 0.0
-    },
-    {
-     "name": "muse-spark-1.3",
-     "ms": 871,
-     "usd": 0.0019018499999999999
+     "ms": 1238,
+     "usd": 0.003225
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 3865.8,
-   "usd": 0.006149349999999998,
-   "tokens": 4733,
+   "ms": 2570.8,
+   "usd": 0.004384150000000003,
+   "tokens": 2505,
    "error": null
   },
   {
@@ -1346,25 +1350,25 @@
    "herramientas_usadas": [
     {
      "name": "muse-spark-1.3",
-     "ms": 803,
-     "usd": 0.0010716500000000002
+     "ms": 626,
+     "usd": 0.00258325
     },
     {
      "name": "check_country",
-     "ms": 0,
+     "ms": 1,
      "usd": 0.0
     },
     {
      "name": "muse-spark-1.3",
-     "ms": 945,
-     "usd": 0.00122615
+     "ms": 920,
+     "usd": 0.002844
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 2970.5,
-   "usd": 0.003603200000000001,
-   "tokens": 4382,
+   "ms": 2854.4,
+   "usd": 0.006490400000000007,
+   "tokens": 4274,
    "error": null
   },
   {
@@ -1373,10 +1377,10 @@
    "tipo": "texto",
    "categoria": "legitimo_proveedor",
    "pais": "CO",
-   "obtenido": "dudoso",
+   "obtenido": "estafa",
    "paso": false,
    "hipotesis_confirmada": false,
-   "confianza": 0.5,
+   "confianza": 0.75,
    "senales": [
     "brand_in_path",
     "brand_in_path",
@@ -1385,45 +1389,35 @@
    "herramientas_usadas": [
     {
      "name": "muse-spark-1.3",
-     "ms": 612,
-     "usd": 0.0008553500000000001
-    },
-    {
-     "name": "check_country",
-     "ms": 1,
-     "usd": 0.0
-    },
-    {
-     "name": "muse-spark-1.3",
-     "ms": 503,
-     "usd": 0.00095485
-    },
-    {
-     "name": "check_country",
-     "ms": 1,
-     "usd": 0.0
-    },
-    {
-     "name": "muse-spark-1.3",
-     "ms": 745,
-     "usd": 0.0008365
+     "ms": 809,
+     "usd": 0.0017421
     },
     {
      "name": "analyze_url",
-     "ms": 17,
+     "ms": 8,
      "usd": 0.0
     },
     {
      "name": "muse-spark-1.3",
-     "ms": 2182,
-     "usd": 0.00230605
+     "ms": 873,
+     "usd": 0.0017873499999999998
+    },
+    {
+     "name": "check_country",
+     "ms": 0,
+     "usd": 0.0
+    },
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1352,
+     "usd": 0.00144525
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 6106.8,
-   "usd": 0.007036649999999978,
-   "tokens": 9399,
+   "ms": 5510.3,
+   "usd": 0.007412949999999974,
+   "tokens": 7201,
    "error": null
   },
   {
@@ -1438,30 +1432,30 @@
    "confianza": 0.5,
    "senales": [
     "no_credential_request",
-    "no_payment_request"
+    "no_urgency"
    ],
    "herramientas_usadas": [
     {
      "name": "muse-spark-1.3",
-     "ms": 1689,
-     "usd": 0.0016078499999999999
+     "ms": 1087,
+     "usd": 0.0030435
     },
     {
      "name": "analyze_url",
-     "ms": 14,
+     "ms": 12,
      "usd": 0.0
     },
     {
      "name": "muse-spark-1.3",
-     "ms": 1129,
-     "usd": 0.00209585
+     "ms": 1517,
+     "usd": 0.00234235
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 4283.4,
-   "usd": 0.005592600000000003,
-   "tokens": 4810,
+   "ms": 4903.6,
+   "usd": 0.007419249999999988,
+   "tokens": 4813,
    "error": null
   },
   {
@@ -1476,13 +1470,14 @@
    "confianza": 0.9,
    "senales": [
     "official_domain",
-    "official_domain"
+    "official_domain",
+    "no_credential_request"
    ],
    "herramientas_usadas": [
     {
      "name": "muse-spark-1.3",
-     "ms": 810,
-     "usd": 0.00252125
+     "ms": 972,
+     "usd": 0.0015856
     },
     {
      "name": "check_country",
@@ -1491,15 +1486,15 @@
     },
     {
      "name": "muse-spark-1.3",
-     "ms": 955,
-     "usd": 0.0009581
+     "ms": 1269,
+     "usd": 0.0011238499999999998
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 2737.4,
-   "usd": 0.0050317500000000015,
-   "tokens": 4347,
+   "ms": 4819.5,
+   "usd": 0.0053046999999999955,
+   "tokens": 4610,
    "error": null
   },
   {
@@ -1511,19 +1506,19 @@
    "obtenido": "legitimo",
    "paso": true,
    "hipotesis_confirmada": true,
-   "confianza": 0.9,
+   "confianza": 0.85,
    "senales": [],
    "herramientas_usadas": [
     {
      "name": "muse-spark-1.3",
-     "ms": 1483,
-     "usd": 0.00146265
+     "ms": 1789,
+     "usd": 0.00151365
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 2712.6,
-   "usd": 0.00301280000000001,
+   "ms": 3217.6,
+   "usd": 0.0030128000000000377,
    "tokens": 2504,
    "error": null
   },
@@ -1536,20 +1531,20 @@
    "obtenido": "legitimo",
    "paso": true,
    "hipotesis_confirmada": true,
-   "confianza": 0.75,
+   "confianza": 0.9,
    "senales": [],
    "herramientas_usadas": [
     {
      "name": "muse-spark-1.3",
-     "ms": 1405,
-     "usd": 0.00201185
+     "ms": 1124,
+     "usd": 0.00284975
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 3421.1,
-   "usd": 0.004174349999999993,
-   "tokens": 2581,
+   "ms": 2684.4,
+   "usd": 0.004441150000000005,
+   "tokens": 2445,
    "error": null
   },
   {
@@ -1566,15 +1561,15 @@
    "herramientas_usadas": [
     {
      "name": "muse-spark-1.3",
-     "ms": 825,
-     "usd": 0.0017075999999999999
+     "ms": 962,
+     "usd": 0.00253875
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 3094.1,
-   "usd": 0.004258749999999978,
-   "tokens": 2707,
+   "ms": 2877.4,
+   "usd": 0.004435399999999978,
+   "tokens": 2438,
    "error": null
   },
   {
@@ -1594,9 +1589,9 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 1517.2,
-   "usd": 0.0017416500000000112,
-   "tokens": 667,
+   "ms": 1200.8,
+   "usd": 0.0012826499999999963,
+   "tokens": 559,
    "error": null
   },
   {
@@ -1615,9 +1610,9 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 1157.1,
-   "usd": 0.0011046500000000126,
-   "tokens": 515,
+   "ms": 1225.9,
+   "usd": 0.0016885000000000094,
+   "tokens": 590,
    "error": null
   },
   {
@@ -1637,9 +1632,9 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 1207.5,
-   "usd": 0.001286399999999993,
-   "tokens": 562,
+   "ms": 969.3,
+   "usd": 0.0007424000000000042,
+   "tokens": 434,
    "error": null
   },
   {
@@ -1659,9 +1654,9 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 1391.4,
-   "usd": 0.001393149999999982,
-   "tokens": 609,
+   "ms": 1503.3,
+   "usd": 0.001705000000000012,
+   "tokens": 620,
    "error": null
   },
   {
@@ -1681,9 +1676,9 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 1388.1,
-   "usd": 0.0016264000000000278,
-   "tokens": 654,
+   "ms": 1328.0,
+   "usd": 0.0013798999999999895,
+   "tokens": 596,
    "error": null
   },
   {
@@ -1702,9 +1697,9 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 1645.9,
-   "usd": 0.0015978999999999854,
-   "tokens": 648,
+   "ms": 1394.2,
+   "usd": 0.001531500000000019,
+   "tokens": 570,
    "error": null
   },
   {
@@ -1725,9 +1720,9 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 1349.7,
-   "usd": 0.001631400000000005,
-   "tokens": 646,
+   "ms": 2486.9,
+   "usd": 0.001865149999999982,
+   "tokens": 701,
    "error": null
   },
   {
@@ -1745,31 +1740,40 @@
     "authority_with_link",
     "official_domain",
     "official_domain",
-    "impersonation_warning",
-    "no_credential_request"
+    "warning_against_phishing"
    ],
    "herramientas_usadas": [
     {
      "name": "muse-spark-1.3",
-     "ms": 1384,
-     "usd": 0.00122465
+     "ms": 1344,
+     "usd": 0.0015009
     },
     {
      "name": "check_country",
-     "ms": 1,
+     "ms": 0,
      "usd": 0.0
     },
     {
      "name": "muse-spark-1.3",
-     "ms": 1293,
-     "usd": 0.0015864000000000002
+     "ms": 1554,
+     "usd": 0.0025345999999999997
+    },
+    {
+     "name": "analyze_url",
+     "ms": 3,
+     "usd": 0.0
+    },
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1413,
+     "usd": 0.00167865
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 4019.6,
-   "usd": 0.004320199999999996,
-   "tokens": 4766,
+   "ms": 6119.2,
+   "usd": 0.007380549999999986,
+   "tokens": 7219,
    "error": null
   },
   {
@@ -1789,9 +1793,9 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 1616.3,
-   "usd": 0.0016501500000000169,
-   "tokens": 649,
+   "ms": 2316.0,
+   "usd": 0.0018259999999999943,
+   "tokens": 628,
    "error": null
   },
   {
@@ -1811,9 +1815,9 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 1224.7,
-   "usd": 0.0015818999999999694,
-   "tokens": 628,
+   "ms": 1671.7,
+   "usd": 0.0015139000000000125,
+   "tokens": 612,
    "error": null
   },
   {
@@ -1832,9 +1836,9 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 1669.8,
-   "usd": 0.001610650000000019,
-   "tokens": 639,
+   "ms": 1744.9,
+   "usd": 0.0014661499999999994,
+   "tokens": 605,
    "error": null
   },
   {
@@ -1854,9 +1858,9 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 1978.4,
-   "usd": 0.0024684000000000095,
-   "tokens": 838,
+   "ms": 2238.3,
+   "usd": 0.0023621500000000073,
+   "tokens": 813,
    "error": null
   },
   {
@@ -1876,9 +1880,9 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 1551.1,
-   "usd": 0.0019451500000000066,
-   "tokens": 717,
+   "ms": 2859.1,
+   "usd": 0.0020896499999999985,
+   "tokens": 751,
    "error": null
   },
   {
@@ -1897,9 +1901,9 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 1750.8,
-   "usd": 0.001950399999999991,
-   "tokens": 714,
+   "ms": 2979.2,
+   "usd": 0.0024858999999999853,
+   "tokens": 840,
    "error": null
   },
   {
@@ -1911,20 +1915,20 @@
    "obtenido": "legitimo",
    "paso": true,
    "hipotesis_confirmada": true,
-   "confianza": 0.85,
+   "confianza": 0.9,
    "senales": [],
    "herramientas_usadas": [
     {
      "name": "muse-spark-1.3",
-     "ms": 1054,
-     "usd": 0.0016973499999999998
+     "ms": 1284,
+     "usd": 0.00094715
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 2617.3,
-   "usd": 0.0030719999999999914,
-   "tokens": 2408,
+   "ms": 3072.0,
+   "usd": 0.0030373999999999957,
+   "tokens": 2470,
    "error": null
   },
   {
@@ -1941,15 +1945,15 @@
    "herramientas_usadas": [
     {
      "name": "muse-spark-1.3",
-     "ms": 1687,
-     "usd": 0.0011689
+     "ms": 1123,
+     "usd": 0.0029355
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 3940.8,
-   "usd": 0.0037440499999999988,
-   "tokens": 2705,
+   "ms": 4194.1,
+   "usd": 0.005961149999999998,
+   "tokens": 2833,
    "error": null
   },
   {
@@ -1966,69 +1970,19 @@
    "herramientas_usadas": [
     {
      "name": "muse-spark-1.3",
-     "ms": 1089,
-     "usd": 0.0010109
+     "ms": 816,
+     "usd": 0.00252675
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 2279.8,
-   "usd": 0.002408400000000005,
-   "tokens": 2298,
+   "ms": 3265.1,
+   "usd": 0.004993649999999988,
+   "tokens": 2575,
    "error": null
   },
   {
    "id": "c-0086",
-   "esperado": "legitimo",
-   "tipo": "texto",
-   "categoria": "legitimo_proveedor",
-   "pais": "US",
-   "obtenido": "legitimo",
-   "paso": true,
-   "hipotesis_confirmada": true,
-   "confianza": 0.9,
-   "senales": [],
-   "herramientas_usadas": [
-    {
-     "name": "muse-spark-1.3",
-     "ms": 1158,
-     "usd": 0.0012574
-    }
-   ],
-   "degradado": false,
-   "manipulacion": false,
-   "ms": 3491.2,
-   "usd": 0.003857300000000008,
-   "tokens": 2702,
-   "error": null
-  },
-  {
-   "id": "c-0087",
-   "esperado": "legitimo",
-   "tipo": "texto",
-   "categoria": "legitimo_proveedor",
-   "pais": "CO",
-   "obtenido": "legitimo",
-   "paso": true,
-   "hipotesis_confirmada": true,
-   "confianza": 0.98,
-   "senales": [],
-   "herramientas_usadas": [
-    {
-     "name": "muse-spark-1.3",
-     "ms": 839,
-     "usd": 0.0009819
-    }
-   ],
-   "degradado": false,
-   "manipulacion": false,
-   "ms": 2463.6,
-   "usd": 0.0030470499999999956,
-   "tokens": 2517,
-   "error": null
-  },
-  {
-   "id": "c-0088",
    "esperado": "legitimo",
    "tipo": "texto",
    "categoria": "legitimo_proveedor",
@@ -2041,15 +1995,65 @@
    "herramientas_usadas": [
     {
      "name": "muse-spark-1.3",
-     "ms": 5317,
-     "usd": 0.00275825
+     "ms": 1072,
+     "usd": 0.00290925
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 6731.1,
-   "usd": 0.004641900000000004,
-   "tokens": 2500,
+   "ms": 3782.7,
+   "usd": 0.005475150000000012,
+   "tokens": 2689,
+   "error": null
+  },
+  {
+   "id": "c-0087",
+   "esperado": "legitimo",
+   "tipo": "texto",
+   "categoria": "legitimo_proveedor",
+   "pais": "CO",
+   "obtenido": "legitimo",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.95,
+   "senales": [],
+   "herramientas_usadas": [
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1550,
+     "usd": 0.00277825
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 4197.5,
+   "usd": 0.005809750000000002,
+   "tokens": 2711,
+   "error": null
+  },
+  {
+   "id": "c-0088",
+   "esperado": "legitimo",
+   "tipo": "texto",
+   "categoria": "legitimo_proveedor",
+   "pais": "US",
+   "obtenido": "legitimo",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [],
+   "herramientas_usadas": [
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1529,
+     "usd": 0.0018651
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 3349.9,
+   "usd": 0.0037359999999999616,
+   "tokens": 2548,
    "error": null
   },
   {
@@ -2061,20 +2065,20 @@
    "obtenido": "legitimo",
    "paso": true,
    "hipotesis_confirmada": true,
-   "confianza": 0.99,
+   "confianza": 1.0,
    "senales": [],
    "herramientas_usadas": [
     {
      "name": "muse-spark-1.3",
-     "ms": 631,
-     "usd": 0.0008424
+     "ms": 1233,
+     "usd": 0.0009954
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 2102.9,
-   "usd": 0.0024067999999999867,
-   "tokens": 2372,
+   "ms": 2631.0,
+   "usd": 0.0024705500000000713,
+   "tokens": 2387,
    "error": null
   },
   {
@@ -2086,20 +2090,20 @@
    "obtenido": "legitimo",
    "paso": true,
    "hipotesis_confirmada": true,
-   "confianza": 0.9,
+   "confianza": 0.95,
    "senales": [],
    "herramientas_usadas": [
     {
      "name": "muse-spark-1.3",
-     "ms": 1386,
-     "usd": 0.00136515
+     "ms": 883,
+     "usd": 0.0008594
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 2301.0,
-   "usd": 0.002466299999999977,
-   "tokens": 2386,
+   "ms": 2176.0,
+   "usd": 0.0022962999999999734,
+   "tokens": 2346,
    "error": null
   },
   {
@@ -2116,15 +2120,15 @@
    "herramientas_usadas": [
     {
      "name": "muse-spark-1.3",
-     "ms": 1215,
-     "usd": 0.0010894000000000001
+     "ms": 940,
+     "usd": 0.00098315
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 2750.4,
-   "usd": 0.0027621500000000188,
-   "tokens": 2389,
+   "ms": 2224.1,
+   "usd": 0.0021867999999999888,
+   "tokens": 2316,
    "error": null
   },
   {
@@ -2133,30 +2137,79 @@
    "tipo": "texto",
    "categoria": "legitimo_proveedor",
    "pais": "US",
-   "obtenido": "estafa",
+   "obtenido": "dudoso",
    "paso": false,
    "hipotesis_confirmada": false,
-   "confianza": 0.85,
+   "confianza": 0.55,
    "senales": [
-    "prompt_injection",
     "instruction_override_attempt"
    ],
    "herramientas_usadas": [
     {
      "name": "muse-spark-1.3",
-     "ms": 2025,
-     "usd": 0.00238015
+     "ms": 2656,
+     "usd": 0.0030751
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 4676.9,
-   "usd": 0.0053505500000000095,
-   "tokens": 3059,
+   "ms": 5186.0,
+   "usd": 0.006253750000000002,
+   "tokens": 3139,
    "error": null
   },
   {
    "id": "c-0093",
+   "esperado": "legitimo",
+   "tipo": "texto",
+   "categoria": "legitimo_proveedor",
+   "pais": "CO",
+   "obtenido": "legitimo",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [],
+   "herramientas_usadas": [
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1240,
+     "usd": 0.0011974000000000002
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 3411.1,
+   "usd": 0.0034343000000000012,
+   "tokens": 2606,
+   "error": null
+  },
+  {
+   "id": "c-0094",
+   "esperado": "legitimo",
+   "tipo": "texto",
+   "categoria": "legitimo_proveedor",
+   "pais": "US",
+   "obtenido": "legitimo",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.95,
+   "senales": [],
+   "herramientas_usadas": [
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1083,
+     "usd": 0.0025075
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 3899.7,
+   "usd": 0.005234249999999996,
+   "tokens": 2577,
+   "error": null
+  },
+  {
+   "id": "c-0095",
    "esperado": "legitimo",
    "tipo": "texto",
    "categoria": "legitimo_proveedor",
@@ -2169,65 +2222,15 @@
    "herramientas_usadas": [
     {
      "name": "muse-spark-1.3",
-     "ms": 1029,
-     "usd": 0.00115915
+     "ms": 1277,
+     "usd": 0.0012734
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 2157.1,
-   "usd": 0.002673549999999969,
-   "tokens": 2427,
-   "error": null
-  },
-  {
-   "id": "c-0094",
-   "esperado": "legitimo",
-   "tipo": "texto",
-   "categoria": "legitimo_proveedor",
-   "pais": "US",
-   "obtenido": "legitimo",
-   "paso": true,
-   "hipotesis_confirmada": true,
-   "confianza": 0.9,
-   "senales": [],
-   "herramientas_usadas": [
-    {
-     "name": "muse-spark-1.3",
-     "ms": 988,
-     "usd": 0.0014039
-    }
-   ],
-   "degradado": false,
-   "manipulacion": false,
-   "ms": 3273.2,
-   "usd": 0.0038740500000000178,
-   "tokens": 2713,
-   "error": null
-  },
-  {
-   "id": "c-0095",
-   "esperado": "legitimo",
-   "tipo": "texto",
-   "categoria": "legitimo_proveedor",
-   "pais": "CO",
-   "obtenido": "legitimo",
-   "paso": true,
-   "hipotesis_confirmada": true,
-   "confianza": 0.85,
-   "senales": [],
-   "herramientas_usadas": [
-    {
-     "name": "muse-spark-1.3",
-     "ms": 2282,
-     "usd": 0.0025866500000000002
-    }
-   ],
-   "degradado": false,
-   "manipulacion": false,
-   "ms": 4142.4,
-   "usd": 0.004937799999999992,
-   "tokens": 2964,
+   "ms": 4787.8,
+   "usd": 0.004695550000000048,
+   "tokens": 2907,
    "error": null
   },
   {
@@ -2244,15 +2247,15 @@
    "herramientas_usadas": [
     {
      "name": "muse-spark-1.3",
-     "ms": 869,
-     "usd": 0.00125515
+     "ms": 1252,
+     "usd": 0.00117865
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 2902.9,
-   "usd": 0.003372549999999974,
-   "tokens": 2595,
+   "ms": 2399.0,
+   "usd": 0.0023440499999999864,
+   "tokens": 2353,
    "error": null
   },
   {
@@ -2269,15 +2272,15 @@
    "herramientas_usadas": [
     {
      "name": "muse-spark-1.3",
-     "ms": 1138,
-     "usd": 0.0009849
+     "ms": 1268,
+     "usd": 0.0011421500000000002
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 2587.6,
-   "usd": 0.0028745499999999757,
-   "tokens": 2475,
+   "ms": 3202.8,
+   "usd": 0.003269800000000045,
+   "tokens": 2568,
    "error": null
   },
   {
@@ -2294,15 +2297,15 @@
    "herramientas_usadas": [
     {
      "name": "muse-spark-1.3",
-     "ms": 1543,
-     "usd": 0.0019814
+     "ms": 2052,
+     "usd": 0.00185815
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 2204.6,
-   "usd": 0.0028360500000000344,
-   "tokens": 2473,
+   "ms": 3685.0,
+   "usd": 0.003951150000000014,
+   "tokens": 2673,
    "error": null
   },
   {
@@ -2328,9 +2331,9 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 1325.6,
-   "usd": 0.0014786499999999703,
-   "tokens": 723,
+   "ms": 1182.5,
+   "usd": 0.0013596499999999345,
+   "tokens": 695,
    "error": null
   },
   {
@@ -2352,9 +2355,9 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 1737.0,
-   "usd": 0.00191315000000003,
-   "tokens": 725,
+   "ms": 2320.4,
+   "usd": 0.0021979000000000304,
+   "tokens": 792,
    "error": null
   },
   {
@@ -2378,9 +2381,9 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 1453.1,
-   "usd": 0.0011733999999999911,
-   "tokens": 630,
+   "ms": 1331.6,
+   "usd": 0.001279650000000021,
+   "tokens": 655,
    "error": null
   },
   {
@@ -2406,9 +2409,9 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 1075.6,
-   "usd": 0.0014156499999999905,
-   "tokens": 675,
+   "ms": 1438.6,
+   "usd": 0.001377399999999973,
+   "tokens": 666,
    "error": null
   },
   {
@@ -2429,9 +2432,9 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 2393.6,
-   "usd": 0.001661649999999959,
-   "tokens": 663,
+   "ms": 1714.1,
+   "usd": 0.0012664000000000009,
+   "tokens": 570,
    "error": null
   },
   {
@@ -2455,9 +2458,9 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 1089.5,
-   "usd": 0.0012726500000000418,
-   "tokens": 647,
+   "ms": 1188.2,
+   "usd": 0.001293899999999959,
+   "tokens": 652,
    "error": null
   },
   {
@@ -2479,9 +2482,9 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 1136.9,
-   "usd": 0.0011766500000000013,
-   "tokens": 551,
+   "ms": 1134.8,
+   "usd": 0.0011681500000000344,
+   "tokens": 549,
    "error": null
   },
   {
@@ -2493,20 +2496,20 @@
    "obtenido": "legitimo",
    "paso": true,
    "hipotesis_confirmada": true,
-   "confianza": 0.92,
+   "confianza": 0.9,
    "senales": [],
    "herramientas_usadas": [
     {
      "name": "muse-spark-1.3",
-     "ms": 1143,
-     "usd": 0.00112765
+     "ms": 1292,
+     "usd": 0.0011531500000000001
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 2048.7,
-   "usd": 0.002440549999999986,
-   "tokens": 2519,
+   "ms": 2656.7,
+   "usd": 0.0027210500000000026,
+   "tokens": 2585,
    "error": null
   },
   {
@@ -2523,15 +2526,15 @@
    "herramientas_usadas": [
     {
      "name": "muse-spark-1.3",
-     "ms": 1140,
-     "usd": 0.00274375
+     "ms": 986,
+     "usd": 0.00102815
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 2193.2,
-   "usd": 0.003774400000000011,
-   "tokens": 2418,
+   "ms": 2331.8,
+   "usd": 0.0025151500000000215,
+   "tokens": 2453,
    "error": null
   },
   {
@@ -2548,15 +2551,15 @@
    "herramientas_usadas": [
     {
      "name": "muse-spark-1.3",
-     "ms": 1719,
-     "usd": 0.00157215
+     "ms": 1930,
+     "usd": 0.0014276500000000001
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 3622.0,
-   "usd": 0.0035305499999999657,
-   "tokens": 2659,
+   "ms": 3485.9,
+   "usd": 0.0030587999999999727,
+   "tokens": 2548,
    "error": null
   },
   {
@@ -2578,9 +2581,9 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 1288.0,
-   "usd": 0.0013424000000000214,
-   "tokens": 578,
+   "ms": 1763.6,
+   "usd": 0.0018837500000000174,
+   "tokens": 643,
    "error": null
   },
   {
@@ -2592,24 +2595,23 @@
    "obtenido": "dudoso",
    "paso": false,
    "hipotesis_confirmada": false,
-   "confianza": 0.55,
+   "confianza": 0.5,
    "senales": [
     "already_paid",
-    "already_paid",
-    "freight_fee_request"
+    "already_paid"
    ],
    "herramientas_usadas": [
     {
      "name": "muse-spark-1.3",
-     "ms": 2414,
-     "usd": 0.0023321500000000003
+     "ms": 3321,
+     "usd": 0.004664
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 3796.5,
-   "usd": 0.0037740499999999733,
-   "tokens": 2717,
+   "ms": 5306.1,
+   "usd": 0.006666899999999976,
+   "tokens": 3004,
    "error": null
   },
   {
@@ -2621,23 +2623,24 @@
    "obtenido": "legitimo",
    "paso": true,
    "hipotesis_confirmada": true,
-   "confianza": 0.75,
+   "confianza": 0.7,
    "senales": [
     "already_paid",
-    "in_person_payment"
+    "ordinary_transaction",
+    "no_link_or_request"
    ],
    "herramientas_usadas": [
     {
      "name": "muse-spark-1.3",
-     "ms": 2083,
-     "usd": 0.00221515
+     "ms": 1889,
+     "usd": 0.0016074000000000001
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 4036.8,
-   "usd": 0.004467800000000022,
-   "tokens": 2888,
+   "ms": 3911.4,
+   "usd": 0.0032352999999999965,
+   "tokens": 2598,
    "error": null
   },
   {
@@ -2649,22 +2652,22 @@
    "obtenido": "legitimo",
    "paso": true,
    "hipotesis_confirmada": true,
-   "confianza": 0.9,
+   "confianza": 0.8,
    "senales": [
     "already_paid"
    ],
    "herramientas_usadas": [
     {
      "name": "muse-spark-1.3",
-     "ms": 1945,
-     "usd": 0.0016314
+     "ms": 1745,
+     "usd": 0.00312175
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 3231.6,
-   "usd": 0.00263304999999997,
-   "tokens": 2445,
+   "ms": 3592.9,
+   "usd": 0.004790650000000007,
+   "tokens": 2559,
    "error": null
   },
   {
@@ -2676,23 +2679,24 @@
    "obtenido": "dudoso",
    "paso": false,
    "hipotesis_confirmada": false,
-   "confianza": 0.45,
+   "confianza": 0.55,
    "senales": [
     "already_paid",
-    "already_paid"
+    "already_paid",
+    "extra_fee_request"
    ],
    "herramientas_usadas": [
     {
      "name": "muse-spark-1.3",
-     "ms": 1950,
-     "usd": 0.0017679
+     "ms": 2898,
+     "usd": 0.00247765
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 3816.2,
-   "usd": 0.003896300000000019,
-   "tokens": 2738,
+   "ms": 4810.8,
+   "usd": 0.004113050000000007,
+   "tokens": 2789,
    "error": null
   },
   {
@@ -2704,20 +2708,22 @@
    "obtenido": "dudoso",
    "paso": false,
    "hipotesis_confirmada": false,
-   "confianza": 0.5,
-   "senales": [],
+   "confianza": 0.55,
+   "senales": [
+    "advance_payment_request"
+   ],
    "herramientas_usadas": [
     {
      "name": "muse-spark-1.3",
-     "ms": 1423,
-     "usd": 0.0016994
+     "ms": 2556,
+     "usd": 0.003806
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 3230.2,
-   "usd": 0.003490549999999981,
-   "tokens": 2639,
+   "ms": 4193.6,
+   "usd": 0.005218899999999971,
+   "tokens": 2652,
    "error": null
   },
   {
@@ -2729,7 +2735,7 @@
    "obtenido": "estafa",
    "paso": false,
    "hipotesis_confirmada": false,
-   "confianza": 0.82,
+   "confianza": 0.78,
    "senales": [
     "advance_before_seeing",
     "personal_payment",
@@ -2740,15 +2746,15 @@
    "herramientas_usadas": [
     {
      "name": "muse-spark-1.3",
-     "ms": 2219,
-     "usd": 0.0019786
+     "ms": 2508,
+     "usd": 0.0031186
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 3842.3,
-   "usd": 0.003980750000000033,
-   "tokens": 2815,
+   "ms": 6345.1,
+   "usd": 0.006306499999999993,
+   "tokens": 3246,
    "error": null
   },
   {
@@ -2769,9 +2775,9 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 2422.5,
-   "usd": 0.002785649999999973,
-   "tokens": 919,
+   "ms": 2487.2,
+   "usd": 0.0030831500000000345,
+   "tokens": 989,
    "error": null
   },
   {
@@ -2792,9 +2798,9 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 1679.9,
-   "usd": 0.0017751500000000031,
-   "tokens": 677,
+   "ms": 1105.2,
+   "usd": 0.0012481500000000034,
+   "tokens": 553,
    "error": null
   },
   {
@@ -2818,9 +2824,9 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 1340.1,
-   "usd": 0.001451900000000006,
-   "tokens": 716,
+   "ms": 896.7,
+   "usd": 0.0012478999999999685,
+   "tokens": 668,
    "error": null
   },
   {
@@ -2842,9 +2848,9 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 2086.1,
-   "usd": 0.0021804000000000268,
-   "tokens": 778,
+   "ms": 1854.2,
+   "usd": 0.0018021500000000579,
+   "tokens": 689,
    "error": null
   },
   {
@@ -2866,9 +2872,9 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 2195.8,
-   "usd": 0.0017593999999999665,
-   "tokens": 722,
+   "ms": 1655.1,
+   "usd": 0.001827399999999979,
+   "tokens": 738,
    "error": null
   },
   {
@@ -2880,7 +2886,7 @@
    "obtenido": "legitimo",
    "paso": true,
    "hipotesis_confirmada": true,
-   "confianza": 0.85,
+   "confianza": 0.75,
    "senales": [
     "already_paid",
     "already_paid"
@@ -2888,15 +2894,15 @@
    "herramientas_usadas": [
     {
      "name": "muse-spark-1.3",
-     "ms": 2059,
-     "usd": 0.00177465
+     "ms": 1405,
+     "usd": 0.00143465
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 3700.2,
-   "usd": 0.0037100500000000203,
-   "tokens": 2697,
+   "ms": 2628.3,
+   "usd": 0.002830300000000008,
+   "tokens": 2490,
    "error": null
   },
   {
@@ -2910,21 +2916,20 @@
    "hipotesis_confirmada": true,
    "confianza": 0.85,
    "senales": [
-    "already_paid",
     "already_paid"
    ],
    "herramientas_usadas": [
     {
      "name": "muse-spark-1.3",
-     "ms": 2225,
-     "usd": 0.0022991500000000002
+     "ms": 1755,
+     "usd": 0.0016234
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 3496.2,
-   "usd": 0.004266049999999966,
-   "tokens": 2849,
+   "ms": 3548.9,
+   "usd": 0.003812900000000008,
+   "tokens": 2680,
    "error": null
   },
   {
@@ -2943,46 +2948,19 @@
    "herramientas_usadas": [
     {
      "name": "muse-spark-1.3",
-     "ms": 1268,
-     "usd": 0.0014089
+     "ms": 2745,
+     "usd": 0.00329025
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 2840.2,
-   "usd": 0.003277650000000021,
-   "tokens": 2547,
+   "ms": 4684.2,
+   "usd": 0.005000149999999981,
+   "tokens": 2621,
    "error": null
   },
   {
    "id": "c-0133",
-   "esperado": "legitimo",
-   "tipo": "texto",
-   "categoria": "compraventa",
-   "pais": "US",
-   "obtenido": "legitimo",
-   "paso": true,
-   "hipotesis_confirmada": true,
-   "confianza": 0.9,
-   "senales": [
-    "already_paid"
-   ],
-   "herramientas_usadas": [
-    {
-     "name": "muse-spark-1.3",
-     "ms": 2385,
-     "usd": 0.0023289
-    }
-   ],
-   "degradado": false,
-   "manipulacion": false,
-   "ms": 3884.6,
-   "usd": 0.0041968000000000005,
-   "tokens": 2808,
-   "error": null
-  },
-  {
-   "id": "c-0134",
    "esperado": "legitimo",
    "tipo": "texto",
    "categoria": "compraventa",
@@ -2998,15 +2976,43 @@
    "herramientas_usadas": [
     {
      "name": "muse-spark-1.3",
-     "ms": 2214,
-     "usd": 0.0015974000000000001
+     "ms": 2105,
+     "usd": 0.00163615
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 3199.5,
-   "usd": 0.0027648000000000117,
-   "tokens": 2476,
+   "ms": 3917.1,
+   "usd": 0.0033212999999999715,
+   "tokens": 2602,
+   "error": null
+  },
+  {
+   "id": "c-0134",
+   "esperado": "legitimo",
+   "tipo": "texto",
+   "categoria": "compraventa",
+   "pais": "US",
+   "obtenido": "legitimo",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.75,
+   "senales": [
+    "already_paid",
+    "already_paid"
+   ],
+   "herramientas_usadas": [
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1721,
+     "usd": 0.0017844
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 4032.5,
+   "usd": 0.003495800000000049,
+   "tokens": 2648,
    "error": null
   },
   {
@@ -3027,9 +3033,9 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 2229.3,
-   "usd": 0.0020779000000000214,
-   "tokens": 756,
+   "ms": 1395.7,
+   "usd": 0.001164149999999975,
+   "tokens": 541,
    "error": null
   },
   {
@@ -3051,9 +3057,9 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 3333.1,
-   "usd": 0.0033041500000000057,
-   "tokens": 1077,
+   "ms": 3694.8,
+   "usd": 0.0029174000000000144,
+   "tokens": 986,
    "error": null
   },
   {
@@ -3067,21 +3073,21 @@
    "hipotesis_confirmada": true,
    "confianza": 0.85,
    "senales": [
-    "advance_fee_request",
-    "pet_sale_scam"
+    "advance_fee_to_release",
+    "pet_sale_shipping_scam"
    ],
    "herramientas_usadas": [
     {
      "name": "muse-spark-1.3",
-     "ms": 2049,
-     "usd": 0.0015750999999999999
+     "ms": 2001,
+     "usd": 0.00229185
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 4802.5,
-   "usd": 0.0045093499999999676,
-   "tokens": 2901,
+   "ms": 4572.5,
+   "usd": 0.00442975000000001,
+   "tokens": 2779,
    "error": null
   },
   {
@@ -3102,9 +3108,9 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 2038.4,
-   "usd": 0.002119150000000014,
-   "tokens": 765,
+   "ms": 2560.0,
+   "usd": 0.002847500000000003,
+   "tokens": 874,
    "error": null
   },
   {
@@ -3124,9 +3130,9 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 1137.3,
-   "usd": 0.0014543999999999668,
-   "tokens": 622,
+   "ms": 2815.0,
+   "usd": 0.0028866499999999906,
+   "tokens": 959,
    "error": null
   },
   {
@@ -3138,25 +3144,24 @@
    "obtenido": "estafa",
    "paso": false,
    "hipotesis_confirmada": false,
-   "confianza": 0.85,
+   "confianza": 0.82,
    "senales": [
     "price_below_market",
     "price_below_market",
-    "false_scarcity",
-    "too_good_to_be_true"
+    "false_scarcity"
    ],
    "herramientas_usadas": [
     {
      "name": "muse-spark-1.3",
-     "ms": 1368,
-     "usd": 0.0020066
+     "ms": 2419,
+     "usd": 0.00221265
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 3741.5,
-   "usd": 0.004792249999999998,
-   "tokens": 2925,
+   "ms": 5271.1,
+   "usd": 0.004795899999999964,
+   "tokens": 2996,
    "error": null
   },
   {
@@ -3168,25 +3173,25 @@
    "obtenido": "estafa",
    "paso": true,
    "hipotesis_confirmada": true,
-   "confianza": 0.85,
+   "confianza": 0.82,
    "senales": [
     "already_paid",
-    "advance_fee_release",
-    "urgency_threat_loss",
+    "advance_fee_request",
+    "loss_threat_urgency",
     "already_paid"
    ],
    "herramientas_usadas": [
     {
      "name": "muse-spark-1.3",
-     "ms": 1705,
-     "usd": 0.0017589
+     "ms": 2409,
+     "usd": 0.0021414
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 3410.4,
-   "usd": 0.003967550000000042,
-   "tokens": 2759,
+   "ms": 3519.5,
+   "usd": 0.0032323000000000213,
+   "tokens": 2586,
    "error": null
   },
   {
@@ -3202,21 +3207,21 @@
    "senales": [
     "already_paid",
     "already_paid",
-    "advance_fee_request",
-    "pet_sale_fraud"
+    "advance_fee_demand",
+    "loss_threat"
    ],
    "herramientas_usadas": [
     {
      "name": "muse-spark-1.3",
-     "ms": 1811,
-     "usd": 0.0014074
+     "ms": 2210,
+     "usd": 0.00168365
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 3080.9,
-   "usd": 0.0027447999999999917,
-   "tokens": 2472,
+   "ms": 4439.8,
+   "usd": 0.00386255000000002,
+   "tokens": 2735,
    "error": null
   },
   {
@@ -3228,26 +3233,27 @@
    "obtenido": "estafa",
    "paso": true,
    "hipotesis_confirmada": true,
-   "confianza": 0.72,
+   "confianza": 0.82,
    "senales": [
     "personal_payment",
     "already_paid",
     "already_paid",
-    "incremental_fee_request",
+    "escalating_fee_request",
+    "pet_sale_advance_fee",
     "personal_payment"
    ],
    "herramientas_usadas": [
     {
      "name": "muse-spark-1.3",
-     "ms": 3295,
-     "usd": 0.0029561500000000003
+     "ms": 3623,
+     "usd": 0.0029859
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 5292.0,
-   "usd": 0.004960300000000029,
-   "tokens": 3018,
+   "ms": 6009.2,
+   "usd": 0.005308800000000002,
+   "tokens": 3100,
    "error": null
   },
   {
@@ -3264,20 +3270,21 @@
     "verification_evasion",
     "already_paid",
     "already_paid",
-    "verification_evasion"
+    "verification_evasion",
+    "seller_blocked"
    ],
    "herramientas_usadas": [
     {
      "name": "muse-spark-1.3",
-     "ms": 2060,
-     "usd": 0.00247615
+     "ms": 2613,
+     "usd": 0.00232315
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 4193.8,
-   "usd": 0.005268799999999962,
-   "tokens": 3080,
+   "ms": 4558.0,
+   "usd": 0.00402779999999997,
+   "tokens": 2788,
    "error": null
   },
   {
@@ -3292,27 +3299,27 @@
    "confianza": 0.95,
    "senales": [
     "credentials_request",
-    "credentials_request",
     "bank_impersonation",
+    "otp_request",
     "urgency_pressure"
    ],
    "herramientas_usadas": [
     {
      "name": "transcribe",
-     "ms": 3184.5,
+     "ms": 3393.7,
      "usd": 0.00074
     },
     {
      "name": "muse-spark-1.3",
-     "ms": 1259,
-     "usd": 0.0013344000000000001
+     "ms": 1472,
+     "usd": 0.0014291500000000001
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 5873.9,
-   "usd": 0.003968300000000073,
-   "tokens": 2626,
+   "ms": 6236.7,
+   "usd": 0.003439549999999995,
+   "tokens": 2503,
    "error": null
   },
   {
@@ -3328,21 +3335,20 @@
    "senales": [
     "urgency",
     "personal_payment",
-    "tax_authority_impersonation",
-    "embargo_threat",
-    "same_day_urgency",
-    "personal_wallet_payment"
+    "authority_impersonation",
+    "urgency_threat",
+    "personal_payment_request"
    ],
    "herramientas_usadas": [
     {
      "name": "transcribe",
-     "ms": 2938.3,
+     "ms": 2656.9,
      "usd": 0.000516
     },
     {
      "name": "muse-spark-1.3",
-     "ms": 926,
-     "usd": 0.0011864
+     "ms": 1023,
+     "usd": 0.0027125
     },
     {
      "name": "check_country",
@@ -3351,15 +3357,15 @@
     },
     {
      "name": "muse-spark-1.3",
-     "ms": 1124,
-     "usd": 0.00132235
+     "ms": 1016,
+     "usd": 0.0013884000000000001
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 6132.3,
-   "usd": 0.004272899999999952,
-   "tokens": 4512,
+   "ms": 5888.7,
+   "usd": 0.005679800000000052,
+   "tokens": 4412,
    "error": null
   },
   {
@@ -3371,32 +3377,31 @@
    "obtenido": "estafa",
    "paso": true,
    "hipotesis_confirmada": true,
-   "confianza": 0.95,
+   "confianza": 0.92,
    "senales": [
     "family",
     "family_impersonation",
     "new_number_request",
-    "urgency_pressure",
-    "third_party_payment",
+    "urgent_money_request",
     "secrecy_request"
    ],
    "herramientas_usadas": [
     {
      "name": "transcribe",
-     "ms": 2576.9,
+     "ms": 2728.3,
      "usd": 0.000692
     },
     {
      "name": "muse-spark-1.3",
-     "ms": 1048,
-     "usd": 0.00109065
+     "ms": 1208,
+     "usd": 0.0011064
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 4905.3,
-   "usd": 0.0032250500000000366,
-   "tokens": 2473,
+   "ms": 5537.2,
+   "usd": 0.0033543000000000062,
+   "tokens": 2502,
    "error": null
   },
   {
@@ -3410,27 +3415,27 @@
    "hipotesis_confirmada": true,
    "confianza": 0.88,
    "senales": [
-    "package_retained_customs",
-    "advance_fee_to_release",
-    "urgency_pressure"
+    "advance_fee_for_release",
+    "urgency_pressure",
+    "unsolicited_customs_claim"
    ],
    "herramientas_usadas": [
     {
      "name": "transcribe",
-     "ms": 2522.8,
+     "ms": 2064.3,
      "usd": 0.000604
     },
     {
      "name": "muse-spark-1.3",
-     "ms": 1528,
-     "usd": 0.0015859000000000001
+     "ms": 1759,
+     "usd": 0.0015221500000000001
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 5509.6,
-   "usd": 0.00349905000000001,
-   "tokens": 2525,
+   "ms": 5291.2,
+   "usd": 0.003732799999999987,
+   "tokens": 2580,
    "error": null
   },
   {
@@ -3442,29 +3447,29 @@
    "obtenido": "estafa",
    "paso": true,
    "hipotesis_confirmada": true,
-   "confianza": 0.95,
+   "confianza": 0.92,
    "senales": [
-    "prize_lottery_claim",
+    "prize_win_claim",
     "advance_fee_request",
     "urgency_pressure"
    ],
    "herramientas_usadas": [
     {
      "name": "transcribe",
-     "ms": 2490.9,
+     "ms": 2368.6,
      "usd": 0.0004919999999999999
     },
     {
      "name": "muse-spark-1.3",
-     "ms": 1310,
-     "usd": 0.00130465
+     "ms": 1416,
+     "usd": 0.0012664
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 5079.1,
-   "usd": 0.003245649999999996,
-   "tokens": 2423,
+   "ms": 5309.3,
+   "usd": 0.003380049999999975,
+   "tokens": 2517,
    "error": null
   },
   {
@@ -3479,27 +3484,27 @@
    "confianza": 0.92,
    "senales": [
     "credentials_request",
-    "bank_impersonation",
     "otp_request",
-    "urgency_pressure"
+    "bank_impersonation",
+    "urgency"
    ],
    "herramientas_usadas": [
     {
      "name": "transcribe",
-     "ms": 2401.1,
+     "ms": 2436.7,
      "usd": 0.000628
     },
     {
      "name": "muse-spark-1.3",
-     "ms": 1490,
-     "usd": 0.0012934
+     "ms": 1738,
+     "usd": 0.0017349000000000002
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 5262.9,
-   "usd": 0.00364554999999998,
-   "tokens": 2563,
+   "ms": 5839.1,
+   "usd": 0.0041163,
+   "tokens": 2678,
    "error": null
   },
   {
@@ -3511,25 +3516,25 @@
    "obtenido": "legitimo",
    "paso": true,
    "hipotesis_confirmada": true,
-   "confianza": 0.9,
+   "confianza": 0.92,
    "senales": [],
    "herramientas_usadas": [
     {
      "name": "transcribe",
-     "ms": 2711.7,
+     "ms": 2367.8,
      "usd": 0.0006079999999999999
     },
     {
      "name": "muse-spark-1.3",
-     "ms": 1387,
-     "usd": 0.00127515
+     "ms": 882,
+     "usd": 0.002679
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 5291.2,
-   "usd": 0.0034484000000000207,
-   "tokens": 2454,
+   "ms": 4042.7,
+   "usd": 0.004326400000000011,
+   "tokens": 2318,
    "error": null
   },
   {
@@ -3541,25 +3546,25 @@
    "obtenido": "legitimo",
    "paso": true,
    "hipotesis_confirmada": true,
-   "confianza": 0.97,
+   "confianza": 0.95,
    "senales": [],
    "herramientas_usadas": [
     {
      "name": "transcribe",
-     "ms": 1776.4,
+     "ms": 1836.5,
      "usd": 0.000368
     },
     {
      "name": "muse-spark-1.3",
-     "ms": 891,
-     "usd": 0.0011259
+     "ms": 1331,
+     "usd": 0.0011119
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 4194.6,
-   "usd": 0.003392799999999994,
-   "tokens": 2540,
+   "ms": 4686.6,
+   "usd": 0.002995049999999964,
+   "tokens": 2445,
    "error": null
   },
   {
@@ -3576,20 +3581,20 @@
    "herramientas_usadas": [
     {
      "name": "transcribe",
-     "ms": 1810.6,
+     "ms": 1701.9,
      "usd": 0.00039199999999999993
     },
     {
      "name": "muse-spark-1.3",
-     "ms": 1023,
-     "usd": 0.0010571500000000002
+     "ms": 1169,
+     "usd": 0.0011519000000000002
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 4831.4,
-   "usd": 0.003024300000000032,
-   "tokens": 2442,
+   "ms": 5192.4,
+   "usd": 0.0037323000000000738,
+   "tokens": 2610,
    "error": null
   },
   {
@@ -3606,20 +3611,20 @@
    "herramientas_usadas": [
     {
      "name": "transcribe",
-     "ms": 2205.7,
+     "ms": 1846.2,
      "usd": 0.00042
     },
     {
      "name": "muse-spark-1.3",
-     "ms": 1222,
-     "usd": 0.0010844000000000001
+     "ms": 989,
+     "usd": 0.00098665
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 4474.3,
-   "usd": 0.00280505,
-   "tokens": 2381,
+   "ms": 4147.3,
+   "usd": 0.0028305500000000115,
+   "tokens": 2387,
    "error": null
   },
   {
@@ -3631,24 +3636,24 @@
    "obtenido": "estafa",
    "paso": true,
    "hipotesis_confirmada": true,
-   "confianza": 0.85,
+   "confianza": 0.88,
    "senales": [
     "personal_payment",
     "new_account_request",
-    "account_name_mismatch",
+    "personal_payment",
     "urgency_pressure",
     "no_call_instruction"
    ],
    "herramientas_usadas": [
     {
      "name": "read_pdf",
-     "ms": 5083.0,
-     "usd": 0.00154615
+     "ms": 3742.0,
+     "usd": 0.0042675
     },
     {
      "name": "muse-spark-1.3",
-     "ms": 1059,
-     "usd": 0.00095515
+     "ms": 1179,
+     "usd": 0.00087865
     },
     {
      "name": "check_address_book",
@@ -3657,25 +3662,15 @@
     },
     {
      "name": "muse-spark-1.3",
-     "ms": 1535,
-     "usd": 0.0009709
-    },
-    {
-     "name": "check_address_book",
-     "ms": 0,
-     "usd": 0.0
-    },
-    {
-     "name": "muse-spark-1.3",
-     "ms": 1610,
-     "usd": 0.0017633
+     "ms": 2456,
+     "usd": 0.00153985
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 11082.6,
-   "usd": 0.0072478999999999495,
-   "tokens": 6787,
+   "ms": 9040.7,
+   "usd": 0.008209649999999978,
+   "tokens": 4593,
    "error": null
   },
   {
@@ -3696,15 +3691,15 @@
    "herramientas_usadas": [
     {
      "name": "read_pdf",
-     "ms": 4866.1,
-     "usd": 0.0014739
+     "ms": 2948.7,
+     "usd": 0.00416125
     }
    ],
    "degradado": true,
    "manipulacion": false,
-   "ms": 6657.9,
-   "usd": 0.0028430500000000414,
-   "tokens": 621,
+   "ms": 4797.5,
+   "usd": 0.005283900000000003,
+   "tokens": 563,
    "error": null
   },
   {
@@ -3723,15 +3718,15 @@
    "herramientas_usadas": [
     {
      "name": "read_pdf",
-     "ms": 3630.3,
-     "usd": 0.00120615
+     "ms": 3495.4,
+     "usd": 0.004344
     }
    ],
    "degradado": true,
    "manipulacion": false,
-   "ms": 5624.2,
-   "usd": 0.0030367999999999892,
-   "tokens": 719,
+   "ms": 4876.3,
+   "usd": 0.005396900000000023,
+   "tokens": 536,
    "error": null
   },
   {
@@ -3751,15 +3746,15 @@
    "herramientas_usadas": [
     {
      "name": "read_pdf",
-     "ms": 3977.2,
-     "usd": 0.0012444
+     "ms": 3220.2,
+     "usd": 0.0038935
     }
    ],
    "degradado": true,
    "manipulacion": false,
-   "ms": 5526.9,
-   "usd": 0.002543299999999992,
-   "tokens": 584,
+   "ms": 4629.4,
+   "usd": 0.005052149999999983,
+   "tokens": 551,
    "error": null
   },
   {
@@ -3771,23 +3766,24 @@
    "obtenido": "estafa",
    "paso": true,
    "hipotesis_confirmada": true,
-   "confianza": 0.88,
+   "confianza": 0.92,
    "senales": [
     "personal_payment",
     "new_account_request",
-    "urgency",
+    "beneficiary_mismatch",
+    "urgency_pressure",
     "no_call_instruction"
    ],
    "herramientas_usadas": [
     {
      "name": "read_pdf",
-     "ms": 3629.4,
-     "usd": 0.0013804000000000002
+     "ms": 4035.9,
+     "usd": 0.00423775
     },
     {
      "name": "muse-spark-1.3",
-     "ms": 752,
-     "usd": 0.0008359
+     "ms": 726,
+     "usd": 0.0008529
     },
     {
      "name": "check_address_book",
@@ -3796,25 +3792,15 @@
     },
     {
      "name": "muse-spark-1.3",
-     "ms": 1197,
-     "usd": 0.0009669
-    },
-    {
-     "name": "check_address_book",
-     "ms": 0,
-     "usd": 0.0
-    },
-    {
-     "name": "muse-spark-1.3",
-     "ms": 1346,
-     "usd": 0.0016194
+     "ms": 1580,
+     "usd": 0.0014041
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 8335.1,
-   "usd": 0.00637575000000001,
-   "tokens": 6479,
+   "ms": 7943.8,
+   "usd": 0.007702400000000014,
+   "tokens": 4427,
    "error": null
   },
   {
@@ -3836,15 +3822,15 @@
    "herramientas_usadas": [
     {
      "name": "read_pdf",
-     "ms": 4222.7,
-     "usd": 0.0011976500000000002
+     "ms": 3076.5,
+     "usd": 0.003953
     }
    ],
    "degradado": true,
    "manipulacion": false,
-   "ms": 5326.9,
-   "usd": 0.0020492999999999818,
-   "tokens": 483,
+   "ms": 4544.2,
+   "usd": 0.005514399999999935,
+   "tokens": 650,
    "error": null
   },
   {
@@ -3857,38 +3843,24 @@
    "paso": true,
    "hipotesis_confirmada": true,
    "confianza": 0.9,
-   "senales": [
-    "ordinary_quotation",
-    "no_credential_request",
-    "no_payment_request"
-   ],
+   "senales": [],
    "herramientas_usadas": [
     {
      "name": "read_pdf",
-     "ms": 6083.5,
-     "usd": 0.0013591500000000002
+     "ms": 4226.6,
+     "usd": 0.0041825
     },
     {
      "name": "muse-spark-1.3",
-     "ms": 1011,
-     "usd": 0.0010919
-    },
-    {
-     "name": "check_address_book",
-     "ms": 0,
-     "usd": 0.0
-    },
-    {
-     "name": "muse-spark-1.3",
-     "ms": 1379,
-     "usd": 0.0012940999999999999
+     "ms": 1795,
+     "usd": 0.00173365
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 9734.6,
-   "usd": 0.0054375500000000375,
-   "tokens": 4546,
+   "ms": 7817.3,
+   "usd": 0.007532050000000034,
+   "tokens": 2687,
    "error": null
   },
   {
@@ -3905,20 +3877,20 @@
    "herramientas_usadas": [
     {
      "name": "read_pdf",
-     "ms": 4394.9,
-     "usd": 0.0012614000000000002
+     "ms": 3937.5,
+     "usd": 0.00398275
     },
     {
      "name": "muse-spark-1.3",
-     "ms": 1257,
-     "usd": 0.0014471500000000001
+     "ms": 1778,
+     "usd": 0.0015449
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 7119.6,
-   "usd": 0.0036086999999999413,
-   "tokens": 2430,
+   "ms": 7580.6,
+   "usd": 0.006895300000000014,
+   "tokens": 2563,
    "error": null
   },
   {
@@ -3940,30 +3912,20 @@
    "herramientas_usadas": [
     {
      "name": "read_pdf",
-     "ms": 2921.0,
-     "usd": 0.0011934
+     "ms": 3346.7,
+     "usd": 0.0038765
     },
     {
      "name": "muse-spark-1.3",
-     "ms": 877,
-     "usd": 0.00105615
-    },
-    {
-     "name": "check_country",
-     "ms": 0,
-     "usd": 0.0
-    },
-    {
-     "name": "muse-spark-1.3",
-     "ms": 1028,
-     "usd": 0.00271525
+     "ms": 1092,
+     "usd": 0.0012644000000000002
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 6069.9,
-   "usd": 0.00618595000000004,
-   "tokens": 4359,
+   "ms": 5561.0,
+   "usd": 0.005992300000000001,
+   "tokens": 2384,
    "error": null
   },
   {
@@ -3980,20 +3942,20 @@
    "herramientas_usadas": [
     {
      "name": "read_pdf",
-     "ms": 4035.4,
-     "usd": 0.0012444
+     "ms": 3494.0,
+     "usd": 0.003919
     },
     {
      "name": "muse-spark-1.3",
-     "ms": 917,
-     "usd": 0.0009799
+     "ms": 998,
+     "usd": 0.00114565
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 6832.6,
-   "usd": 0.0038314499999999798,
-   "tokens": 2473,
+   "ms": 6080.6,
+   "usd": 0.00632329999999997,
+   "tokens": 2430,
    "error": null
   },
   {
@@ -4005,25 +3967,25 @@
    "obtenido": "legitimo",
    "paso": true,
    "hipotesis_confirmada": true,
-   "confianza": 0.9,
+   "confianza": 0.95,
    "senales": [],
    "herramientas_usadas": [
     {
      "name": "read_pdf",
-     "ms": 3033.7,
-     "usd": 0.0011424
+     "ms": 3226.7,
+     "usd": 0.0037065
     },
     {
      "name": "muse-spark-1.3",
-     "ms": 780,
-     "usd": 0.00097365
+     "ms": 811,
+     "usd": 0.0009354
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 5127.5,
-   "usd": 0.0033374500000000317,
-   "tokens": 2349,
+   "ms": 5437.3,
+   "usd": 0.005965300000000005,
+   "tokens": 2364,
    "error": null
   },
   {
@@ -4043,15 +4005,15 @@
    "herramientas_usadas": [
     {
      "name": "read_pdf",
-     "ms": 3361.7,
-     "usd": 0.0012359
+     "ms": 3629.7,
+     "usd": 0.00398275
     }
    ],
    "degradado": true,
    "manipulacion": true,
-   "ms": 4776.1,
-   "usd": 0.0028477999999999993,
-   "tokens": 664,
+   "ms": 5067.5,
+   "usd": 0.005339649999999994,
+   "tokens": 604,
    "error": null
   },
   {
@@ -4072,9 +4034,9 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 1107.4,
-   "usd": 0.0009549000000000363,
-   "tokens": 496,
+   "ms": 1474.8,
+   "usd": 0.0014282499999999643,
+   "tokens": 545,
    "error": null
   },
   {
@@ -4094,9 +4056,9 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 1303.3,
-   "usd": 0.0013986499999999458,
-   "tokens": 599,
+   "ms": 2235.9,
+   "usd": 0.0013391500000000667,
+   "tokens": 585,
    "error": null
   },
   {
@@ -4115,9 +4077,9 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 2137.2,
-   "usd": 0.001945900000000056,
-   "tokens": 732,
+   "ms": 1459.9,
+   "usd": 0.00149539999999998,
+   "tokens": 626,
    "error": null
   },
   {
@@ -4140,15 +4102,15 @@
    "herramientas_usadas": [
     {
      "name": "muse-spark-1.3",
-     "ms": 1092,
-     "usd": 0.0026285
+     "ms": 1376,
+     "usd": 0.00109565
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 4002.0,
-   "usd": 0.004964149999999945,
-   "tokens": 2633,
+   "ms": 3199.4,
+   "usd": 0.0025685500000000028,
+   "tokens": 2463,
    "error": null
   },
   {
@@ -4160,25 +4122,27 @@
    "obtenido": "estafa",
    "paso": true,
    "hipotesis_confirmada": true,
-   "confianza": 0.92,
+   "confianza": 0.95,
    "senales": [
     "credentials_request",
     "personal_payment",
-    "verification_code_request",
-    "brand_impersonation"
+    "otp_request",
+    "credentials_request",
+    "impersonation_nequi",
+    "urgency_threat"
    ],
    "herramientas_usadas": [
     {
      "name": "muse-spark-1.3",
-     "ms": 1063,
-     "usd": 0.00309075
+     "ms": 1523,
+     "usd": 0.0014176500000000001
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 2258.7,
-   "usd": 0.0044783999999999935,
-   "tokens": 2530,
+   "ms": 2789.4,
+   "usd": 0.0028903000000000123,
+   "tokens": 2550,
    "error": null
   },
   {
@@ -4197,9 +4161,9 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 1121.9,
-   "usd": 0.001449900000000004,
-   "tokens": 604,
+   "ms": 2387.7,
+   "usd": 0.0019599000000000144,
+   "tokens": 724,
    "error": null
   },
   {
@@ -4219,9 +4183,9 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 938.5,
-   "usd": 0.0008904000000000689,
-   "tokens": 478,
+   "ms": 1474.2,
+   "usd": 0.0011411499999999797,
+   "tokens": 537,
    "error": null
   },
   {
@@ -4242,9 +4206,9 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 1105.3,
-   "usd": 0.0011046499999999848,
-   "tokens": 527,
+   "ms": 1243.3,
+   "usd": 0.0011429000000000022,
+   "tokens": 536,
    "error": null
   },
   {
@@ -4266,15 +4230,15 @@
    "herramientas_usadas": [
     {
      "name": "muse-spark-1.3",
-     "ms": 821,
-     "usd": 0.0010073999999999999
+     "ms": 1587,
+     "usd": 0.0012496500000000002
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 1827.9,
-   "usd": 0.00208005,
-   "tokens": 2341,
+   "ms": 2370.5,
+   "usd": 0.0023520499999999944,
+   "tokens": 2405,
    "error": null
   },
   {
@@ -4286,25 +4250,35 @@
    "obtenido": "legitimo",
    "paso": true,
    "hipotesis_confirmada": true,
-   "confianza": 0.85,
+   "confianza": 0.9,
    "senales": [
     "credentials_request",
-    "no_links",
-    "no_credential_request",
-    "anti_phishing_disclaimer"
+    "official_phone_match",
+    "no_url",
+    "no_payment_request"
    ],
    "herramientas_usadas": [
     {
      "name": "muse-spark-1.3",
-     "ms": 1999,
-     "usd": 0.00176335
+     "ms": 1095,
+     "usd": 0.0028335
+    },
+    {
+     "name": "check_country",
+     "ms": 1,
+     "usd": 0.0
+    },
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1724,
+     "usd": 0.00167085
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 4408.1,
-   "usd": 0.004503749999999973,
-   "tokens": 3015,
+   "ms": 5567.9,
+   "usd": 0.006517999999999968,
+   "tokens": 4828,
    "error": null
   },
   {
@@ -4316,34 +4290,35 @@
    "obtenido": "legitimo",
    "paso": true,
    "hipotesis_confirmada": true,
-   "confianza": 0.92,
+   "confianza": 0.95,
    "senales": [
     "official_domain",
     "credentials_request",
-    "official_domain"
+    "official_domain_link",
+    "no_credential_request"
    ],
    "herramientas_usadas": [
     {
      "name": "muse-spark-1.3",
-     "ms": 1459,
-     "usd": 0.00107765
+     "ms": 713,
+     "usd": 0.00088215
     },
     {
      "name": "check_country",
-     "ms": 0,
+     "ms": 1,
      "usd": 0.0
     },
     {
      "name": "muse-spark-1.3",
-     "ms": 809,
-     "usd": 0.00116915
+     "ms": 1273,
+     "usd": 0.00127485
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 3454.1,
-   "usd": 0.003489950000000075,
-   "tokens": 4433,
+   "ms": 3339.8,
+   "usd": 0.003570149999999994,
+   "tokens": 4485,
    "error": null
   },
   {
@@ -4352,19 +4327,20 @@
    "tipo": "texto",
    "categoria": "legitimo_proveedor",
    "pais": "CO",
-   "obtenido": "dudoso",
-   "paso": false,
-   "hipotesis_confirmada": false,
-   "confianza": 0.55,
+   "obtenido": "legitimo",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.75,
    "senales": [
-    "unknown_supplier",
-    "payment_request_usual_account"
+    "known_account_payment",
+    "no_url",
+    "no_urgency"
    ],
    "herramientas_usadas": [
     {
      "name": "muse-spark-1.3",
-     "ms": 1027,
-     "usd": 0.0011184
+     "ms": 609,
+     "usd": 0.00084215
     },
     {
      "name": "check_address_book",
@@ -4373,15 +4349,15 @@
     },
     {
      "name": "muse-spark-1.3",
-     "ms": 1626,
-     "usd": 0.00340225
+     "ms": 1807,
+     "usd": 0.0015634000000000002
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 5078.0,
-   "usd": 0.007113299999999989,
-   "tokens": 4750,
+   "ms": 4420.1,
+   "usd": 0.004743200000000003,
+   "tokens": 4586,
    "error": null
   },
   {
@@ -4396,14 +4372,13 @@
    "confianza": 0.55,
    "senales": [
     "personal_payment",
-    "personal_payment_request",
-    "supplier_unverified"
+    "personal_payment_request"
    ],
    "herramientas_usadas": [
     {
      "name": "muse-spark-1.3",
-     "ms": 903,
-     "usd": 0.0016155999999999998
+     "ms": 835,
+     "usd": 0.0008459
     },
     {
      "name": "check_address_book",
@@ -4412,35 +4387,15 @@
     },
     {
      "name": "muse-spark-1.3",
-     "ms": 877,
-     "usd": 0.00087385
-    },
-    {
-     "name": "check_address_book",
-     "ms": 0,
-     "usd": 0.0
-    },
-    {
-     "name": "muse-spark-1.3",
-     "ms": 1041,
-     "usd": 0.0010608
-    },
-    {
-     "name": "check_address_book",
-     "ms": 0,
-     "usd": 0.0
-    },
-    {
-     "name": "muse-spark-1.3",
-     "ms": 1295,
-     "usd": 0.00157425
+     "ms": 1201,
+     "usd": 0.0014884000000000002
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 7268.1,
-   "usd": 0.0076548999999999645,
-   "tokens": 9004,
+   "ms": 5536.1,
+   "usd": 0.005778450000000046,
+   "tokens": 4855,
    "error": null
   },
   {
@@ -4452,20 +4407,20 @@
    "obtenido": "legitimo",
    "paso": true,
    "hipotesis_confirmada": true,
-   "confianza": 0.85,
+   "confianza": 0.9,
    "senales": [],
    "herramientas_usadas": [
     {
      "name": "muse-spark-1.3",
-     "ms": 1120,
-     "usd": 0.0011839
+     "ms": 1413,
+     "usd": 0.003078
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 2085.1,
-   "usd": 0.002434050000000021,
-   "tokens": 2413,
+   "ms": 2740.1,
+   "usd": 0.004540649999999924,
+   "tokens": 2515,
    "error": null
   },
   {
@@ -4477,20 +4432,20 @@
    "obtenido": "legitimo",
    "paso": true,
    "hipotesis_confirmada": true,
-   "confianza": 0.9,
+   "confianza": 0.92,
    "senales": [],
    "herramientas_usadas": [
     {
      "name": "muse-spark-1.3",
-     "ms": 1121,
-     "usd": 0.0012099
+     "ms": 1124,
+     "usd": 0.00273
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 2164.3,
-   "usd": 0.002500049999999976,
-   "tokens": 2425,
+   "ms": 3069.7,
+   "usd": 0.004721399999999987,
+   "tokens": 2554,
    "error": null
   },
   {
@@ -4502,24 +4457,25 @@
    "obtenido": "legitimo",
    "paso": true,
    "hipotesis_confirmada": true,
-   "confianza": 0.95,
+   "confianza": 0.92,
    "senales": [
     "credentials_request",
-    "no_url_or_request",
-    "correct_channel_guidance"
+    "no_links",
+    "use_official_channel",
+    "explicit_no_credential_request"
    ],
    "herramientas_usadas": [
     {
      "name": "muse-spark-1.3",
-     "ms": 1291,
-     "usd": 0.0013629
+     "ms": 1511,
+     "usd": 0.0015244000000000002
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 2761.3,
-   "usd": 0.002465050000000024,
-   "tokens": 2445,
+   "ms": 2870.1,
+   "usd": 0.0028008000000000477,
+   "tokens": 2524,
    "error": null
   },
   {
@@ -4531,16 +4487,17 @@
    "obtenido": "legitimo",
    "paso": true,
    "hipotesis_confirmada": true,
-   "confianza": 0.92,
+   "confianza": 0.85,
    "senales": [
     "official_domain",
-    "official_domain"
+    "official_domain",
+    "no_credential_request"
    ],
    "herramientas_usadas": [
     {
      "name": "muse-spark-1.3",
-     "ms": 716,
-     "usd": 0.00099815
+     "ms": 843,
+     "usd": 0.0010194
     },
     {
      "name": "check_country",
@@ -4549,15 +4506,15 @@
     },
     {
      "name": "muse-spark-1.3",
-     "ms": 806,
-     "usd": 0.0012674000000000001
+     "ms": 880,
+     "usd": 0.00126315
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 2920.9,
-   "usd": 0.003833199999999981,
-   "tokens": 4470,
+   "ms": 3598.2,
+   "usd": 0.004241200000000056,
+   "tokens": 4566,
    "error": null
   },
   {
@@ -4566,23 +4523,36 @@
    "tipo": "texto",
    "categoria": "legitimo_proveedor",
    "pais": "US",
-   "obtenido": "legitimo",
-   "paso": true,
-   "hipotesis_confirmada": true,
-   "confianza": 0.95,
-   "senales": [],
+   "obtenido": "dudoso",
+   "paso": false,
+   "hipotesis_confirmada": false,
+   "confianza": 0.55,
+   "senales": [
+    "same_account_claim",
+    "unknown_supplier"
+   ],
    "herramientas_usadas": [
     {
      "name": "muse-spark-1.3",
-     "ms": 1301,
-     "usd": 0.00134565
+     "ms": 1133,
+     "usd": 0.00103965
+    },
+    {
+     "name": "check_address_book",
+     "ms": 0,
+     "usd": 0.0
+    },
+    {
+     "name": "muse-spark-1.3",
+     "ms": 2130,
+     "usd": 0.0022969
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 2447.3,
-   "usd": 0.0029245499999999702,
-   "tokens": 2515,
+   "ms": 4497.1,
+   "usd": 0.004647699999999921,
+   "tokens": 4536,
    "error": null
   },
   {
@@ -4599,35 +4569,35 @@
    "herramientas_usadas": [
     {
      "name": "muse-spark-1.3",
-     "ms": 919,
-     "usd": 0.0019178499999999998
-    },
-    {
-     "name": "check_country",
-     "ms": 0,
-     "usd": 0.0
-    },
-    {
-     "name": "muse-spark-1.3",
-     "ms": 1379,
-     "usd": 0.0019360999999999998
+     "ms": 1308,
+     "usd": 0.0012756500000000001
     },
     {
      "name": "analyze_url",
-     "ms": 17,
+     "ms": 20,
      "usd": 0.0
     },
     {
      "name": "muse-spark-1.3",
-     "ms": 1339,
-     "usd": 0.00213585
+     "ms": 1270,
+     "usd": 0.0013941
+    },
+    {
+     "name": "check_country",
+     "ms": 1,
+     "usd": 0.0
+    },
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1476,
+     "usd": 0.00158715
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 5688.6,
-   "usd": 0.007726450000000051,
-   "tokens": 6753,
+   "ms": 6175.8,
+   "usd": 0.006044550000000037,
+   "tokens": 6675,
    "error": null
   },
   {
@@ -4643,21 +4613,20 @@
    "senales": [
     "urgency",
     "urgency_cue",
-    "no_link",
-    "no_credential_request"
+    "no_link_no_request"
    ],
    "herramientas_usadas": [
     {
      "name": "muse-spark-1.3",
-     "ms": 1197,
-     "usd": 0.00163565
+     "ms": 1965,
+     "usd": 0.0036785
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 2207.3,
-   "usd": 0.0027900499999999884,
-   "tokens": 2501,
+   "ms": 3675.5,
+   "usd": 0.005096400000000001,
+   "tokens": 2650,
    "error": null
   },
   {
@@ -4676,9 +4645,9 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 902.9,
-   "usd": 0.0012408999999999892,
-   "tokens": 552,
+   "ms": 939.2,
+   "usd": 0.0012153999999999776,
+   "tokens": 546,
    "error": null
   },
   {
@@ -4693,30 +4662,30 @@
    "confianza": 0.9,
    "senales": [
     "official_domain",
-    "official_domain"
+    "official_domain_link"
    ],
    "herramientas_usadas": [
     {
      "name": "muse-spark-1.3",
-     "ms": 698,
-     "usd": 0.0008974
+     "ms": 1475,
+     "usd": 0.0010164
     },
     {
      "name": "check_country",
-     "ms": 0,
+     "ms": 1,
      "usd": 0.0
     },
     {
      "name": "muse-spark-1.3",
-     "ms": 1095,
-     "usd": 0.0014819000000000002
+     "ms": 903,
+     "usd": 0.00125665
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 4478.8,
-   "usd": 0.0054826999999999515,
-   "tokens": 4820,
+   "ms": 4951.9,
+   "usd": 0.004292699999999927,
+   "tokens": 4540,
    "error": null
   },
   {
@@ -4736,15 +4705,15 @@
    "herramientas_usadas": [
     {
      "name": "read_image",
-     "ms": 1085.5,
-     "usd": 0.0018845
+     "ms": 1401.8,
+     "usd": 0.00148925
     }
    ],
    "degradado": true,
    "manipulacion": false,
-   "ms": 2262.4,
-   "usd": 0.0034291499999999807,
-   "tokens": 627,
+   "ms": 2956.0,
+   "usd": 0.0030296499999999974,
+   "tokens": 626,
    "error": null
   },
   {
@@ -4765,15 +4734,15 @@
    "herramientas_usadas": [
     {
      "name": "read_image",
-     "ms": 753.2,
-     "usd": 0.00183775
+     "ms": 3114.7,
+     "usd": 0.00188875
     }
    ],
    "degradado": true,
    "manipulacion": false,
-   "ms": 2076.4,
-   "usd": 0.0031841500000000253,
-   "tokens": 586,
+   "ms": 4345.9,
+   "usd": 0.0030481500000000324,
+   "tokens": 542,
    "error": null
   },
   {
@@ -4793,15 +4762,15 @@
    "herramientas_usadas": [
     {
      "name": "read_image",
-     "ms": 1696.8,
-     "usd": 0.0020715
+     "ms": 1136.6,
+     "usd": 0.0018165
     }
    ],
    "degradado": true,
    "manipulacion": false,
-   "ms": 3193.2,
-   "usd": 0.0033818999999999893,
-   "tokens": 574,
+   "ms": 2555.6,
+   "usd": 0.0027528999999999484,
+   "tokens": 486,
    "error": null
   },
   {
@@ -4823,15 +4792,15 @@
    "herramientas_usadas": [
     {
      "name": "read_image",
-     "ms": 2059.7,
-     "usd": 0.0043802500000000005
+     "ms": 2864.9,
+     "usd": 0.0040955
     }
    ],
    "degradado": true,
    "manipulacion": false,
-   "ms": 2953.7,
-   "usd": 0.005444150000000007,
-   "tokens": 516,
+   "ms": 4101.1,
+   "usd": 0.005333649999999938,
+   "tokens": 557,
    "error": null
   },
   {
@@ -4851,15 +4820,15 @@
    "herramientas_usadas": [
     {
      "name": "read_image",
-     "ms": 861.7,
-     "usd": 0.001757
+     "ms": 1183.1,
+     "usd": 0.00177825
     }
    ],
    "degradado": true,
    "manipulacion": false,
-   "ms": 1654.6,
-   "usd": 0.0028991500000000083,
-   "tokens": 533,
+   "ms": 2266.5,
+   "usd": 0.00299265000000006,
+   "tokens": 550,
    "error": null
   },
   {
@@ -4880,15 +4849,15 @@
    "herramientas_usadas": [
     {
      "name": "read_image",
-     "ms": 998.4,
-     "usd": 0.001723
+     "ms": 1104.4,
+     "usd": 0.00155725
     }
    ],
    "degradado": true,
    "manipulacion": false,
-   "ms": 2136.5,
-   "usd": 0.002987649999999978,
-   "tokens": 559,
+   "ms": 2436.5,
+   "usd": 0.002915399999999947,
+   "tokens": 581,
    "error": null
   },
   {
@@ -4908,15 +4877,15 @@
    "herramientas_usadas": [
     {
      "name": "read_image",
-     "ms": 1910.1,
-     "usd": 0.004257
+     "ms": 2618.1,
+     "usd": 0.00434625
     }
    ],
    "degradado": true,
    "manipulacion": false,
-   "ms": 3058.2,
-   "usd": 0.005675399999999987,
-   "tokens": 598,
+   "ms": 4219.9,
+   "usd": 0.005416150000000068,
+   "tokens": 516,
    "error": null
   },
   {
@@ -4936,15 +4905,15 @@
    "herramientas_usadas": [
     {
      "name": "read_image",
-     "ms": 1538.9,
-     "usd": 0.004257
+     "ms": 1307.0,
+     "usd": 0.0039765
     }
    ],
    "degradado": true,
    "manipulacion": false,
-   "ms": 2539.4,
-   "usd": 0.005397900000000001,
-   "tokens": 532,
+   "ms": 2541.5,
+   "usd": 0.005198149999999963,
+   "tokens": 551,
    "error": null
   },
   {
@@ -4956,32 +4925,31 @@
    "obtenido": "estafa",
    "paso": true,
    "hipotesis_confirmada": true,
-   "confianza": 0.85,
+   "confianza": 0.92,
    "senales": [
     "family",
     "personal_payment",
     "family_impersonation",
     "new_number_claim",
-    "urgent_money_request",
     "personal_payment_request"
    ],
    "herramientas_usadas": [
     {
      "name": "read_image",
-     "ms": 1688.9,
-     "usd": 0.00460975
+     "ms": 1933.9,
+     "usd": 0.004206
     },
     {
      "name": "muse-spark-1.3",
-     "ms": 1019,
-     "usd": 0.00210235
+     "ms": 1047,
+     "usd": 0.0018601
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 3669.3,
-   "usd": 0.00790575000000002,
-   "tokens": 2580,
+   "ms": 4347.7,
+   "usd": 0.007561500000000066,
+   "tokens": 2594,
    "error": null
   },
   {
@@ -5003,15 +4971,15 @@
    "herramientas_usadas": [
     {
      "name": "read_image",
-     "ms": 970.3,
-     "usd": 0.00172725
+     "ms": 940.9,
+     "usd": 0.00157425
     }
    ],
    "degradado": true,
    "manipulacion": false,
-   "ms": 2003.7,
-   "usd": 0.0028643999999999202,
-   "tokens": 529,
+   "ms": 2091.9,
+   "usd": 0.002677399999999942,
+   "tokens": 521,
    "error": null
   },
   {
@@ -5030,15 +4998,15 @@
    "herramientas_usadas": [
     {
      "name": "read_image",
-     "ms": 2664.7,
-     "usd": 0.0044694999999999995
+     "ms": 2672.1,
+     "usd": 0.00422725
     }
    ],
    "degradado": true,
    "manipulacion": false,
-   "ms": 4251.7,
-   "usd": 0.006028650000000064,
-   "tokens": 629,
+   "ms": 4424.4,
+   "usd": 0.005850149999999983,
+   "tokens": 644,
    "error": null
   },
   {
@@ -5053,18 +5021,19 @@
    "confianza": 0.9,
    "senales": [
     "official_domain",
-    "official_domain"
+    "official_domain_qr",
+    "no_credential_request"
    ],
    "herramientas_usadas": [
     {
      "name": "read_image",
-     "ms": 800.9,
-     "usd": 0.00161675
+     "ms": 3664.9,
+     "usd": 0.0018165
     },
     {
      "name": "muse-spark-1.3",
-     "ms": 840,
-     "usd": 0.00171685
+     "ms": 731,
+     "usd": 0.00146785
     },
     {
      "name": "check_country",
@@ -5073,25 +5042,15 @@
     },
     {
      "name": "muse-spark-1.3",
-     "ms": 503,
-     "usd": 0.0008858
-    },
-    {
-     "name": "analyze_url",
-     "ms": 0,
-     "usd": 0.0
-    },
-    {
-     "name": "muse-spark-1.3",
-     "ms": 752,
-     "usd": 0.0019821
+     "ms": 1215,
+     "usd": 0.0009695499999999999
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 4480.0,
-   "usd": 0.007838899999999926,
-   "tokens": 6919,
+   "ms": 7455.3,
+   "usd": 0.005870049999999962,
+   "tokens": 4541,
    "error": null
   },
   {
@@ -5103,21 +5062,22 @@
    "obtenido": "legitimo",
    "paso": true,
    "hipotesis_confirmada": true,
-   "confianza": 0.95,
+   "confianza": 0.92,
    "senales": [
     "official_domain",
-    "official_domain"
+    "official_domain_qr",
+    "no_credential_request"
    ],
    "herramientas_usadas": [
     {
      "name": "read_image",
-     "ms": 883.9,
-     "usd": 0.00184625
+     "ms": 970.2,
+     "usd": 0.001587
     },
     {
      "name": "muse-spark-1.3",
-     "ms": 633,
-     "usd": 0.00145835
+     "ms": 1132,
+     "usd": 0.00283425
     },
     {
      "name": "check_country",
@@ -5126,25 +5086,15 @@
     },
     {
      "name": "muse-spark-1.3",
-     "ms": 1144,
-     "usd": 0.0012136
-    },
-    {
-     "name": "analyze_url",
-     "ms": 0,
-     "usd": 0.0
-    },
-    {
-     "name": "muse-spark-1.3",
-     "ms": 1048,
-     "usd": 0.0017601
+     "ms": 1148,
+     "usd": 0.0022771
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 5471.0,
-   "usd": 0.00866295000000001,
-   "tokens": 6838,
+   "ms": 6143.6,
+   "usd": 0.00964825000000002,
+   "tokens": 5101,
    "error": null
   },
   {
@@ -5159,35 +5109,35 @@
    "confianza": 0.9,
    "senales": [
     "official_domain",
-    "official_domain_qr"
+    "official_domain"
    ],
    "herramientas_usadas": [
     {
      "name": "read_image",
-     "ms": 888.5,
-     "usd": 0.00186325
+     "ms": 1340.8,
+     "usd": 0.00174425
     },
     {
      "name": "muse-spark-1.3",
-     "ms": 764,
-     "usd": 0.00145185
+     "ms": 601,
+     "usd": 0.0015351
     },
     {
      "name": "check_country",
-     "ms": 0,
+     "ms": 1,
      "usd": 0.0
     },
     {
      "name": "muse-spark-1.3",
-     "ms": 568,
-     "usd": 0.0010416
+     "ms": 1298,
+     "usd": 0.00224785
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 4281.4,
-   "usd": 0.006440350000000001,
-   "tokens": 4612,
+   "ms": 5999.5,
+   "usd": 0.008057099999999925,
+   "tokens": 4955,
    "error": null
   },
   {
@@ -5204,35 +5154,20 @@
    "herramientas_usadas": [
     {
      "name": "read_image",
-     "ms": 3749.3,
-     "usd": 0.004966750000000001
+     "ms": 3525.1,
+     "usd": 0.00541725
     },
     {
      "name": "muse-spark-1.3",
-     "ms": 1332,
-     "usd": 0.00193485
-    },
-    {
-     "name": "crop",
-     "ms": 898,
-     "usd": 0.0025
-    },
-    {
-     "name": "crop",
-     "ms": 374,
-     "usd": 0.0025
-    },
-    {
-     "name": "muse-spark-1.3",
-     "ms": 711,
-     "usd": 0.0010375999999999999
+     "ms": 916,
+     "usd": 0.00166285
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 8447.2,
-   "usd": 0.014405349999999964,
-   "tokens": 4590,
+   "ms": 5674.4,
+   "usd": 0.008214750000000009,
+   "tokens": 2414,
    "error": null
   },
   {
@@ -5249,20 +5184,20 @@
    "herramientas_usadas": [
     {
      "name": "read_image",
-     "ms": 1907.5,
-     "usd": 0.0041295
+     "ms": 2660.6,
+     "usd": 0.00424425
     },
     {
      "name": "muse-spark-1.3",
-     "ms": 952,
-     "usd": 0.0017205999999999999
+     "ms": 1417,
+     "usd": 0.0018055999999999999
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 4285.2,
-   "usd": 0.007187000000000047,
-   "tokens": 2454,
+   "ms": 5104.3,
+   "usd": 0.006519749999999986,
+   "tokens": 2270,
    "error": null
   },
   {
@@ -5274,28 +5209,35 @@
    "obtenido": "legitimo",
    "paso": true,
    "hipotesis_confirmada": true,
-   "confianza": 0.85,
-   "senales": [
-    "no_credential_request",
-    "no_account_change"
-   ],
+   "confianza": 0.9,
+   "senales": [],
    "herramientas_usadas": [
     {
      "name": "read_image",
-     "ms": 1605.4,
-     "usd": 0.00416775
+     "ms": 1651.5,
+     "usd": 0.00424
     },
     {
      "name": "muse-spark-1.3",
-     "ms": 1304,
-     "usd": 0.0024548499999999997
+     "ms": 1426,
+     "usd": 0.00347125
+    },
+    {
+     "name": "check_address_book",
+     "ms": 0,
+     "usd": 0.0
+    },
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1805,
+     "usd": 0.00355075
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 4435.8,
-   "usd": 0.008518249999999923,
-   "tokens": 2766,
+   "ms": 6662.4,
+   "usd": 0.01255415000000002,
+   "tokens": 4713,
    "error": null
   },
   {
@@ -5312,20 +5254,20 @@
    "herramientas_usadas": [
     {
      "name": "read_image",
-     "ms": 1900.9,
-     "usd": 0.0040275
+     "ms": 2597.3,
+     "usd": 0.00414225
     },
     {
      "name": "muse-spark-1.3",
-     "ms": 1284,
-     "usd": 0.0023636
+     "ms": 1426,
+     "usd": 0.0019725999999999997
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 4706.1,
-   "usd": 0.008178500000000016,
-   "tokens": 2712,
+   "ms": 5431.6,
+   "usd": 0.007417749999999987,
+   "tokens": 2506,
    "error": null
   },
   {
@@ -5342,20 +5284,20 @@
    "herramientas_usadas": [
     {
      "name": "read_image",
-     "ms": 2662.3,
-     "usd": 0.0044355
+     "ms": 1742.6,
+     "usd": 0.00421875
     },
     {
      "name": "muse-spark-1.3",
-     "ms": 1377,
-     "usd": 0.0017185999999999998
+     "ms": 941,
+     "usd": 0.00181635
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 5053.9,
-   "usd": 0.007110750000000018,
-   "tokens": 2381,
+   "ms": 4272.4,
+   "usd": 0.0075442499999999815,
+   "tokens": 2534,
    "error": null
   },
   {
@@ -5372,20 +5314,20 @@
    "herramientas_usadas": [
     {
      "name": "read_image",
-     "ms": 1441.1,
-     "usd": 0.00427825
+     "ms": 2031.7,
+     "usd": 0.004104
     },
     {
      "name": "muse-spark-1.3",
-     "ms": 1222,
-     "usd": 0.0018341
+     "ms": 1637,
+     "usd": 0.0021401
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 3660.2,
-   "usd": 0.007651999999999953,
-   "tokens": 2527,
+   "ms": 5004.0,
+   "usd": 0.00739699999999999,
+   "tokens": 2508,
    "error": null
   },
   {
@@ -5397,7 +5339,7 @@
    "obtenido": "legitimo",
    "paso": true,
    "hipotesis_confirmada": true,
-   "confianza": 0.92,
+   "confianza": 0.95,
    "senales": [
     "official_domain",
     "official_domain"
@@ -5405,13 +5347,13 @@
    "herramientas_usadas": [
     {
      "name": "read_image",
-     "ms": 934.0,
-     "usd": 0.0008666
+     "ms": 1188.2,
+     "usd": 0.0017485
     },
     {
      "name": "muse-spark-1.3",
-     "ms": 857,
-     "usd": 0.0016596
+     "ms": 766,
+     "usd": 0.00158735
     },
     {
      "name": "check_country",
@@ -5420,15 +5362,15 @@
     },
     {
      "name": "muse-spark-1.3",
-     "ms": 786,
-     "usd": 0.00165585
+     "ms": 768,
+     "usd": 0.0017990999999999999
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 3786.9,
-   "usd": 0.005300200000000038,
-   "tokens": 4414,
+   "ms": 4448.7,
+   "usd": 0.006462950000000037,
+   "tokens": 4417,
    "error": null
   },
   {
@@ -5440,23 +5382,21 @@
    "obtenido": "legitimo",
    "paso": true,
    "hipotesis_confirmada": true,
-   "confianza": 0.85,
+   "confianza": 0.9,
    "senales": [
     "official_domain",
-    "official_domain",
-    "no_credential_request",
-    "no_payment_request"
+    "official_domain"
    ],
    "herramientas_usadas": [
     {
      "name": "read_image",
-     "ms": 1054.8,
-     "usd": 0.00175275
+     "ms": 935.1,
+     "usd": 0.001621
     },
     {
      "name": "muse-spark-1.3",
-     "ms": 764,
-     "usd": 0.0027275
+     "ms": 1315,
+     "usd": 0.0016388499999999999
     },
     {
      "name": "check_country",
@@ -5465,15 +5405,15 @@
     },
     {
      "name": "muse-spark-1.3",
-     "ms": 818,
-     "usd": 0.0011260999999999999
+     "ms": 923,
+     "usd": 0.0017888499999999998
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 4204.0,
-   "usd": 0.0077239999999999835,
-   "tokens": 4681,
+   "ms": 5530.8,
+   "usd": 0.007553100000000107,
+   "tokens": 4768,
    "error": null
   },
   {
@@ -5494,9 +5434,9 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 1188.5,
-   "usd": 0.0010449000000000153,
-   "tokens": 520,
+   "ms": 1631.1,
+   "usd": 0.0010023999999999589,
+   "tokens": 510,
    "error": null
   },
   {
@@ -5508,21 +5448,20 @@
    "obtenido": "estafa",
    "paso": true,
    "hipotesis_confirmada": true,
-   "confianza": 0.92,
+   "confianza": 0.95,
    "senales": [
     "ip_or_port",
     "http_without_tls",
     "courier_impersonation",
-    "ip_or_port",
-    "http_without_tls",
+    "unofficial_url_ip",
     "urgency_threat",
-    "unofficial_link"
+    "http_without_tls"
    ],
    "herramientas_usadas": [
     {
      "name": "muse-spark-1.3",
-     "ms": 939,
-     "usd": 0.0011154000000000001
+     "ms": 801,
+     "usd": 0.00104315
     },
     {
      "name": "check_country",
@@ -5531,25 +5470,25 @@
     },
     {
      "name": "muse-spark-1.3",
-     "ms": 635,
-     "usd": 0.0010941500000000001
+     "ms": 928,
+     "usd": 0.0012684
     },
     {
      "name": "analyze_url",
-     "ms": 10,
+     "ms": 11,
      "usd": 0.0
     },
     {
      "name": "muse-spark-1.3",
-     "ms": 1070,
-     "usd": 0.0014809
+     "ms": 1080,
+     "usd": 0.0016466500000000002
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 4167.7,
-   "usd": 0.005046100000000053,
-   "tokens": 6738,
+   "ms": 4075.4,
+   "usd": 0.0051056000000000434,
+   "tokens": 6752,
    "error": null
   },
   {
@@ -5561,7 +5500,7 @@
    "obtenido": "legitimo",
    "paso": true,
    "hipotesis_confirmada": true,
-   "confianza": 0.85,
+   "confianza": 0.9,
    "senales": [
     "official_domain",
     "official_domain"
@@ -5569,30 +5508,35 @@
    "herramientas_usadas": [
     {
      "name": "muse-spark-1.3",
-     "ms": 798,
-     "usd": 0.00132785
-    },
-    {
-     "name": "analyze_url",
-     "ms": 4,
-     "usd": 0.0
+     "ms": 666,
+     "usd": 0.00159835
     },
     {
      "name": "check_country",
-     "ms": 0,
+     "ms": 1,
      "usd": 0.0
     },
     {
      "name": "muse-spark-1.3",
-     "ms": 676,
-     "usd": 0.0014111
+     "ms": 648,
+     "usd": 0.0016943499999999998
+    },
+    {
+     "name": "analyze_url",
+     "ms": 7,
+     "usd": 0.0
+    },
+    {
+     "name": "muse-spark-1.3",
+     "ms": 947,
+     "usd": 0.00211085
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 3002.2,
-   "usd": 0.0045053499999999636,
-   "tokens": 4993,
+   "ms": 4748.6,
+   "usd": 0.007654449999999979,
+   "tokens": 7041,
    "error": null
   },
   {
@@ -5613,9 +5557,9 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 841.9,
-   "usd": 0.0010486499999999843,
-   "tokens": 511,
+   "ms": 1503.5,
+   "usd": 0.0013036500000001006,
+   "tokens": 571,
    "error": null
   },
   {
@@ -5631,13 +5575,18 @@
    "senales": [
     "unresolved_shortener",
     "unresolved_shortener",
-    "off_brand_domain"
+    "off_domain_link"
    ],
    "herramientas_usadas": [
     {
      "name": "muse-spark-1.3",
-     "ms": 691,
-     "usd": 0.0009841000000000001
+     "ms": 1025,
+     "usd": 0.0029765
+    },
+    {
+     "name": "check_country",
+     "ms": 1,
+     "usd": 0.0
     },
     {
      "name": "analyze_url",
@@ -5645,21 +5594,16 @@
      "usd": 0.0
     },
     {
-     "name": "check_country",
-     "ms": 0,
-     "usd": 0.0
-    },
-    {
      "name": "muse-spark-1.3",
-     "ms": 723,
-     "usd": 0.0014658499999999999
+     "ms": 1206,
+     "usd": 0.0016060999999999998
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 2446.2,
-   "usd": 0.0036933499999999286,
-   "tokens": 4689,
+   "ms": 3668.2,
+   "usd": 0.005762249999999858,
+   "tokens": 4749,
    "error": null
   },
   {
@@ -5680,9 +5624,9 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 1296.2,
-   "usd": 0.0012311499999999587,
-   "tokens": 549,
+   "ms": 1456.0,
+   "usd": 0.002087000000000061,
+   "tokens": 688,
    "error": null
   },
   {
@@ -5703,9 +5647,9 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 1789.3,
-   "usd": 0.0016719000000000594,
-   "tokens": 664,
+   "ms": 1564.6,
+   "usd": 0.0018121500000000124,
+   "tokens": 697,
    "error": null
   },
   {
@@ -5727,9 +5671,9 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 994.3,
-   "usd": 0.0009921500000000805,
-   "tokens": 497,
+   "ms": 969.6,
+   "usd": 0.0012088999999999572,
+   "tokens": 548,
    "error": null
   },
   {
@@ -5749,9 +5693,9 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 1110.3,
-   "usd": 0.0014889000000000152,
-   "tokens": 604,
+   "ms": 1665.6,
+   "usd": 0.0014761500000000094,
+   "tokens": 601,
    "error": null
   },
   {
@@ -5763,25 +5707,25 @@
    "obtenido": "estafa",
    "paso": true,
    "hipotesis_confirmada": true,
-   "confianza": 0.92,
+   "confianza": 0.88,
    "senales": [
     "personal_payment",
-    "tax_authority_impersonation",
-    "urgency_embargo_threat",
-    "payment_to_unverified_account"
+    "authority_impersonation",
+    "urgency_threat",
+    "payment_demand"
    ],
    "herramientas_usadas": [
     {
      "name": "muse-spark-1.3",
-     "ms": 1746,
-     "usd": 0.0016249
+     "ms": 2068,
+     "usd": 0.0020839
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 3100.4,
-   "usd": 0.003442549999999933,
-   "tokens": 2663,
+   "ms": 3390.9,
+   "usd": 0.0032853000000001575,
+   "tokens": 2626,
    "error": null
   },
   {
@@ -5797,23 +5741,32 @@
    "senales": [
     "ip_or_port",
     "http_without_tls",
-    "payment_to_release",
-    "ip_url",
-    "http_no_tls",
-    "urgency"
+    "advance_fee_release",
+    "ip_or_port",
+    "http_without_tls"
    ],
    "herramientas_usadas": [
     {
      "name": "muse-spark-1.3",
-     "ms": 1252,
-     "usd": 0.0016814
+     "ms": 1735,
+     "usd": 0.00202785
+    },
+    {
+     "name": "analyze_url",
+     "ms": 10,
+     "usd": 0.0
+    },
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1254,
+     "usd": 0.0014094
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 2847.6,
-   "usd": 0.003530800000000056,
-   "tokens": 2736,
+   "ms": 4641.5,
+   "usd": 0.004857399999999901,
+   "tokens": 4714,
    "error": null
   },
   {
@@ -5825,25 +5778,25 @@
    "obtenido": "estafa",
    "paso": true,
    "hipotesis_confirmada": true,
-   "confianza": 0.96,
+   "confianza": 0.97,
    "senales": [
     "urgency",
     "verification_code_request",
-    "brand_impersonation",
-    "urgency_pressure"
+    "impersonation_support",
+    "account_block_urgency"
    ],
    "herramientas_usadas": [
     {
      "name": "muse-spark-1.3",
-     "ms": 695,
-     "usd": 0.0011214
+     "ms": 1205,
+     "usd": 0.00102365
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 2022.3,
-   "usd": 0.0027645499999999767,
-   "tokens": 2519,
+   "ms": 2097.5,
+   "usd": 0.002071800000000068,
+   "tokens": 2356,
    "error": null
   },
   {
@@ -5859,21 +5812,21 @@
    "senales": [
     "urgency",
     "verification_code_request",
-    "impersonation_support",
-    "urgency_lock_threat"
+    "brand_impersonation",
+    "urgency_account_lock"
    ],
    "herramientas_usadas": [
     {
      "name": "muse-spark-1.3",
-     "ms": 983,
-     "usd": 0.0012509
+     "ms": 1206,
+     "usd": 0.00125515
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 2246.7,
-   "usd": 0.0022938000000000125,
-   "tokens": 2392,
+   "ms": 2251.6,
+   "usd": 0.0024807999999999497,
+   "tokens": 2436,
    "error": null
   },
   {
@@ -5890,8 +5843,8 @@
    "herramientas_usadas": [
     {
      "name": "muse-spark-1.3",
-     "ms": 1107,
-     "usd": 0.0009521
+     "ms": 1111,
+     "usd": 0.0016603499999999999
     },
     {
      "name": "analyze_url",
@@ -5900,25 +5853,15 @@
     },
     {
      "name": "muse-spark-1.3",
-     "ms": 970,
-     "usd": 0.00157635
-    },
-    {
-     "name": "check_country",
-     "ms": 7,
-     "usd": 0.0
-    },
-    {
-     "name": "muse-spark-1.3",
-     "ms": 1298,
-     "usd": 0.00209085
+     "ms": 1751,
+     "usd": 0.0016500999999999998
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 5076.7,
-   "usd": 0.005933799999999989,
-   "tokens": 6486,
+   "ms": 4833.1,
+   "usd": 0.00536285000000003,
+   "tokens": 4751,
    "error": null
   },
   {
@@ -5930,17 +5873,16 @@
    "obtenido": "legitimo",
    "paso": true,
    "hipotesis_confirmada": true,
-   "confianza": 0.95,
+   "confianza": 0.9,
    "senales": [
     "official_domain",
-    "official_domain",
-    "no_credential_request"
+    "official_domain"
    ],
    "herramientas_usadas": [
     {
      "name": "muse-spark-1.3",
-     "ms": 907,
-     "usd": 0.0008209
+     "ms": 840,
+     "usd": 0.0025535
     },
     {
      "name": "check_country",
@@ -5949,15 +5891,15 @@
     },
     {
      "name": "muse-spark-1.3",
-     "ms": 901,
-     "usd": 0.00118865
+     "ms": 725,
+     "usd": 0.0010909000000000001
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 3033.9,
-   "usd": 0.003848700000000038,
-   "tokens": 4444,
+   "ms": 3474.0,
+   "usd": 0.005670550000000052,
+   "tokens": 4479,
    "error": null
   },
   {
@@ -5976,8 +5918,8 @@
    "herramientas_usadas": [
     {
      "name": "muse-spark-1.3",
-     "ms": 949,
-     "usd": 0.0011554
+     "ms": 1451,
+     "usd": 0.00171435
     },
     {
      "name": "check_country",
@@ -5986,25 +5928,35 @@
     },
     {
      "name": "muse-spark-1.3",
-     "ms": 970,
-     "usd": 0.00110735
+     "ms": 483,
+     "usd": 0.0007406
     },
     {
-     "name": "analyze_url",
-     "ms": 7,
+     "name": "check_country",
+     "ms": 1,
      "usd": 0.0
     },
     {
      "name": "muse-spark-1.3",
-     "ms": 1209,
-     "usd": 0.0019139
+     "ms": 920,
+     "usd": 0.0013609000000000002
+    },
+    {
+     "name": "analyze_url",
+     "ms": 13,
+     "usd": 0.0
+    },
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1355,
+     "usd": 0.001294
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 4543.0,
-   "usd": 0.005678799999999984,
-   "tokens": 6740,
+   "ms": 6292.0,
+   "usd": 0.006913749999999941,
+   "tokens": 8769,
    "error": null
   },
   {
@@ -6020,14 +5972,14 @@
    "senales": [
     "brand_off_domain",
     "brand_off_domain",
-    "urgency_payment",
-    "unofficial_payment_link"
+    "unofficial_payment_link",
+    "urgency_suspension_threat"
    ],
    "herramientas_usadas": [
     {
      "name": "muse-spark-1.3",
-     "ms": 735,
-     "usd": 0.0008191499999999999
+     "ms": 543,
+     "usd": 0.0007573500000000001
     },
     {
      "name": "check_country",
@@ -6036,35 +5988,25 @@
     },
     {
      "name": "muse-spark-1.3",
-     "ms": 656,
-     "usd": 0.00102065
-    },
-    {
-     "name": "check_country",
-     "ms": 1,
-     "usd": 0.0
-    },
-    {
-     "name": "muse-spark-1.3",
-     "ms": 862,
-     "usd": 0.00090405
+     "ms": 627,
+     "usd": 0.00169685
     },
     {
      "name": "analyze_url",
-     "ms": 10,
+     "ms": 11,
      "usd": 0.0
     },
     {
      "name": "muse-spark-1.3",
-     "ms": 1064,
-     "usd": 0.0015596
+     "ms": 1050,
+     "usd": 0.0012308
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 5323.9,
-   "usd": 0.0057448499999999125,
-   "tokens": 8611,
+   "ms": 3954.5,
+   "usd": 0.005806399999999989,
+   "tokens": 6840,
    "error": null
   },
   {
@@ -6080,18 +6022,14 @@
    "senales": [
     "brand_off_domain",
     "brand_off_domain",
-    "courier_fee_urgency"
+    "urgency_fee_payment",
+    "courier_fee_scam"
    ],
    "herramientas_usadas": [
     {
      "name": "muse-spark-1.3",
-     "ms": 978,
-     "usd": 0.00113165
-    },
-    {
-     "name": "analyze_url",
-     "ms": 6,
-     "usd": 0.0
+     "ms": 1153,
+     "usd": 0.0027665
     },
     {
      "name": "check_country",
@@ -6099,16 +6037,21 @@
      "usd": 0.0
     },
     {
+     "name": "analyze_url",
+     "ms": 5,
+     "usd": 0.0
+    },
+    {
      "name": "muse-spark-1.3",
-     "ms": 648,
-     "usd": 0.00112315
+     "ms": 776,
+     "usd": 0.00117415
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 3005.4,
-   "usd": 0.0037557000000001395,
-   "tokens": 4540,
+   "ms": 3687.0,
+   "usd": 0.005263050000000047,
+   "tokens": 4501,
    "error": null
   },
   {
@@ -6124,14 +6067,14 @@
    "senales": [
     "brand_off_domain",
     "brand_off_domain",
-    "account_locked_urgency",
-    "credential_phishing_link"
+    "credential_harvest",
+    "account_lock_urgency"
    ],
    "herramientas_usadas": [
     {
      "name": "muse-spark-1.3",
-     "ms": 775,
-     "usd": 0.00096565
+     "ms": 772,
+     "usd": 0.00181785
     },
     {
      "name": "check_country",
@@ -6139,26 +6082,21 @@
      "usd": 0.0
     },
     {
-     "name": "muse-spark-1.3",
-     "ms": 588,
-     "usd": 0.0008921000000000001
-    },
-    {
      "name": "analyze_url",
-     "ms": 2,
+     "ms": 5,
      "usd": 0.0
     },
     {
      "name": "muse-spark-1.3",
-     "ms": 610,
-     "usd": 0.0011186500000000001
+     "ms": 795,
+     "usd": 0.00122915
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 3049.8,
-   "usd": 0.004088549999999858,
-   "tokens": 6315,
+   "ms": 2804.6,
+   "usd": 0.0043264999999999,
+   "tokens": 4466,
    "error": null
   },
   {
@@ -6178,9 +6116,9 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 856.4,
-   "usd": 0.0009803999999999924,
-   "tokens": 502,
+   "ms": 1138.7,
+   "usd": 0.0014691500000000302,
+   "tokens": 617,
    "error": null
   },
   {
@@ -6192,19 +6130,19 @@
    "obtenido": "estafa",
    "paso": true,
    "hipotesis_confirmada": true,
-   "confianza": 0.9,
+   "confianza": 0.92,
    "senales": [
     "credentials_request",
     "personal_payment",
     "credentials_request",
-    "account_block_urgency",
-    "brand_impersonation"
+    "brand_impersonation",
+    "urgency_block_threat"
    ],
    "herramientas_usadas": [
     {
      "name": "muse-spark-1.3",
-     "ms": 1425,
-     "usd": 0.0012643499999999998
+     "ms": 1235,
+     "usd": 0.0014349
     },
     {
      "name": "check_country",
@@ -6213,15 +6151,15 @@
     },
     {
      "name": "muse-spark-1.3",
-     "ms": 1203,
-     "usd": 0.0015994000000000002
+     "ms": 1563,
+     "usd": 0.0018608499999999998
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 5109.4,
-   "usd": 0.00413640000000004,
-   "tokens": 4542,
+   "ms": 3755.8,
+   "usd": 0.004151899999999986,
+   "tokens": 4380,
    "error": null
   },
   {
@@ -6241,9 +6179,9 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 1111.4,
-   "usd": 0.0012994000000000616,
-   "tokens": 570,
+   "ms": 1634.6,
+   "usd": 0.0013971500000000692,
+   "tokens": 593,
    "error": null
   },
   {
@@ -6263,9 +6201,9 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 1130.1,
-   "usd": 0.0010828999999998867,
-   "tokens": 524,
+   "ms": 1218.8,
+   "usd": 0.0011593999999999216,
+   "tokens": 542,
    "error": null
   },
   {
@@ -6285,9 +6223,9 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 1024.4,
-   "usd": 0.000978150000000122,
-   "tokens": 493,
+   "ms": 1210.5,
+   "usd": 0.001177900000000065,
+   "tokens": 540,
    "error": null
   },
   {
@@ -6304,19 +6242,44 @@
    "herramientas_usadas": [
     {
      "name": "muse-spark-1.3",
-     "ms": 1158,
-     "usd": 0.0014656500000000002
+     "ms": 1384,
+     "usd": 0.003024
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 2419.1,
-   "usd": 0.0028585499999999042,
-   "tokens": 2491,
+   "ms": 2366.7,
+   "usd": 0.003987650000000009,
+   "tokens": 2363,
    "error": null
   },
   {
    "id": "c-0236",
+   "esperado": "legitimo",
+   "tipo": "texto",
+   "categoria": "legitimo_proveedor",
+   "pais": "CO",
+   "obtenido": "legitimo",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [],
+   "herramientas_usadas": [
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1023,
+     "usd": 0.0008979
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 2683.3,
+   "usd": 0.0027319000000000093,
+   "tokens": 2396,
+   "error": null
+  },
+  {
+   "id": "c-0237",
    "esperado": "legitimo",
    "tipo": "texto",
    "categoria": "legitimo_proveedor",
@@ -6329,40 +6292,15 @@
    "herramientas_usadas": [
     {
      "name": "muse-spark-1.3",
-     "ms": 1101,
-     "usd": 0.0014419
+     "ms": 1502,
+     "usd": 0.0015294
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 2065.8,
-   "usd": 0.0023308000000000773,
-   "tokens": 2364,
-   "error": null
-  },
-  {
-   "id": "c-0237",
-   "esperado": "legitimo",
-   "tipo": "texto",
-   "categoria": "legitimo_proveedor",
-   "pais": "CO",
-   "obtenido": "legitimo",
-   "paso": true,
-   "hipotesis_confirmada": true,
-   "confianza": 0.75,
-   "senales": [],
-   "herramientas_usadas": [
-    {
-     "name": "muse-spark-1.3",
-     "ms": 1778,
-     "usd": 0.00152515
-    }
-   ],
-   "degradado": false,
-   "manipulacion": false,
-   "ms": 2579.9,
-   "usd": 0.0022932999999999426,
-   "tokens": 2358,
+   "ms": 2886.6,
+   "usd": 0.0029903000000000013,
+   "tokens": 2522,
    "error": null
   },
   {
@@ -6376,21 +6314,20 @@
    "hipotesis_confirmada": true,
    "confianza": 0.85,
    "senales": [
-    "personal_payment",
-    "ordinary_payment_confirmation"
+    "personal_payment"
    ],
    "herramientas_usadas": [
     {
      "name": "muse-spark-1.3",
-     "ms": 1463,
-     "usd": 0.0015469000000000001
+     "ms": 1792,
+     "usd": 0.0016914
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 3552.6,
-   "usd": 0.00403454999999997,
-   "tokens": 2791,
+   "ms": 3291.5,
+   "usd": 0.0034607999999999306,
+   "tokens": 2656,
    "error": null
   },
   {
@@ -6402,20 +6339,20 @@
    "obtenido": "legitimo",
    "paso": true,
    "hipotesis_confirmada": true,
-   "confianza": 0.9,
+   "confianza": 0.85,
    "senales": [],
    "herramientas_usadas": [
     {
      "name": "muse-spark-1.3",
-     "ms": 1186,
-     "usd": 0.00155065
+     "ms": 1641,
+     "usd": 0.0015354000000000001
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 3177.4,
-   "usd": 0.0039002999999999677,
-   "tokens": 2782,
+   "ms": 4395.8,
+   "usd": 0.004131550000000095,
+   "tokens": 2787,
    "error": null
   },
   {
@@ -6427,20 +6364,20 @@
    "obtenido": "legitimo",
    "paso": true,
    "hipotesis_confirmada": true,
-   "confianza": 0.9,
+   "confianza": 0.92,
    "senales": [],
    "herramientas_usadas": [
     {
      "name": "muse-spark-1.3",
-     "ms": 913,
-     "usd": 0.0011696500000000002
+     "ms": 971,
+     "usd": 0.0010379
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 2399.3,
-   "usd": 0.002708550000000143,
-   "tokens": 2443,
+   "ms": 2191.9,
+   "usd": 0.0026575499999998975,
+   "tokens": 2431,
    "error": null
   },
   {
@@ -6460,9 +6397,9 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 1017.2,
-   "usd": 0.0009766499999999123,
-   "tokens": 499,
+   "ms": 1332.3,
+   "usd": 0.0018394000000000466,
+   "tokens": 702,
    "error": null
   },
   {
@@ -6483,9 +6420,9 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 788.7,
-   "usd": 0.0011064000000000629,
-   "tokens": 526,
+   "ms": 863.6,
+   "usd": 0.0012763999999999553,
+   "tokens": 566,
    "error": null
   },
   {
@@ -6502,15 +6439,15 @@
    "herramientas_usadas": [
     {
      "name": "muse-spark-1.3",
-     "ms": 841,
-     "usd": 0.0008093999999999999
+     "ms": 1277,
+     "usd": 0.0010686500000000002
     }
    ],
    "degradado": false,
    "manipulacion": false,
-   "ms": 2008.7,
-   "usd": 0.0026128000000000817,
-   "tokens": 2436,
+   "ms": 2267.6,
+   "usd": 0.0024938000000001015,
+   "tokens": 2408,
    "error": null
   },
   {
@@ -6532,9 +6469,9 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 1014.9,
-   "usd": 0.001137900000000025,
-   "tokens": 532,
+   "ms": 1030.0,
+   "usd": 0.0013971499999999581,
+   "tokens": 593,
    "error": null
   },
   {
@@ -6554,9 +6491,360 @@
    "herramientas_usadas": [],
    "degradado": true,
    "manipulacion": false,
-   "ms": 1251.7,
-   "usd": 0.0015033999999999326,
-   "tokens": 618,
+   "ms": 1384.0,
+   "usd": 0.0014439000000000535,
+   "tokens": 604,
+   "error": null
+  },
+  {
+   "id": "c-0246",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "bec_proveedor",
+   "pais": "CO",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.85,
+   "senales": [
+    "urgency",
+    "new_account_request",
+    "beneficiary_mismatch",
+    "urgency_pressure"
+   ],
+   "herramientas_usadas": [
+    {
+     "name": "muse-spark-1.3",
+     "ms": 502,
+     "usd": 0.0008254
+    },
+    {
+     "name": "check_address_book",
+     "ms": 0,
+     "usd": 0.0
+    },
+    {
+     "name": "muse-spark-1.3",
+     "ms": 608,
+     "usd": 0.00101715
+    },
+    {
+     "name": "check_address_book",
+     "ms": 0,
+     "usd": 0.0
+    },
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1236,
+     "usd": 0.0015391500000000002
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 3582.0,
+   "usd": 0.00516059999999996,
+   "tokens": 6508,
+   "error": null
+  },
+  {
+   "id": "c-0247",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "banco",
+   "pais": "CO",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.9,
+   "senales": [
+    "urgency",
+    "credentials_request",
+    "credentials_request",
+    "urgency_threat",
+    "bank_impersonation"
+   ],
+   "herramientas_usadas": [
+    {
+     "name": "muse-spark-1.3",
+     "ms": 773,
+     "usd": 0.0011054
+    },
+    {
+     "name": "check_country",
+     "ms": 1,
+     "usd": 0.0
+    },
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1594,
+     "usd": 0.0033575
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 3482.8,
+   "usd": 0.005670049999999982,
+   "tokens": 4493,
+   "error": null
+  },
+  {
+   "id": "c-0248",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "bec_proveedor",
+   "pais": "US",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.85,
+   "senales": [
+    "new_account_request",
+    "urgency_pressure"
+   ],
+   "herramientas_usadas": [
+    {
+     "name": "muse-spark-1.3",
+     "ms": 544,
+     "usd": 0.00140585
+    },
+    {
+     "name": "check_address_book",
+     "ms": 0,
+     "usd": 0.0
+    },
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1558,
+     "usd": 0.0022835999999999998
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 3273.0,
+   "usd": 0.005034849999999924,
+   "tokens": 4475,
+   "error": null
+  },
+  {
+   "id": "c-0249",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "banco",
+   "pais": "US",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.97,
+   "senales": [
+    "credentials_request",
+    "credentials_request",
+    "account_lock_threat"
+   ],
+   "herramientas_usadas": [
+    {
+     "name": "muse-spark-1.3",
+     "ms": 901,
+     "usd": 0.00132865
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 2008.2,
+   "usd": 0.002524050000000111,
+   "tokens": 2425,
+   "error": null
+  },
+  {
+   "id": "c-0250",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "banco",
+   "pais": "US",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.95,
+   "senales": [
+    "credentials_request",
+    "credentials_request",
+    "account_locked_urgency"
+   ],
+   "herramientas_usadas": [
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1344,
+     "usd": 0.00156915
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 2481.2,
+   "usd": 0.002924299999999991,
+   "tokens": 2522,
+   "error": null
+  },
+  {
+   "id": "c-0251",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "banco",
+   "pais": "US",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.95,
+   "senales": [
+    "credentials_request",
+    "credentials_request",
+    "account_locked_urgency"
+   ],
+   "herramientas_usadas": [
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1143,
+     "usd": 0.0030535
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 2080.8,
+   "usd": 0.004358900000000054,
+   "tokens": 2468,
+   "error": null
+  },
+  {
+   "id": "c-0252",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "bec_proveedor",
+   "pais": "US",
+   "obtenido": "dudoso",
+   "paso": false,
+   "hipotesis_confirmada": false,
+   "confianza": 0.6,
+   "senales": [
+    "new_account_request",
+    "unknown_supplier"
+   ],
+   "herramientas_usadas": [
+    {
+     "name": "muse-spark-1.3",
+     "ms": 589,
+     "usd": 0.0014575999999999999
+    },
+    {
+     "name": "check_address_book",
+     "ms": 0,
+     "usd": 0.0
+    },
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1314,
+     "usd": 0.0021525999999999997
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 3076.0,
+   "usd": 0.005722950000000004,
+   "tokens": 4547,
+   "error": null
+  },
+  {
+   "id": "c-0253",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "banco",
+   "pais": "US",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.95,
+   "senales": [
+    "credentials_request",
+    "credentials_request"
+   ],
+   "herramientas_usadas": [
+    {
+     "name": "muse-spark-1.3",
+     "ms": 886,
+     "usd": 0.0010119
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 1923.2,
+   "usd": 0.002311299999999905,
+   "tokens": 2382,
+   "error": null
+  },
+  {
+   "id": "c-0254",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "bec_proveedor",
+   "pais": "US",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.75,
+   "senales": [
+    "new_account_request",
+    "urgency_threat",
+    "unknown_supplier"
+   ],
+   "herramientas_usadas": [
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1117,
+     "usd": 0.0014558499999999999
+    },
+    {
+     "name": "check_address_book",
+     "ms": 0,
+     "usd": 0.0
+    },
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1811,
+     "usd": 0.00251635
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 5082.0,
+   "usd": 0.006115599999999999,
+   "tokens": 4706,
+   "error": null
+  },
+  {
+   "id": "c-0255",
+   "esperado": "estafa",
+   "tipo": "texto",
+   "categoria": "banco",
+   "pais": "US",
+   "obtenido": "estafa",
+   "paso": true,
+   "hipotesis_confirmada": true,
+   "confianza": 0.95,
+   "senales": [
+    "credentials_request",
+    "credentials_request",
+    "account_locked_urgency",
+    "bank_impersonation"
+   ],
+   "herramientas_usadas": [
+    {
+     "name": "muse-spark-1.3",
+     "ms": 1121,
+     "usd": 0.0012461500000000001
+    }
+   ],
+   "degradado": false,
+   "manipulacion": false,
+   "ms": 1744.6,
+   "usd": 0.002167800000000053,
+   "tokens": 2344,
    "error": null
   }
  ]
