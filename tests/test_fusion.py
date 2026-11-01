@@ -589,6 +589,41 @@ def test_a_bank_or_wallet_that_is_imitated_stays_impersonated(case_id: str, bran
     assert verdict.user_explanation.startswith(t("es", "verdict.scam.brand", brand=brand))
 
 
+@pytest.mark.parametrize(
+    ("case_id", "country", "brand"), [("c-0247", "CO", "Bancolombia"), ("c-0249", "US", "Chase")]
+)
+def test_inc_su_cuenta_the_recipients_own_account_keeps_the_bank_impersonated(
+    case_id: str, country: str, brand: str
+) -> None:
+    """Juez of D-118: "su cuenta de ahorros <n>" is the victim's account, not the payee."""
+    pack = country_pack(country)
+    assert pack is not None
+    case = _eval_case(case_id)
+
+    verdict = build_verdict(
+        case, Evidence(signals=detect(case, pack), analyst=_analyst("scam", 0.92)), pack
+    )
+
+    assert verdict.impersonated_brand == brand
+    assert verdict.user_explanation.startswith(
+        t(pack.language, "verdict.scam.brand", brand=brand)
+    )
+
+
+def test_inc_pay_to_chase_a_us_bank_the_money_goes_to_is_the_rail() -> None:
+    """Juez of D-118: the US pack had no rail case; "pay ... to Chase account" is the payee."""
+    pack = country_pack("US")
+    assert pack is not None
+    case = _eval_case("c-0248")
+
+    verdict = build_verdict(
+        case, Evidence(signals=detect(case, pack), analyst=_analyst("scam", 0.92)), pack
+    )
+
+    assert verdict.impersonated_brand is None
+    assert verdict.user_explanation.startswith(t("en", "verdict.scam.rail", rail="Chase"))
+
+
 def _landed(via: str) -> Signal:
     """An official_domain signal the detector emits after unrolling ``via``."""
     return Signal(
