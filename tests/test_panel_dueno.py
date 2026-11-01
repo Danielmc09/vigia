@@ -244,6 +244,22 @@ async def test_link_previews_cannot_spend_the_link(committed: str, keyring: Keyr
     assert client.post(f"/entrar/{committed}", follow_redirects=False).status_code == 403
 
 
+async def test_a_get_with_the_wrong_length_is_the_same_refusal(
+    committed: str, keyring: Keyring
+) -> None:
+    client = _client(keyring)
+
+    huge = client.get("/entrar/" + "A" * 500, follow_redirects=False)
+    short = client.get("/entrar/" + "A" * 1, follow_redirects=False)
+    spent = client.post(f"/entrar/{committed}", follow_redirects=False)
+    reused = client.get(f"/entrar/{committed}", follow_redirects=False)
+
+    assert huge.status_code == short.status_code == 403
+    assert huge.text == short.text
+    assert reused.status_code == 200  # a spent link still shows the door, not a refusal
+    assert spent.status_code == 303
+
+
 async def test_a_spent_or_unknown_link_gets_the_same_refusal(
     committed: str, keyring: Keyring
 ) -> None:

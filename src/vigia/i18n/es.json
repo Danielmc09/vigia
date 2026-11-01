@@ -185,6 +185,8 @@
   "panel.link": "Tu panel: {url}\nEl enlace sirve una sola vez y vence en 15 minutos. No lo reenvíes.",
   "panel.ask_owner": "El panel es solo del dueño. Pídele el acceso a {owner}.",
   "panel.ask_owner.unnamed": "El panel es solo del dueño. Pídele el acceso al dueño del negocio.",
+  "panel.enter": "Entrar",
+  "panel.enter.intro": "Toca el botón para abrir el panel de tu negocio.",
   "panel.link_invalid": "Este enlace ya no sirve. Escribe *panel* en WhatsApp para recibir uno nuevo.",
   "owner.title": "VIGÍA · {business}",
   "owner.cases": "Casos del negocio",

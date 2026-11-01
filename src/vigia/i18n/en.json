@@ -185,6 +185,8 @@
   "panel.link": "Your panel: {url}\nThe link works once and expires in 15 minutes. Do not forward it.",
   "panel.ask_owner": "The panel is for the owner only. Ask {owner} for access.",
   "panel.ask_owner.unnamed": "The panel is for the owner only. Ask the business owner for access.",
+  "panel.enter": "Enter",
+  "panel.enter.intro": "Tap the button to open your business's panel.",
   "panel.link_invalid": "This link no longer works. Send *panel* on WhatsApp to get a new one.",
   "owner.title": "VIGÍA · {business}",
   "owner.cases": "Business cases",
