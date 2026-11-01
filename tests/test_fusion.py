@@ -594,6 +594,7 @@ def test_a_bank_or_wallet_that_is_imitated_stays_impersonated(case_id: str, bran
         ("c-0249", "US", "Chase"),
         ("c-0250", "US", "Chase"),
         ("c-0251", "US", "Wells Fargo"),
+        ("c-0253", "US", "Bank of America"),
     ],
 )
 def test_inc_su_cuenta_the_recipients_own_account_keeps_the_bank_impersonated(
