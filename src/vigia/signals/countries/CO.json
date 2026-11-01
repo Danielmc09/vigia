@@ -627,6 +627,9 @@
    "Nequi",
    "Daviplata"
   ],
+  "cuenta_propia": [
+   "(su|tu|sus|tus) cuentas?"
+  ],
   "negacion": [
    "no entren?",
    "no abran?",

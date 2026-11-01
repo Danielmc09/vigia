@@ -16,6 +16,7 @@ from vigia.domain.urls import split_url
 from vigia.domain.verdict import Action, Label, Verdict
 from vigia.i18n import has_key, t
 from vigia.signals.address_book import ACCOUNT_CONTEXT_CHARS, account_numbers
+from vigia.signals.patterns import find_pattern
 from vigia.signals.urls import registrable_domain
 from vigia.verdict.fusion import LEGIT, SCAM, fuse, soften_citations
 
@@ -108,18 +109,30 @@ def _paid_to(text: str, pack: CountryPack) -> set[str]:
     """Names of account-holding brands written beside an account number (D-118).
 
     The money goes there, so they are the rail even as the only brand of the message.
+    A possessive before the number ("su cuenta", "your account") makes it the recipient's
+    own account instead: the bank beside it is the sender's claimed identity (D-120).
     """
     return {
         brand.name
         for match in account_numbers(text, pack)
-        for brand in _brands_in_body(
-            text[
-                max(0, match.start() - ACCOUNT_CONTEXT_CHARS) : match.end() + ACCOUNT_CONTEXT_CHARS
-            ],
-            pack,
+        if not _recipients_own(
+            text[(start := max(0, match.start() - ACCOUNT_CONTEXT_CHARS)) : match.start()], pack
         )
+        for brand in _brands_in_body(text[start : match.end() + ACCOUNT_CONTEXT_CHARS], pack)
         if brand.kind in ACCOUNT_KINDS
     }
+
+
+def _recipients_own(before: str, pack: CountryPack) -> bool:
+    """Whether the words since the previous digit name the reader's own account (D-120).
+
+    Brand names are dropped first, so "your Bank of America checking account" reads as
+    "your checking account" while "your payment via Chase account" stays a payment.
+    """
+    words = re.split(r"\d", before)[-1]
+    for brand in pack.brands:
+        words = re.sub(rf"\b{re.escape(brand.name)}\b", " ", words, flags=re.IGNORECASE)
+    return find_pattern(" ".join(words.split()), pack, "cuenta_propia") is not None
 
 
 def _impersonated(candidates: Sequence[Brand]) -> Brand | None:

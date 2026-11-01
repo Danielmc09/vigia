@@ -248,6 +248,9 @@
    "checking",
    "savings"
   ],
+  "cuenta_propia": [
+   "your( (checking|savings|business|personal|bank))* accounts?"
+  ],
   "negacion": [
    "do not (click|open|enter|pay)",
    "don't (click|open|enter|pay)",
