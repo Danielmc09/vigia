@@ -9,7 +9,6 @@ from pydantic import SecretStr
 
 from vigia.domain.case import Case
 from vigia.domain.gate import Judge, JudgeAnswer
-from vigia.model.jev import JevJudge
 from vigia.model.spark_judge import SparkJudge
 
 REPO = Path(__file__).parents[1]
@@ -26,6 +25,8 @@ class _FrozenDate(date):
 def _frozen_today(monkeypatch: pytest.MonkeyPatch) -> None:
     """Result files are named by date; a run crossing midnight must not split them."""
     monkeypatch.setattr(measure, "date", _FrozenDate)
+
+
 BASE = {
     "tipo": "texto",
     "pais": "CO",
@@ -542,18 +543,16 @@ def test_with_analyst_bills_the_gate_judge(monkeypatch: pytest.MonkeyPatch) -> N
     assert outcome.usd == pytest.approx(0.003) and outcome.tokens == 7
 
 
-def test_full_run_never_judges_with_jev_even_if_the_env_asks(
+def test_full_run_judges_with_spark_even_from_a_dev_env(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """``make evals`` with ``JEV_BACKEND=real`` in ``.env`` still runs in eval mode (D-085)."""
+    """``make evals`` from a ``dev`` ``.env`` still runs in eval mode, judged by Spark (D-085)."""
     seen: list[Judge] = []
     monkeypatch.setattr(measure.settings, "mode", "dev")
-    monkeypatch.setattr(measure.settings, "jev_backend", "real")
-    monkeypatch.setattr(measure.settings, "jev_api_key", SecretStr("k"))
     monkeypatch.setattr(measure.settings, "model_api_key", SecretStr("k"))
     monkeypatch.setattr(measure, "with_analyst", lambda spark, judge: seen.append(judge))
     measure.full()
-    assert seen and isinstance(seen[0], SparkJudge) and not isinstance(seen[0], JevJudge)
+    assert seen and isinstance(seen[0], SparkJudge)
 
 
 def test_evals_unroll_short_links_from_the_fixture_never_the_network() -> None:

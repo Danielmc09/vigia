@@ -3,7 +3,7 @@
 Building period: Oct 27 – Nov 4, 2026. First commit of this repository: Oct 27, 2026. All design documents (`specs/`) were written Oct 26 as planning; **no code existed before Oct 27**.
 
 ## Built during the hackathon (original work)
-- Everything under `src/vigia/`: channels (WhatsApp adapter, email adapter, local), ingestion, deterministic signals (URLs, QR, patterns, email headers, supplier book, country packs), Jev gate, analyst tool loop and prompts, fusion, policy, storage with RLS, panel, API, observability, sentinel.
+- Everything under `src/vigia/`: channels (WhatsApp adapter, email adapter, local), ingestion, deterministic signals (URLs, QR, patterns, email headers, supplier book, country packs), manipulation gate, analyst tool loop and prompts, fusion, policy, storage with RLS, panel, API, observability, sentinel.
 - `tools/` and `herramientas/` (repo scripts: case validator, repo map, architecture-doc check).
 - `medir.py`, `evals/` (cases, adversarial suite, blind suite), `bench/`.
 - `vigia_mcp/`, Hermes profile (`analista/`), country packs `CO.json`, `US.json`, i18n files.
@@ -19,7 +19,7 @@ Country packs contain only public data (brand names, official domains and servic
 ## Third-party services used as-is (not built by us)
 - Meta Model API (Muse Spark, SAM 3.1, Muse Voice Transcribe), Muse Glimmer open weights. Standard tier.
 - Wazenda: WhatsApp Business transport (webhook in / message out). Only the adapter is ours.
-- TypeSafe Jev: typed judgments. **Development tool only** (T-08b, D-085): every model called at runtime is a Meta model; Jev is not one, so it never runs in `eval`/`prod`, and in `dev` only when `VIGIA_MODO=dev` is declared explicitly (`model/jev.py`, enforced by `Settings`; the Docker image sets `VIGIA_MODO=prod`). Only the gate logic is ours.
+- An external non-Meta judge: typed judgments. **Used during development only** (T-08b, D-085): every model called at runtime is a Meta model; that judge is not one, so its adapter was removed from the codebase and it never runs in `eval`/`prod`. Only the gate logic (`guard/gate.py`) is ours.
 - Hermes Agent (Nous Research): agent runtime for the optional local-model profile.
 - Railway, Postgres, Redis, Resend (inbound email), Sentry.
 

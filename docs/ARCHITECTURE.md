@@ -20,7 +20,7 @@ graph TD
     vigia.signals
     vigia.verdict
     vigia.policy
-    vigia.jev
+    vigia.guard
   end
   subgraph adapters
     vigia.channel
@@ -51,7 +51,7 @@ graph TD
   vigia.signals -.-> vigia.domain
   vigia.verdict -.-> vigia.domain
   vigia.policy -.-> vigia.domain
-  vigia.jev -.-> vigia.domain
+  vigia.guard -.-> vigia.domain
   vigia.channel -.-> vigia.domain
   vigia.analyst -.-> vigia.domain
   vigia.model -.-> vigia.domain
@@ -71,11 +71,11 @@ graph TD
 sequenceDiagram
   participant C as vigia.channel
   participant A as vigia.app
-  participant R as rules (signals, jev, verdict, policy)
+  participant R as rules (signals, guard, verdict, policy)
   participant N as vigia.analyst
   participant S as vigia.store
   C->>A: incoming message
-  A->>R: gate, Jev, deterministic signals
+  A->>R: gate, manipulation guard, deterministic signals
   A->>N: analyze (only if not obvious)
   N-->>A: Verdict JSON
   A->>R: fusion, policy
@@ -86,7 +86,7 @@ sequenceDiagram
 ## Import contracts (`.importlinter`, checked by `make arch`)
 
 - `domain-is-pure`: `vigia.domain` imports nothing else from `vigia`.
-- `rules-see-only-domain`: `signals`, `verdict`, `policy`, `jev` never import adapters,
+- `rules-see-only-domain`: `signals`, `verdict`, `policy`, `guard` never import adapters,
   services or the app.
 - `adapters-are-independent`: `channel`, `analyst`, `model`, `store`, `net` do not import each other.
   `net` follows short links hop by hop and refuses non-public addresses (D-099).

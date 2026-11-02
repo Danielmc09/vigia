@@ -40,7 +40,7 @@ class Verdict(BaseModel, frozen=True):
         requires_confirmation: True once the policy turned ``action`` into an escalation.
         escalation_id: Id of the pending escalation, if any.
         degraded: True when there was no analyst (code-only verdict).
-        manipulation_detected: True when the gate (Jev) flagged the message; forces at
+        manipulation_detected: True when the manipulation gate flagged the message; forces at
             least ``doubtful``, never ``legit``.
         tools_used: Analyst tool calls (``name``, ``ms``, ``usd``).
         model: Model identification used by the analyst, if any.

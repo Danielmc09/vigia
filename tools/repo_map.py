@@ -10,7 +10,7 @@ LAYERS = {
     "signals": "rules",
     "verdict": "rules",
     "policy": "rules",
-    "jev": "rules",
+    "guard": "rules",
     "channel": "adapters",
     "analyst": "adapters",
     "model": "adapters",

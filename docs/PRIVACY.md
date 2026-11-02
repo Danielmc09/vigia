@@ -112,13 +112,11 @@ does about it today, so a gap is visible instead of implied.
 - **Meta Model API**, tier **Standard**: per Meta's own terms, Standard-tier
   calls are not used to train Meta's models. This is the only tier VIGÍA is
   built to use.
-- **Jev (TypeSafe)**: a development-only auxiliary judge. `Settings` refuses
-  `JEV_BACKEND=real` unless `VIGIA_MODO=dev` is explicitly declared (D-085);
-  at runtime (`eval`/`prod`) the gate's model fallback is always Spark, never
-  Jev, and any Jev failure falls back to the deterministic mock
-  (`tests/test_jev.py::test_any_jev_failure_falls_back_to_mock`).
-  Jev never sees or stores message content beyond what a single classification
-  call needs.
+- **An external non-Meta judge** was used during development only. Its adapter
+  was removed from the codebase (D-085), so no message content can reach it:
+  at runtime (`eval`/`prod`) the gate's model fallback is always Spark, and any
+  Spark failure falls back to the deterministic mock
+  (`tests/test_runtime_hosts.py::test_spark_judge_falls_back_to_mock_on_any_failure`).
 - **Wazenda**: the WhatsApp Business API processor. Inbound webhooks are
   signature-checked (HMAC) before anything is accepted
   (`tests/test_wazenda.py`); Wazenda is a processor of message content on

@@ -20,7 +20,7 @@ from vigia.domain.rejection import Rejection
 from vigia.domain.signal import Signal
 from vigia.domain.urls import Unrolled
 from vigia.domain.verdict import Verdict, tools_usd
-from vigia.jev.gate import screen
+from vigia.guard.gate import screen
 from vigia.model.spark import SparkClient
 from vigia.services import analyst_tools
 from vigia.signals.detector import detect
@@ -95,7 +95,7 @@ def classify(case: Case, pack: CountryPack, gate: GateResult, analyst: Analyst |
     Args:
         case: The normalized case.
         pack: Country pack of the business, campaigns attached.
-        gate: What the gate (Jev and its rules floor) said about the chat.
+        gate: What the gate (its rules floor, then the judge) said about the chat.
         analyst: The analyst; ``None`` means no model (degraded verdict).
 
     A content-filter refusal, by a reader (``case.model_refused``) or by the analyst, leaves
@@ -133,7 +133,7 @@ def judge_case(case: Case, pack: CountryPack, judge: Judge, analyst: Analyst | N
     Args:
         case: The normalized case.
         pack: Country pack of the business, campaigns attached.
-        judge: Jev, or its mock.
+        judge: Spark, or the mock.
         analyst: The analyst; ``None`` means no model (degraded verdict).
 
     Returns:
@@ -142,7 +142,7 @@ def judge_case(case: Case, pack: CountryPack, judge: Judge, analyst: Analyst | N
     business = "eval" if case.origin == "eval" else str(case.business_id)
     with telemetry.scope(case_id=str(case.id), business_id=str(case.business_id)):
         start = time.perf_counter()
-        with telemetry.stage("jev"):
+        with telemetry.stage("guard"):
             gate = screen(case.text or "", [], pack, judge)
         verdict = classify(case, pack, gate, analyst)
         ms = (time.perf_counter() - start) * 1000

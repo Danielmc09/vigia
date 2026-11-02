@@ -26,11 +26,11 @@ from vigia.channel.wazenda import Wazenda
 from vigia.config import WEBHOOK_CONCURRENCY, Settings
 from vigia.domain.attachment import MAX_ATTACHMENT_BYTES, check_wav
 from vigia.domain.case import IncomingMessage
+from vigia.domain.gate import mock_judge
 from vigia.domain.knowledge import KnownCampaign
 from vigia.domain.reading import Transcriber, Transcript
 from vigia.domain.rejection import Rejection
 from vigia.i18n import t
-from vigia.model.jev import make_dev_judge
 from vigia.services import whatsapp
 from vigia.services.ingest import handle
 from vigia.signals.knowledge import confirmed_campaign
@@ -338,7 +338,7 @@ def channel(
         config=config or Settings(),
         readers=readers or {},
         analyst=lambda suppliers, media: None,
-        judge=make_dev_judge(Settings()),
+        judge=mock_judge,
     )
 
 

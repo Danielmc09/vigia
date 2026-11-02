@@ -38,7 +38,7 @@ def fuse(
         analyst: The analyst's own read of the case, if one ran (T-09); without it the
             label can never be ``legit`` (rule 4) nor more confident than a signal alone
             gives (rule 1).
-        manipulation_detected: True once Jev (T-08) flagged the message; forces at least
+        manipulation_detected: True once the gate (T-08) flagged the message; forces at least
             ``doubtful``, never ``legit`` (rule 5).
         has_unofficial_url: True when the case carries a link outside the official
             domains; gates the analyst-alone ``legit`` branch of rule 4.

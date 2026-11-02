@@ -55,7 +55,7 @@ async def test_a_webhook_case_logs_every_stage_with_one_trace_and_no_pii(
         await whatsapp.process(app_conn, channel(keyring, Outbox()), msg)
 
     stages = [e for e in logs if "stage" in e]
-    assert {e["stage"] for e in stages} >= {"gate", "jev", "rules", "fusion", "policy", "reply"}
+    assert {e["stage"] for e in stages} >= {"gate", "guard", "rules", "fusion", "policy", "reply"}
     assert len({e["trace_id"] for e in stages}) == 1
     for event in stages:
         assert {"ms", "usd", "trace_id"} <= event.keys()
@@ -237,7 +237,6 @@ def test_health_is_503_when_postgres_is_down() -> None:
     assert response.json()["checks"] == {
         "postgres": "fail",
         "meta": "skip",
-        "jev": "skip",
         "analyst": "none",
     }
 
@@ -253,18 +252,9 @@ def test_health_checks_meta_only_with_a_key_and_fails_on_its_errors() -> None:
 
     assert ok.status_code == 200 and ok.json() == {
         "status": "ok",
-        "checks": {"postgres": "ok", "meta": "ok", "jev": "skip", "analyst": "ok"},
+        "checks": {"postgres": "ok", "meta": "ok", "analyst": "ok"},
     }
     assert down.status_code == 503 and down.json()["checks"]["meta"] == "fail"
-
-
-def test_health_checks_jev_only_when_the_backend_is_real() -> None:
-    api = create_app(Settings(VIGIA_MODO="dev", JEV_BACKEND="real", JEV_API_KEY="key-not-real"))
-    api.state.health_http = _meta(502)
-
-    response = TestClient(api).get("/salud")
-
-    assert response.status_code == 503 and response.json()["checks"]["jev"] == "fail"
 
 
 def test_inc_salud_sin_analista_reports_whether_the_analyst_runs() -> None:

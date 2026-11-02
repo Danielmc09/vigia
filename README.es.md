@@ -71,12 +71,11 @@ voz). Todo lo demás detrás de un nombre de "modelo" es código determinista:
 las señales del paquete de país, el piso de manipulación (D-051), la fusión y
 la política.
 
-TypeSafe Jev es una herramienta **solo de desarrollo** (juez de pasos), nunca
-se llama en runtime: `Settings` rechaza `JEV_BACKEND=real` salvo que
-`VIGIA_MODO=dev` esté declarado explícitamente (el modo por defecto no cuenta;
-la imagen de Docker pone `VIGIA_MODO=prod`; T-08b, D-085). La compuerta
-(`jev/gate.py`) siempre corre primero el piso determinista; su respaldo de
-modelo es Spark en `eval`/`prod` y, solo en `dev`, opcionalmente Jev.
+Un juez externo que no es de Meta se usó solo durante el desarrollo (juez de
+pasos) y se sacó del código, así que nunca puede llamarse en runtime (T-08b,
+D-085). La compuerta (`guard/gate.py`) siempre corre primero el piso
+determinista; su respaldo de modelo es Spark en `eval`/`prod` y el mock
+determinista en `dev`.
 
 ## Qué hace cada modelo de Meta
 

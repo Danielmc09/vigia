@@ -49,15 +49,6 @@ channel once with `--alerta-prueba`.
 - **Action:** Angel tops up or raises the Spend Limit (never Claude Code). Until then the rules keep answering.
 - **Verify:** sentinel run exits 0; `degraded=false` again.
 
-## jev-down
-
-- **Detected today:** by hand (`/salud`). The sentinel does not see it: the rules floor keeps the canonical verdicts.
-- **Symptom:** `/salud` → `"jev": "fail"` (only when `JEV_BACKEND=real`).
-- **Confirm:** `grep stage_failed` with `"stage": "jev"`; latency of the `jev` stage near its 2 s timeout.
-- **Probable cause:** TypeSafe incident or key revoked.
-- **Action:** set `JEV_BACKEND=mock` and restart: the deterministic manipulation floor keeps working (D-051).
-- **Verify:** `"jev": "skip"` (mock) or `"ok"`.
-
 ## dlq-not-empty
 
 Layer 2 (queue and Redis, T-16). No queue exists yet; messages run in-process with a

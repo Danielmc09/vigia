@@ -28,12 +28,14 @@ from vigia.domain.escalation import EXPIRY, Escalation
 from vigia.domain.member import Business
 from vigia.domain.rejection import Rejection
 from vigia.domain.urls import extract_urls
+from vigia.guard.gate import screen
 from vigia.i18n import t
-from vigia.jev.gate import screen
-from vigia.model.jev import JevJudge, make_dev_judge
+from vigia.model.spark import SparkClient
+from vigia.model.spark_judge import SparkJudge
 from vigia.net.unroll import unroll
 from vigia.policy.actions import confirm, new_escalation
 from vigia.services.ingest import handle, normalize
+from vigia.services.judge import make_judge
 from vigia.signals.country_pack import country_pack
 from vigia.signals.detector import detect
 from vigia.signals.patterns import LONG_TEXT_CHARS, pattern_signals
@@ -695,12 +697,16 @@ def test_c16_shortener_to_a_private_address_is_never_requested() -> None:
 
 
 @pytest.mark.edge("C10")
-def test_c10_jev_down_or_without_key_falls_back_to_mock_investigate() -> None:
+def test_c10_judge_down_or_without_key_falls_back_to_mock_investigate(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     def down(request: httpx.Request) -> httpx.Response:
         raise httpx.ConnectError("down", request=request)
 
-    keyed = JevJudge("k", client=httpx.Client(transport=httpx.MockTransport(down)))
-    keyless = make_dev_judge(Settings(VIGIA_MODO="dev", JEV_BACKEND="real", JEV_API_KEY=None))
+    monkeypatch.setenv("DATABASE_URL", "postgresql://app@db/vigia")
+    monkeypatch.setenv("MIGRATION_DATABASE_URL", "postgresql://owner@db/vigia")
+    keyed = SparkJudge(SparkClient("k", client=httpx.Client(transport=httpx.MockTransport(down))))
+    keyless = make_judge(Settings(mode="prod"))
     assert CO is not None
 
     results = [screen("Su paquete esta retenido", [], CO, j) for j in (keyed, keyless)]

@@ -35,7 +35,7 @@ from vigia.domain.member import Business
 from vigia.domain.reading import Transcriber, Transcript
 from vigia.domain.rejection import Rejection
 from vigia.domain.verdict import Label
-from vigia.jev.gate import screen
+from vigia.guard.gate import screen
 from vigia.model.sam import make_sam
 from vigia.model.spark import SparkClient
 from vigia.net.unroll import unroll
@@ -557,7 +557,7 @@ def _unavailable(args: argparse.Namespace, out_dir: Path) -> str:
 def full() -> Classifier | None:
     """The full system, or ``None`` without a model key."""
     spark = make_chat(settings)
-    # An eval run is mode eval whatever .env says: Jev never judges it (D-085).
+    # An eval run is mode eval whatever .env says: only Spark or the mock judges it (D-085).
     judge = make_judge(settings.model_copy(update={"mode": "eval"}))
     return with_analyst(spark, judge) if spark else None
 

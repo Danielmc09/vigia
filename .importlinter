@@ -14,7 +14,7 @@ forbidden_modules =
     vigia.signals
     vigia.verdict
     vigia.policy
-    vigia.jev
+    vigia.guard
     vigia.services
     vigia.app
     vigia.owner_web
@@ -28,7 +28,7 @@ source_modules =
     vigia.signals
     vigia.verdict
     vigia.policy
-    vigia.jev
+    vigia.guard
 forbidden_modules =
     vigia.channel
     vigia.analyst

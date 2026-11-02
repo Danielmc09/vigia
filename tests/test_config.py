@@ -61,13 +61,12 @@ def test_every_empty_optional_var_in_env_example_means_unset(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """T-22c incident (clean clone): .env.example ships METRICS_TOKEN= and other blanks."""
-    for name in ("METRICS_TOKEN", "VIGIA_PANEL_TOKEN", "SENTRY_DSN", "JEV_API_KEY"):
+    for name in ("METRICS_TOKEN", "VIGIA_PANEL_TOKEN", "SENTRY_DSN"):
         monkeypatch.setenv(name, "")
 
     config = Settings()
 
     assert (config.metrics_token, config.panel_token, config.sentry_dsn) == (None, None, None)
-    assert config.jev_api_key is None
 
 
 def test_prod_rejects_the_example_keys(monkeypatch: pytest.MonkeyPatch) -> None:

@@ -66,11 +66,10 @@ At runtime (`VIGIA_MODO=eval|prod`) every model call is a Meta model: Muse Spark
 Voice Transcribe (voice notes). Everything else behind a "model" name is deterministic
 code: the country-pack signals, the manipulation floor (D-051), fusion and policy.
 
-TypeSafe Jev is a **development-only** tool (judge of steps), never called at runtime:
-`Settings` refuses `JEV_BACKEND=real` unless `VIGIA_MODO=dev` is declared explicitly
-(the default mode does not count; the Docker image sets `VIGIA_MODO=prod`; T-08b, D-085). The gate
-(`jev/gate.py`) always runs the deterministic floor first; its model fallback is Spark in
-`eval`/`prod` and, only in `dev`, optionally Jev.
+An external non-Meta judge was used during development only (judge of steps) and was
+removed from the codebase, so it can never be called at runtime (T-08b, D-085). The gate
+(`guard/gate.py`) always runs the deterministic floor first; its model fallback is Spark in
+`eval`/`prod` and the deterministic mock in `dev`.
 
 ## What each Meta model does
 

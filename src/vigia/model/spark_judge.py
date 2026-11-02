@@ -1,8 +1,8 @@
 """Spark as the runtime judge (T-08b, D-085): the only model behind the gate outside dev.
 
-Jev stays a development tool (``model/jev.py``): the Discord rule is that every model
-called at runtime must be a Meta model. The country-pack floor of
-``jev/gate.py`` (D-051) still runs first; this is only the fallback when it does not fire.
+The Discord rule is that every model called at runtime must be a Meta model. The
+country-pack floor of ``guard/gate.py`` (D-051) still runs first; this is only the
+fallback when it does not fire.
 Which judge a process wires in is :func:`vigia.services.judge.make_judge`.
 """
 
@@ -60,7 +60,7 @@ class SparkJudge:
         """Read the chat state; on any error or off-schema answer, fall back to the mock.
 
         Args:
-            state: History and last message, delimited (see :func:`vigia.jev.gate.screen`).
+            state: History and last message, delimited (see :func:`vigia.guard.gate.screen`).
 
         Returns:
             Spark's answer, or ``MOCK_ANSWER`` if the call failed or answered off-schema
@@ -77,7 +77,6 @@ class SparkJudge:
             max_tokens=MAX_TOKENS,
         )
         turn = self._spark.complete(request)
-        # MOCK_ANSWER fallback: 2nd copy of JevJudge's; extract a shared helper on the 3rd.
         if isinstance(turn, Rejection):
             log.warning("spark judge unavailable: %s", turn.error_code)
             return MOCK_ANSWER

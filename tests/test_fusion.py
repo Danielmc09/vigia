@@ -222,7 +222,7 @@ def test_build_verdict_incident_c_0076_does_not_condemn_the_warning() -> None:
 
 
 def test_build_verdict_manipulation_is_a_typed_input_not_case_context() -> None:
-    """Jev's flag (T-08) travels in Evidence; a key smuggled in case.context is ignored."""
+    """The gate's flag (T-08) travels in Evidence; a key smuggled in case.context is ignored."""
     pack = country_pack("CO")
     assert pack is not None
     case = _case("Gracias por la compra, su pedido va en camino.")

@@ -1,7 +1,7 @@
-"""The Jev gate of specs/08 §4: does this chat try to make the system do something else?
+"""The manipulation gate of specs/08 §4: does this chat try to make the system do something else?
 
 Deterministic floor first (regla 5): a ``manipulacion`` pattern of the country pack in the
-message or in the recent history flags it, whatever Jev says. Otherwise the judge decides.
+message or in the recent history flags it, whatever the judge says. Otherwise the judge decides.
 """
 
 import html
@@ -13,14 +13,14 @@ from vigia.domain.text import clean_text
 from vigia.signals.patterns import find_pattern
 
 MAX_HISTORY = 10  # specs/08 §4: the message and the last 10 of the same chat
-MANIPULATION_THRESHOLD = 0.7  # Jev noul score that flags manipulation (D-051)
+MANIPULATION_THRESHOLD = 0.7  # judge score that flags manipulation (D-051)
 
 
 def _state(text: str, history: Sequence[str]) -> str:
-    """The chat as Jev reads it: every turn delimited, the last one marked as such.
+    """The chat as the judge reads it: every turn delimited, the last one marked as such.
 
     User text is HTML-escaped so a ``</last_turn>`` inside a message cannot close the
-    delimiter and pose as the system (incident ``adv-delimitador-jev``).
+    delimiter and pose as the system (incident ``adv-delimitador-turno``).
     """
     turns = [f"<turn>{html.escape(h, quote=False)}</turn>" for h in history]
     return "\n".join([*turns, f"<last_turn>{html.escape(text, quote=False)}</last_turn>"])
@@ -43,10 +43,10 @@ def screen(text: str, history: Sequence[str], pack: CountryPack, judge: Judge) -
         history: Earlier texts of the same chat, oldest first; only the last
             ``MAX_HISTORY`` count.
         pack: Country pack with the ``manipulacion`` patterns.
-        judge: Jev, or the mock (never raises: falls back to ``MOCK_ANSWER``).
+        judge: Spark, or the mock (never raises: falls back to ``MOCK_ANSWER``).
 
     Returns:
-        The gate decision; ``source == "rules"`` when a pattern fired (Jev is not asked).
+        The gate decision; ``source == "rules"`` when a pattern fired (the judge is not asked).
     """
     recent = list(history)[-MAX_HISTORY:]
     if any(find_pattern(_flat(t), pack, "manipulacion") for t in [*recent, text]):

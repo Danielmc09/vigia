@@ -157,7 +157,7 @@ def investigate(
 
     Args:
         case: The case.
-        evidence: The deterministic signals and Jev's flag, sent as part of the brief.
+        evidence: The deterministic signals and the gate's manipulation flag, sent in the brief.
         tools: Tools bound for this case (see ``services/analyst_tools.toolbox``).
         spark: The model port.
 

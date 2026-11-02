@@ -201,7 +201,7 @@ def build_verdict(case: Case, evidence: Evidence, pack: CountryPack) -> Verdict:
 
     Args:
         case: The case being decided.
-        evidence: Its signals, the analyst's read if one ran and Jev's manipulation flag.
+        evidence: Its signals, the analyst's read if one ran and the gate's manipulation flag.
         pack: Country pack of the business.
 
     Returns:

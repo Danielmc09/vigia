@@ -1,5 +1,5 @@
 .PHONY: check lint test web-test arch dup security docs docs-check i18n db run evals evals-rapido demo
-lint: ; uv run ruff check src tests tools && uv run mypy src/vigia/domain src/vigia/signals src/vigia/verdict src/vigia/policy src/vigia/jev src/vigia/analyst src/vigia/model src/vigia/services --strict
+lint: ; uv run ruff check src tests tools && uv run mypy src/vigia/domain src/vigia/signals src/vigia/verdict src/vigia/policy src/vigia/guard src/vigia/analyst src/vigia/model src/vigia/services --strict
 arch: ; uv run lint-imports
 dup:  ; uv run pylint --disable=all --enable=duplicate-code --min-similarity-lines=8 src/
 security: ; uv run bandit -q -r src && (if curl -fsS --max-time 3 https://pypi.org >/dev/null 2>&1; then uv run pip-audit; else echo "pip-audit: omitido, sin conexión"; fi) && uv run pytest -q tests/test_owasp.py

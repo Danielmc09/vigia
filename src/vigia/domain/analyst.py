@@ -46,7 +46,7 @@ class Evidence(BaseModel, frozen=True):
     Attributes:
         signals: Deterministic signals of the case.
         analyst: The analyst's read of the case, if one ran (T-09).
-        manipulation_detected: Jev's flag (T-08); forces at least ``doubtful``.
+        manipulation_detected: The gate's flag (T-08); forces at least ``doubtful``.
         links: Short links the pipeline already unrolled, by original URL; the analyst
             reads them and never fetches one itself (D-101).
     """

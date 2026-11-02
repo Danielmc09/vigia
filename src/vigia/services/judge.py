@@ -1,12 +1,10 @@
 """Which judge sits behind the gate in this process (T-08b, D-085).
 
-Lives in ``services`` because it chooses between two adapters (Spark and Jev), and an
-adapter module never imports another (specs/09 §19).
+Lives in ``services`` because it needs the chat client that ``services.backend`` builds.
 """
 
 from vigia.config import Settings
 from vigia.domain.gate import Judge, mock_judge
-from vigia.model.jev import make_dev_judge
 from vigia.model.spark_judge import SparkJudge
 from vigia.services.backend import make_chat
 
@@ -14,9 +12,8 @@ from vigia.services.backend import make_chat
 def make_judge(config: Settings) -> Judge:
     """The judge wired into the app, the webhook and a complete eval run.
 
-    Outside ``dev`` (``eval``/``prod``) this is always Spark or the mock, never Jev: the
-    config already refuses ``JEV_BACKEND=real`` there (D-085). In ``dev`` it defers to
-    Jev's own factory: a developer's local choice, never a production path.
+    ``dev`` always gets the mock, so a local run spends nothing on judging; elsewhere
+    (``eval``/``prod``) it is Spark, or the mock without a model key.
 
     Args:
         config: Process settings.
@@ -25,6 +22,6 @@ def make_judge(config: Settings) -> Judge:
         A :data:`~vigia.domain.gate.Judge`.
     """
     if config.mode == "dev":
-        return make_dev_judge(config)
+        return mock_judge
     spark = make_chat(config)
     return SparkJudge(spark) if spark else mock_judge

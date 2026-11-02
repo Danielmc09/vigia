@@ -40,7 +40,7 @@ from vigia.domain.gate import Judge
 from vigia.domain.member import Business
 from vigia.domain.verdict import Verdict, VerdictRow
 from vigia.i18n import t
-from vigia.model import jev, spark
+from vigia.model import spark
 from vigia.model.sam import make_sam
 from vigia.net.unroll import unroller
 from vigia.owner_web import owner_router
@@ -172,19 +172,18 @@ async def _postgres_ok(config: Settings) -> bool:
 
 
 async def _http_ok(http: httpx.AsyncClient, url: str, headers: dict[str, str]) -> bool:
-    """Whether ``GET url`` answers below 500 (Meta also needs a 2xx, see :func:`_health`)."""
+    """Whether ``GET url`` answers 2xx."""
     try:
         response = await http.get(url, headers=headers, timeout=HEALTH_TIMEOUT_S)
     except httpx.HTTPError:
         return False
-    return response.is_success or (not headers and response.status_code < 500)
+    return response.is_success
 
 
 async def _health(api: FastAPI, config: Settings) -> JSONResponse:
-    """``GET /salud`` (specs/11 §2): Postgres, and Meta and Jev when this process uses them.
+    """``GET /salud`` (specs/11 §2): Postgres, and Meta when this process has its key.
 
-    Meta is ``GET /models`` with the key (must be 2xx); Jev is reachability only (any
-    answer below 500), so the check spends no Jev call. ``analyst`` says whether
+    Meta is ``GET /models`` with the key (must be 2xx). ``analyst`` says whether
     :func:`make_chat` builds a chat client (``ok``) or every case runs degraded (``none``).
 
     Args:
@@ -201,7 +200,6 @@ async def _health(api: FastAPI, config: Settings) -> JSONResponse:
         api.state.health_http = httpx.AsyncClient(timeout=HEALTH_TIMEOUT_S)
     http: httpx.AsyncClient = api.state.health_http
     meta_key = config.model_api_key.get_secret_value() if config.model_api_key else ""
-    uses_jev = config.jev_backend == "real" and config.jev_api_key is not None
 
     def mark(ok: bool) -> str:
         return "ok" if ok else "fail"
@@ -209,15 +207,12 @@ async def _health(api: FastAPI, config: Settings) -> JSONResponse:
     checks = {
         "postgres": mark(await _postgres_ok(config)),
         "meta": "skip",
-        "jev": "skip",
         # ``none`` keeps the 200 but tells degraded mode apart (inc-salud-sin-analista)
         "analyst": "ok" if has_chat(config) else "none",
     }
     if meta_key:
         auth = {"Authorization": f"Bearer {meta_key}"}
         checks["meta"] = mark(await _http_ok(http, f"{spark.BASE}/models", auth))
-    if uses_jev:
-        checks["jev"] = mark(await _http_ok(http, jev.URL, {}))
     failed = "fail" in checks.values()
     body = {"status": "fail" if failed else "ok", "checks": checks}
     code = 503 if failed else 200
@@ -455,7 +450,7 @@ def create_app(
             (none by default: degraded, so an anonymous caller spends no credits); the
             panel form uses it too, or else Spark when the model key is set (D-090).
         judge: Spark judge (eval/prod) or mock for the manipulation gate; defaults to
-            :func:`make_judge` (Jev only in ``dev``, D-085).
+            :func:`make_judge` (the mock in ``dev``, D-085).
         panel: Source of the operator panel rows; defaults to Postgres.
 
     Returns:

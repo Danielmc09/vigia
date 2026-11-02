@@ -33,9 +33,6 @@ class Settings(BaseSettings):
         email_codes_per_business_hour: Verification emails one business may trigger per hour.
         code_max_attempts: Wrong guesses that invalidate a member's live codes (specs/12 B4).
         knowledge_seed: Known-campaign seed attached to the country packs (D-048).
-        jev_backend: ``real`` asks the Jev judge, a development-only tool (T-08b, D-085);
-            ``mock`` (default) never flags. Needs ``VIGIA_MODO=dev`` set explicitly.
-        jev_api_key: Jev key; without it the backend is mock whatever ``jev_backend``.
         model_api_key: Meta Model API key; without it the analyst never runs (degraded).
         model_backend: Who answers the chat turns of the analyst and the judge (T-09b):
             ``spark`` (Meta Model API) or ``spark_open`` (Muse Spark Open on Baseten).
@@ -76,8 +73,6 @@ class Settings(BaseSettings):
         Path("conocimiento/semilla.jsonl"), validation_alias="VIGIA_KNOWLEDGE_SEED"
     )
 
-    jev_backend: Literal["mock", "real"] = Field("mock", validation_alias="JEV_BACKEND")
-    jev_api_key: SecretStr | None = Field(None, validation_alias="JEV_API_KEY")
     model_api_key: SecretStr | None = Field(None, validation_alias="MODEL_API_KEY")
     model_backend: Literal["spark", "spark_open"] = Field("spark", validation_alias="MODEL_BACKEND")
     baseten_api_key: SecretStr | None = Field(None, validation_alias="BASETEN_API_KEY")
@@ -144,21 +139,6 @@ class Settings(BaseSettings):
         if len({bool(key) for key in keys}) > 1:  # an empty value counts as unset
             raise ValueError(
                 "WAZENDA_API_KEY, WAZENDA_LINE_ID and WAZENDA_WEBHOOK_SECRET go together"
-            )
-        return self
-
-    @model_validator(mode="after")
-    def _jev_real_only_in_dev(self) -> Self:
-        """Refuse Jev as the runtime judge (T-08b, D-085): only Meta models run outside dev.
-
-        ``dev`` must be declared: ``mode`` defaults to it, and the image runs without the
-        compose file, so the default alone would let Jev reach production.
-        """
-        if self.jev_backend == "real" and (
-            self.mode != "dev" or "mode" not in self.model_fields_set
-        ):
-            raise ValueError(
-                "JEV_BACKEND=real is a development-only tool; it needs VIGIA_MODO=dev declared"
             )
         return self
 

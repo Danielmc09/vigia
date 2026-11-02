@@ -1,6 +1,6 @@
-"""Contract of the Jev gate (specs/08 §4): what the judge answers and what the gate decides.
+"""Contract of the manipulation gate (specs/08 §4): what the judge answers, what the gate decides.
 
-Shared by the gate (``jev``), its HTTP adapter (``model``), the API and the eval runner,
+Shared by the gate (``guard``), the Spark judge (``model``), the API and the eval runner,
 so it lives in the domain.
 """
 
@@ -10,34 +10,34 @@ from typing import Literal
 from pydantic import BaseModel, Field
 
 Triage = Literal["obvious", "investigate", "command"]
-"""How a forwarded message should be handled (Jev ``choice`` question of specs/03)."""
+"""How a forwarded message should be handled (the judge's ``triage`` choice)."""
 
 
 class JudgeAnswer(BaseModel, frozen=True):
-    """One read of a chat by the judge (Jev, or the mock when Jev is off or down).
+    """One read of a chat by the judge (Spark, or the mock when it is off or down).
 
     Attributes:
-        manipulation: Jev ``noul`` score that the chat tries to change the system, 0 to 1.
-        triage: Jev ``choice`` for how to handle the message.
-        source: ``jev`` for the development-only judge (D-085), ``spark`` for the
-            Meta-model judge used at runtime, ``mock`` for the fallback (specs/12 C10).
-        usd: Cost of the call behind this answer (rule 11); 0 for Jev and an unbilled mock.
-        tokens: Tokens of that call; 0 for Jev and an unbilled mock.
+        manipulation: Score that the chat tries to change the system, 0 to 1.
+        triage: The judge's choice of how to handle the message.
+        source: ``spark`` for the Meta-model judge used at runtime (D-085), ``mock`` for
+            the fallback (specs/12 C10).
+        usd: Cost of the call behind this answer (rule 11); 0 for an unbilled mock.
+        tokens: Tokens of that call; 0 for an unbilled mock.
     """
 
     manipulation: float = Field(ge=0, le=1)
     triage: Triage
-    source: Literal["jev", "spark", "mock"]
+    source: Literal["spark", "mock"]
     usd: float = 0.0
     tokens: int = 0
 
 
 MOCK_ANSWER = JudgeAnswer(manipulation=0.0, triage="investigate", source="mock")
-"""What the judge answers when Jev is off, keyless or failing: never flags, always investigate."""
+"""What the judge answers when Spark is off, keyless or failing: never flags, always investigate."""
 
 
 def mock_judge(_: str) -> JudgeAnswer:
-    """Judge used when Jev is off, keyless or not wanted (tests, adversarial evals).
+    """Judge used when Spark is off, keyless or not wanted (tests, adversarial evals).
 
     Args:
         _: The chat state; ignored.
@@ -66,4 +66,4 @@ class GateResult(BaseModel, frozen=True):
 
     manipulation_detected: bool
     triage: Triage
-    source: Literal["rules", "jev", "spark", "mock"]
+    source: Literal["rules", "spark", "mock"]

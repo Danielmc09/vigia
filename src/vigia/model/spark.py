@@ -1,7 +1,7 @@
 """Muse Spark over HTTP (adapter): a chat turn with tools, the web search, PDF and image reading.
 
 Shapes, ids and prices verified in T-02 and T-09 (specs/03 "Verificado",
-``tests/fixtures/meta``). Plain ``httpx`` like :mod:`vigia.model.jev`: no SDK (D-024, D-059).
+``tests/fixtures/meta``). Plain ``httpx``: no SDK (D-024, D-059).
 Any failure is a :class:`~vigia.domain.rejection.Rejection`, never an exception.
 """
 

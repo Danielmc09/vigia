@@ -22,7 +22,7 @@ from prometheus_client import CollectorRegistry, Counter, Histogram
 
 from vigia.domain.verdict import Verdict
 
-Stage = Literal["gate", "jev", "rules", "analyst", "fusion", "policy", "reply"]
+Stage = Literal["gate", "guard", "rules", "analyst", "fusion", "policy", "reply"]
 """Stages of specs/11 §1, in English (specs/13)."""
 
 CASE_MS_BUCKETS = (100, 250, 500, 1000, 2000, 5000, 10000, 20000, 30000, 60000)
@@ -40,7 +40,7 @@ class Metrics:
         case_ms: Case latency by ``route`` (``obvious`` without analyst, ``analyst``).
         cases: Cases by ``label``, ``degraded`` and ``business_id``.
         stage_errors: Exceptions by ``stage``.
-        model_calls: Model API responses by ``provider`` (``meta``, ``jev``) and HTTP ``status``.
+        model_calls: Model API responses by ``provider`` (``meta``) and HTTP ``status``.
         usd: Model spend.
         webhook: Webhook requests by ``status``.
         rejected: Refused messages by ``reason``.
@@ -197,9 +197,6 @@ def _hooks(provider: str) -> Mapping[str, list[Callable[..., Any]]]:
 
 MODEL_HOOKS = _hooks("meta")
 """``event_hooks`` for the Meta clients (Spark, SAM, Voice)."""
-
-JEV_HOOKS = _hooks("jev")
-"""``event_hooks`` for the Jev client."""
 
 
 def mask_phone(phone: str) -> str:

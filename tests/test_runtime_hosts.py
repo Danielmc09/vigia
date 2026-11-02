@@ -1,7 +1,7 @@
-"""T-08b (specs/08 §4, D-085): Jev is dev-only; runtime only calls Meta models.
+"""T-08b (specs/08 §4, D-085): the runtime only calls Meta models.
 
 Allowed runtime hosts: ``api.meta.ai`` (Spark) and ``inference.baseten.co`` (Spark Open,
-T-09b). TypeSafe (``api.typesafe.ai``) must never be reached from ``eval``/``prod``.
+T-09b). No other host is reached from ``eval``/``prod``.
 """
 
 import json
@@ -12,12 +12,10 @@ from urllib.parse import urlparse
 
 import httpx
 import pytest
-from pydantic import ValidationError
 
 from vigia.config import Settings
 from vigia.domain.gate import MOCK_ANSWER, mock_judge
 from vigia.model import sam, spark, voice
-from vigia.model.jev import JevJudge
 from vigia.model.spark import SparkClient
 from vigia.model.spark_judge import SparkJudge
 from vigia.services.judge import make_judge
@@ -43,47 +41,7 @@ def _spark_response(manipulacion: bool, triage: str) -> Any:
     return handler
 
 
-# --- Settings: JEV_BACKEND=real is a dev-only choice (D-085) --------------------------
-
-
-@pytest.mark.parametrize("mode", ["eval", "prod"])
-def test_jev_backend_real_is_rejected_outside_dev(
-    mode: str, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    monkeypatch.setenv("DATABASE_URL", "postgresql://app@db/vigia")
-    monkeypatch.setenv("MIGRATION_DATABASE_URL", "postgresql://owner@db/vigia")
-
-    with pytest.raises(ValidationError, match="JEV_BACKEND"):
-        Settings(mode=mode, JEV_BACKEND="real", JEV_API_KEY="k")
-
-
-def test_jev_backend_real_is_accepted_in_dev() -> None:
-    assert Settings(VIGIA_MODO="dev", JEV_BACKEND="real", JEV_API_KEY="k").jev_backend == "real"
-
-
-def test_adv_runtime_sin_modo_settings_refuse_jev_without_declared_mode(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    """Incident adv-runtime-sin-modo: without VIGIA_MODO, JEV_BACKEND=real does not start.
-
-    Hypothesis (juez T-08b, MAYOR): JEV_BACKEND=real does not reach the webhook.
-
-    ``mode`` defaults to ``dev``, and Railway runs the Dockerfile ``CMD`` (no compose), so a
-    plain ``uvicorn vigia.app:app`` with ``JEV_BACKEND=real`` wired Jev into production.
-    Real Jev now needs ``VIGIA_MODO=dev`` declared explicitly.
-    """
-    monkeypatch.delenv("VIGIA_MODO", raising=False)
-
-    with pytest.raises(ValidationError, match="JEV_BACKEND"):
-        Settings(_env_file=None, JEV_BACKEND="real", JEV_API_KEY="k", MODEL_API_KEY="k")
-
-
-def test_dev_mode_declared_from_the_environment_allows_jev(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    monkeypatch.setenv("VIGIA_MODO", "dev")
-
-    assert Settings(_env_file=None, JEV_BACKEND="real", JEV_API_KEY="k").jev_backend == "real"
+# --- The image declares its mode (D-085) ---------------------------------------------
 
 
 def test_adv_runtime_sin_modo_dockerfile_declares_prod() -> None:
@@ -169,10 +127,10 @@ def test_spark_judge_falls_back_to_mock_on_any_failure(handler: Any) -> None:
     assert judge("hola") == MOCK_ANSWER
 
 
-# --- Runtime factory: eval/prod never return JevJudge, dev may --------------------------
+# --- Runtime factory: eval/prod judge with Spark, dev with the mock ------------------
 
 
-def test_runtime_factory_never_returns_jev_in_eval_or_prod(
+def test_runtime_factory_judges_with_spark_in_eval_or_prod(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setenv("DATABASE_URL", "postgresql://app@db/vigia")
@@ -181,7 +139,6 @@ def test_runtime_factory_never_returns_jev_in_eval_or_prod(
     judge = make_judge(Settings(mode="eval", MODEL_API_KEY="k"))
 
     assert isinstance(judge, SparkJudge)
-    assert not isinstance(judge, JevJudge)
 
 
 def test_runtime_factory_without_a_model_key_is_mock(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -193,10 +150,8 @@ def test_runtime_factory_without_a_model_key_is_mock(monkeypatch: pytest.MonkeyP
     assert judge is mock_judge
 
 
-def test_dev_factory_still_allows_the_jev_development_tool() -> None:
-    judge = make_judge(Settings(VIGIA_MODO="dev", JEV_BACKEND="real", JEV_API_KEY="k"))
-
-    assert isinstance(judge, JevJudge)
+def test_dev_factory_judges_with_the_mock() -> None:
+    assert make_judge(Settings(VIGIA_MODO="dev", MODEL_API_KEY="k")) is mock_judge
 
 
 # --- The host contract itself: only Meta models answer at runtime ---------------------
@@ -214,7 +169,7 @@ def test_runtime_adapters_share_one_meta_host() -> None:
 
 
 def test_runtime_judge_calls_only_meta_hosts() -> None:
-    """A real runtime judge only ever reaches an allowed Meta-model host, never TypeSafe."""
+    """A real runtime judge only ever reaches an allowed Meta-model host."""
     seen: list[httpx.Request] = []
 
     def handler(request: httpx.Request) -> httpx.Response:
@@ -228,7 +183,6 @@ def test_runtime_judge_calls_only_meta_hosts() -> None:
     assert seen, "the runtime judge must call its model"
     hosts = {request.url.host for request in seen}
     assert hosts <= ALLOWED_RUNTIME_HOSTS
-    assert "api.typesafe.ai" not in hosts
 
 
 def test_spark_judge_cap_leaves_room_for_minimal_reasoning() -> None:

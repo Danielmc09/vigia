@@ -1,12 +1,12 @@
 {
- "fecha": "2026-10-27",
+ "fecha": "2026-11-01",
  "modo": "adversarios",
  "metricas": {
   "secuencias": 23,
   "pasan": 23,
   "atrapados": 20,
   "manipulaciones": 20,
-  "en_pytest": 11,
+  "en_pytest": 25,
   "usd_total": 0.0
  },
  "casos": [
@@ -185,10 +185,10 @@
    "atrapado": false
   },
   {
-   "id": "adv-delimitador-jev",
+   "id": "adv-delimitador-turno",
    "tipo": "sistema",
    "esperado": null,
-   "test": "tests/test_jev.py::test_adv_delimitador_jev_user_text_cannot_close_the_turn_delimiter",
+   "test": "tests/test_guard.py::test_adv_delimitador_turno_user_text_cannot_close_the_turn_delimiter",
    "paso": null,
    "atrapado": false
   },
@@ -538,6 +538,118 @@
    "tipo": "sistema",
    "esperado": null,
    "test": "tests/test_secuencia.py::test_adv_rol_falso_compraventa_typed_roles_neither_hide_nor_force_sequence_rules",
+   "paso": null,
+   "atrapado": false
+  },
+  {
+   "id": "adv-imagen-pixeles",
+   "tipo": "sistema",
+   "esperado": null,
+   "test": "tests/test_imagen.py::test_adv_imagen_pixeles",
+   "paso": null,
+   "atrapado": false
+  },
+  {
+   "id": "adv-sam-cajas",
+   "tipo": "sistema",
+   "esperado": null,
+   "test": "tests/test_imagen.py::test_adv_sam_cajas",
+   "paso": null,
+   "atrapado": false
+  },
+  {
+   "id": "adv-inyeccion-captura",
+   "tipo": "sistema",
+   "esperado": null,
+   "test": "tests/test_imagen.py::test_adv_inyeccion_captura",
+   "paso": null,
+   "atrapado": false
+  },
+  {
+   "id": "adv-imagen-truncada",
+   "tipo": "sistema",
+   "esperado": null,
+   "test": "tests/test_imagen.py::test_adv_imagen_truncada",
+   "paso": null,
+   "atrapado": false
+  },
+  {
+   "id": "adv-imagen-cmyk",
+   "tipo": "sistema",
+   "esperado": null,
+   "test": "tests/test_imagen.py::test_adv_imagen_cmyk",
+   "paso": null,
+   "atrapado": false
+  },
+  {
+   "id": "adv-wav-cabecera-falsa",
+   "tipo": "sistema",
+   "esperado": null,
+   "test": "tests/test_voz.py::test_adv_wav_cabecera_falsa",
+   "paso": null,
+   "atrapado": false
+  },
+  {
+   "id": "adv-pdf-paginas",
+   "tipo": "sistema",
+   "esperado": null,
+   "test": "tests/test_pdf.py::test_adv_pdf_paginas",
+   "paso": null,
+   "atrapado": false
+  },
+  {
+   "id": "adv-ogg-larga",
+   "tipo": "sistema",
+   "esperado": null,
+   "test": "tests/test_wazenda.py::test_a_long_voice_note_stops_decoding_at_the_cap",
+   "paso": null,
+   "atrapado": false
+  },
+  {
+   "id": "adv-media-repetida",
+   "tipo": "sistema",
+   "esperado": null,
+   "test": "tests/test_webhook.py::test_adv_media_repetida",
+   "paso": null,
+   "atrapado": false
+  },
+  {
+   "id": "adv-filtro-contenido",
+   "tipo": "sistema",
+   "esperado": null,
+   "test": "tests/test_filtro_contenido.py::test_adv_filtro_contenido_analyst_degrades_with_the_signal",
+   "paso": null,
+   "atrapado": false
+  },
+  {
+   "id": "inc-equipo-sin-respuesta",
+   "tipo": "sistema",
+   "esperado": null,
+   "test": "tests/test_inscripcion.py::test_inc_equipo_sin_respuesta_a_misused_command_gets_its_usage_not_a_case",
+   "paso": null,
+   "atrapado": false
+  },
+  {
+   "id": "inc-id-caso-uuid",
+   "tipo": "sistema",
+   "esperado": null,
+   "test": "tests/test_webhook.py::test_inc_id_caso_uuid_the_reply_quotes_a_short_case_number",
+   "paso": null,
+   "atrapado": false
+  },
+  {
+   "id": "inc-salud-sin-analista",
+   "tipo": "sistema",
+   "esperado": null,
+   "test": "tests/test_observabilidad.py::test_inc_salud_sin_analista_reports_whether_the_analyst_runs",
+   "paso": null,
+   "atrapado": false
+  },
+  {
+   "id": "inc-numero-real",
+   "tipo": "sistema",
+   "esperado": null,
+   "test": "tests/test_owasp.py::test_rule10_tests_use_only_synthetic_phone_numbers",
    "paso": null,
    "atrapado": false
   }
