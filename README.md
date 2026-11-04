@@ -8,8 +8,6 @@ email — and gets back a verdict in plain language in seconds: **scam /
 legitimate / doubtful**, why, and what to do. If it's a scam, the rest of the
 team is warned too.
 
-**GIF: pending, T-22 will record it.**
-
 ## Metrics (latest full run)
 
 Measured by `tools/measure.py` over `evals/casos.jsonl`; the raw result is
@@ -30,6 +28,15 @@ the analyst to an unavailable model or a refusal.
 
 Target (≥80 cases): `recall_estafa ≥ 0.90`, `fp_legitimo ≤ 0.10`,
 `dudosos ≤ 0.25`.
+
+**Reproducibility.** The same 231 cases were measured three times
+(`evals/2026-10-31.resultado.json`, `evals/2026-11-02-a.resultado.json`,
+`evals/2026-11-02-b.resultado.json`). Two results held in all three: scam recall
+98.5%, and no real scam was ever labelled legitimate. The rest moves, because a
+Meta model is in the loop — 6 of the 231 verdicts changed on each rerun, false
+alarms landed at 0, 2 and 3 of the 95 legitimate messages, and accuracy between
+92.6% and 93.5%. The row above is the run of 2026-10-31; rerunning `make evals`
+will land near it, not exactly on it.
 
 ## Run the demo
 
@@ -64,10 +71,10 @@ See `DECLARACION.md` for what was built during the event.
 At runtime (`VIGIA_MODO=eval|prod`) every model call is a Meta model: Muse Spark 1.3
 (analyst loop, attachment reading, and the gate's fallback judge), SAM 3.1 (crops), Muse
 Voice Transcribe (voice notes). Everything else behind a "model" name is deterministic
-code: the country-pack signals, the manipulation floor (D-051), fusion and policy.
+code: the country-pack signals, the manipulation floor ([ADR-051](docs/decisions/ADR-051.md)), fusion and policy.
 
 An external non-Meta judge was used during development only (judge of steps) and was
-removed from the codebase, so it can never be called at runtime (T-08b, D-085). The gate
+removed from the codebase, so it can never be called at runtime ([ADR-085](docs/decisions/ADR-085.md)). The gate
 (`guard/gate.py`) always runs the deterministic floor first; its model fallback is Spark in
 `eval`/`prod` and the deterministic mock in `dev`.
 
@@ -100,7 +107,7 @@ OWASP categories this repo tests for, mapped to the test that covers them:
 | A03 — Injection | `tests/test_owasp.py` (`test_a03_detector_flags_runtime_built_queries`, `test_a03_no_runtime_built_sql_in_src`, `test_a03_business_id_is_bound_not_interpolated`) |
 | A05 — Security misconfiguration | `tests/test_owasp.py` (`test_a05_security_headers_are_set`, `test_a05_no_api_docs_in_prod`, `test_a05_public_texts_never_name_internal_signals`) |
 | A09 — Logging and monitoring failures | `tests/test_owasp.py` (`test_a09_case_logs_carry_ids_but_no_pii`, `test_a09_uvicorn_errors_are_json_without_pii`) |
-| A10 — Server-side request forgery | `tests/test_net.py`, over `src/vigia/net/unroll.py` (D-099): short-link unrolling refuses non-public addresses, caps hops and time, never forwards cookies |
+| A10 — Server-side request forgery | `tests/test_net.py`, over `src/vigia/net/unroll.py` ([ADR-099](docs/decisions/ADR-099.md)): short-link unrolling refuses non-public addresses, caps hops and time, never forwards cookies |
 
 `make check` runs `pip-audit` as part of `security`, and it's blocking: any real vulnerability fails the build. It needs network access to fetch the vulnerability database; without it, the check detects the missing connection and skips with "pip-audit: omitido, sin conexión" instead of failing for an unrelated reason (D-124).
 
@@ -113,12 +120,8 @@ how to report a vulnerability in
 ## Out of scope
 
 Not goals of this hackathon build: monetization, full multi-country coverage,
-an MCP server for third parties, auditing third-party chatbots, and zero-click
-attacks.
-
-## Benchmark
-
-Pending: VIGÍA-Bench will be published separately once built.
+an MCP server for third parties, auditing third-party chatbots, zero-click
+attacks, and a published benchmark.
 
 ## More
 

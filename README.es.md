@@ -8,8 +8,6 @@ PDF, un link, un correo — y recibe en segundos un veredicto en lenguaje claro:
 **estafa / legítimo / dudoso**, por qué, y qué hacer. Si es estafa, el resto
 del equipo también queda avisado.
 
-**GIF: pendiente, T-22 lo grabará.**
-
 ## Métricas (última corrida completa)
 
 Medidas por `tools/measure.py` sobre `evals/casos.jsonl`; el resultado crudo
@@ -31,6 +29,16 @@ rechazo.
 
 Meta (≥80 casos): `recall_estafa ≥ 0.90`, `fp_legitimo ≤ 0.10`,
 `dudosos ≤ 0.25`.
+
+**Reproducibilidad.** Los mismos 231 casos se midieron tres veces
+(`evals/2026-10-31.resultado.json`, `evals/2026-11-02-a.resultado.json`,
+`evals/2026-11-02-b.resultado.json`). Dos resultados se sostuvieron en las
+tres: recall de estafa 98,5%, y ninguna estafa real quedó etiquetada como
+legítima. El resto se mueve, porque hay un modelo de Meta en el bucle — 6 de
+los 231 veredictos cambiaron en cada corrida, las falsas alarmas cayeron en 0,
+2 y 3 de los 95 mensajes legítimos, y la exactitud entre 92,6% y 93,5%. La fila
+de arriba es la corrida del 2026-10-31; volver a correr `make evals` cae cerca,
+no exacto.
 
 ## Correr la demo
 
@@ -68,12 +76,12 @@ En runtime (`VIGIA_MODO=eval|prod`) cada llamada a modelo es un modelo de
 Meta: Muse Spark 1.3 (bucle del analista, lectura de adjuntos, y el juez de
 respaldo de la compuerta), SAM 3.1 (recortes), Muse Voice Transcribe (notas de
 voz). Todo lo demás detrás de un nombre de "modelo" es código determinista:
-las señales del paquete de país, el piso de manipulación (D-051), la fusión y
+las señales del paquete de país, el piso de manipulación ([ADR-051](docs/decisions/ADR-051.md)), la fusión y
 la política.
 
 Un juez externo que no es de Meta se usó solo durante el desarrollo (juez de
 pasos) y se sacó del código, así que nunca puede llamarse en runtime (T-08b,
-D-085). La compuerta (`guard/gate.py`) siempre corre primero el piso
+[ADR-085](docs/decisions/ADR-085.md)). La compuerta (`guard/gate.py`) siempre corre primero el piso
 determinista; su respaldo de modelo es Spark en `eval`/`prod` y el mock
 determinista en `dev`.
 
@@ -106,7 +114,7 @@ Categorías OWASP que este repo prueba, mapeadas al test que las cubre:
 | A03 — Inyección | `tests/test_owasp.py` (`test_a03_detector_flags_runtime_built_queries`, `test_a03_no_runtime_built_sql_in_src`, `test_a03_business_id_is_bound_not_interpolated`) |
 | A05 — Configuración de seguridad incorrecta | `tests/test_owasp.py` (`test_a05_security_headers_are_set`, `test_a05_no_api_docs_in_prod`, `test_a05_public_texts_never_name_internal_signals`) |
 | A09 — Fallas de registro y monitoreo | `tests/test_owasp.py` (`test_a09_case_logs_carry_ids_but_no_pii`, `test_a09_uvicorn_errors_are_json_without_pii`) |
-| A10 — Server-side request forgery | `tests/test_net.py`, sobre `src/vigia/net/unroll.py` (D-099): el desenrollado de links cortos rechaza direcciones no públicas, limita saltos y tiempo, y nunca reenvía cookies |
+| A10 — Server-side request forgery | `tests/test_net.py`, sobre `src/vigia/net/unroll.py` ([ADR-099](docs/decisions/ADR-099.md)): el desenrollado de links cortos rechaza direcciones no públicas, limita saltos y tiempo, y nunca reenvía cookies |
 
 Documento completo: [`docs/THREAT_MODEL.md`](docs/THREAT_MODEL.md) y
 [`docs/PRIVACY.md`](docs/PRIVACY.md); diseño de cifrado en
@@ -118,11 +126,7 @@ cómo reportar una vulnerabilidad en
 
 No son objetivos de esta versión de la hackathon: monetización, cobertura
 multi-país completa, un servidor MCP para terceros, auditar chatbots de
-terceros y ataques zero-click.
-
-## Benchmark
-
-Pendiente: VIGÍA-Bench se publicará por separado una vez construido.
+terceros, ataques zero-click y publicar un benchmark.
 
 ## Más
 
