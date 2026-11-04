@@ -8,6 +8,8 @@ PDF, un link, un correo — y recibe en segundos un veredicto en lenguaje claro:
 **estafa / legítimo / dudoso**, por qué, y qué hacer. Si es estafa, el resto
 del equipo también queda avisado.
 
+**[▶ Ver la demo de tres minutos](https://www.youtube.com/watch?v=g5TWkJ76fNU)**
+
 ## Métricas (última corrida completa)
 
 Medidas por `tools/measure.py` sobre `evals/casos.jsonl`; el resultado crudo
@@ -127,6 +129,10 @@ cómo reportar una vulnerabilidad en
 No son objetivos de esta versión de la hackathon: monetización, cobertura
 multi-país completa, un servidor MCP para terceros, auditar chatbots de
 terceros, ataques zero-click y publicar un benchmark.
+
+## Licencia
+
+MIT — ver [`LICENSE`](LICENSE).
 
 ## Más
 

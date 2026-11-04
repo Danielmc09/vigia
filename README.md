@@ -8,6 +8,8 @@ email — and gets back a verdict in plain language in seconds: **scam /
 legitimate / doubtful**, why, and what to do. If it's a scam, the rest of the
 team is warned too.
 
+**[▶ Watch the three-minute demo](https://www.youtube.com/watch?v=g5TWkJ76fNU)**
+
 ## Metrics (latest full run)
 
 Measured by `tools/measure.py` over `evals/casos.jsonl`; the raw result is
@@ -122,6 +124,10 @@ how to report a vulnerability in
 Not goals of this hackathon build: monetization, full multi-country coverage,
 an MCP server for third parties, auditing third-party chatbots, zero-click
 attacks, and a published benchmark.
+
+## License
+
+MIT — see [`LICENSE`](LICENSE).
 
 ## More
 
