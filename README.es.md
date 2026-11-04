@@ -20,6 +20,8 @@ aleja de la corrida con fecha más reciente en `evals/`.
 |---|---|---|---|---|---|---|---|---|---|
 | 2026-10-31 | 231 | 93,5% | 98,5% | 2,1% | 6,5% | $0,879 | 3,22 s | `a474a96` | aprobado, 0 regresiones |
 
+![Resultados por formato en el conjunto de evaluación de 231 casos](docs/img/tabla-metricas.png)
+
 En 73 de los 231 casos las reglas deterministas ya eran concluyentes, así que VIGÍA
 se saltó el analista a propósito ([`ADR-061`](docs/decisions/ADR-061.md)): solo el
 chequeo de manipulación de la compuerta llamó a un modelo, con una mediana de $0,0015 y
@@ -41,6 +43,8 @@ los 231 veredictos cambiaron en cada corrida, las falsas alarmas cayeron en 0,
 2 y 3 de los 95 mensajes legítimos, y la exactitud entre 92,6% y 93,5%. La fila
 de arriba es la corrida del 2026-10-31; volver a correr `make evals` cae cerca,
 no exacto.
+
+![Cada veredicto equivocado de la corrida del 2026-10-31, por etiqueta esperada y real](docs/img/tabla-fallos.png)
 
 ## Correr la demo
 

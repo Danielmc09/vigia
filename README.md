@@ -20,6 +20,8 @@ from the newest dated run in `evals/`.
 |---|---|---|---|---|---|---|---|---|---|
 | 2026-10-31 | 231 | 93.5% | 98.5% | 2.1% | 6.5% | $0.879 | 3.22 s | `a474a96` | passed, 0 regressions |
 
+![Per-format results across the 231-case evaluation set](docs/img/tabla-metricas.png)
+
 In 73 of the 231 cases the deterministic rules were already conclusive, so VIGÍA
 skipped the analyst on purpose ([`ADR-061`](docs/decisions/ADR-061.md)): only the
 gate's manipulation check called a model, at a median of $0.0015 and 1.5 s per case,
@@ -39,6 +41,8 @@ Meta model is in the loop — 6 of the 231 verdicts changed on each rerun, false
 alarms landed at 0, 2 and 3 of the 95 legitimate messages, and accuracy between
 92.6% and 93.5%. The row above is the run of 2026-10-31; rerunning `make evals`
 will land near it, not exactly on it.
+
+![Every wrong verdict in the 2026-10-31 run, by expected and actual label](docs/img/tabla-fallos.png)
 
 ## Run the demo
 
