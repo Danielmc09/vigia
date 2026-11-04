@@ -5,8 +5,8 @@ Building period: Oct 27 – Nov 4, 2026. First commit of this repository: Oct 27
 ## Built during the hackathon (original work)
 - Everything under `src/vigia/`: channels (WhatsApp adapter, email adapter, local), ingestion, deterministic signals (URLs, QR, patterns, email headers, supplier book, country packs), manipulation gate, analyst tool loop and prompts, fusion, policy, storage with RLS, panel, API, observability, sentinel.
 - `tools/` and `herramientas/` (repo scripts: case validator, repo map, architecture-doc check).
-- `medir.py`, `evals/` (cases, adversarial suite, blind suite), `bench/`.
-- `vigia_mcp/`, Hermes profile (`analista/`), country packs `CO.json`, `US.json`, i18n files.
+- `medir.py` and `evals/` (cases, adversarial suite, blind suite).
+- Country packs `CO.json` and `US.json`, i18n files.
 - All docs: README, ARCHITECTURE, MAP, THREAT_MODEL, PRIVACY, decisions, runbook.
 
 Country packs contain only public data (brand names, official domains and service lines) taken from each brand's official site; every brand records its `fuente_url`. Eval cases are synthetic, except the ones marked `kb_test: true`, which quote a known-campaign seed entry to test the knowledge base.
@@ -17,11 +17,10 @@ Country packs contain only public data (brand names, official domains and servic
 - `conocimiento/semilla.jsonl`: known scam campaigns. Message texts and malicious domains are quoted or summarized from public alerts and press reports (official agencies, banks, news outlets); every entry records its `source_url`, and `conocimiento/fuentes.json` lists them all. The fingerprints computed from them are ours. No personal data.
 
 ## Third-party services used as-is (not built by us)
-- Meta Model API (Muse Spark, SAM 3.1, Muse Voice Transcribe), Muse Glimmer open weights. Standard tier.
+- Meta Model API (Muse Spark 1.3, SAM 3.1, Muse Voice Transcribe), Standard tier. Muse Spark Open through Baseten is an optional alternative backend (`MODEL_BACKEND=spark_open`), off by default.
 - Wazenda: WhatsApp Business transport (webhook in / message out). Only the adapter is ours.
 - An external non-Meta judge: typed judgments. **Used during development only** (T-08b, D-085): every model called at runtime is a Meta model; that judge is not one, so its adapter was removed from the codebase and it never runs in `eval`/`prod`. Only the gate logic (`guard/gate.py`) is ours.
-- Hermes Agent (Nous Research): agent runtime for the optional local-model profile.
-- Railway, Postgres, Redis, Resend (inbound email), Sentry.
+- Postgres, Resend (inbound email), Sentry. Railway was evaluated as a host and discarded (`docs/decisions/ADR-112.md`): there is no hosted instance, and the judge's path is `make demo`.
 
 ## Open-source libraries
 FastAPI, uvicorn, pydantic, pydantic-settings, asyncpg, cryptography, httpx, structlog, prometheus_client, sentry-sdk, tldextract, zxing-cpp (QR decoding), Pillow (image decoding, crops and resizing), PyAV (WhatsApp ogg/opus voice notes to WAV; its wheels bundle FFmpeg, LGPL), pytest, ruff, mypy, pylint, import-linter, bandit, pip-audit, pdoc, interrogate, git-cliff. Licenses respected; see `pyproject.toml`.
