@@ -72,6 +72,24 @@ the panel says so. Postgres is published on `127.0.0.1:55432` and the API on
 
 See `DECLARACION.md` for what was built during the event.
 
+**Everything else you can run.** Only `make demo` and the two eval targets
+need Meta API keys. Everything else runs without any configuration.
+
+| Command | What it does | Needs keys |
+|---|---|---|
+| `make demo` | Brings up the API and walks sample cases through the local channel and the operator panel | yes |
+| `make test` | The full test suite | no |
+| `make check` | Everything at once: lint, architecture, duplication, security, docs, i18n, web and tests | no |
+| `make lint` | `ruff` plus `mypy --strict` over the typed packages | no |
+| `make arch` | `lint-imports`: fails if a layer imports one it must not | no |
+| `make dup` | `pylint` duplicate-code detection, 8-line threshold | no |
+| `make security` | `bandit`, `pip-audit` and the OWASP tests | no |
+| `make docs-check` | Fails if docstring coverage drops below 90%, or this README, the repo map or the architecture doc drift from the code | no |
+| `make evals` | Re-runs the 231 cases; spends up to $2.00 | yes |
+| `make evals-rapido` | A faster subset; up to $1.00 | yes |
+| `make db` | Postgres on its own | no |
+| `make run` | Everything in the foreground, with build output | no |
+
 ## Meta model calls vs code
 
 At runtime (`VIGIA_MODO=eval|prod`) every model call is a Meta model: Muse Spark 1.3

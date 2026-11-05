@@ -76,6 +76,25 @@ en `.env` (y el puerto en `DATABASE_URL`), corre `docker compose down` y otra ve
 
 Ver `DECLARACION.md` para lo que se construyó durante el evento.
 
+**Todo lo demás que podés correr.** Solo `make demo` y los dos targets de
+evals necesitan llaves de la API de Meta. Todo el resto corre sin ninguna
+configuración.
+
+| Comando | Qué hace | Necesita llaves |
+|---|---|---|
+| `make demo` | Levanta la API y pasa casos de muestra por el canal local y el panel del operador | sí |
+| `make test` | La suite de tests completa | no |
+| `make check` | Todo junto: lint, arquitectura, duplicación, seguridad, docs, i18n, web y tests | no |
+| `make lint` | `ruff` más `mypy --strict` sobre los paquetes tipados | no |
+| `make arch` | `lint-imports`: falla si una capa importa una que no debe | no |
+| `make dup` | Detección de código duplicado con `pylint`, umbral de 8 líneas | no |
+| `make security` | `bandit`, `pip-audit` y los tests de OWASP | no |
+| `make docs-check` | Falla si la cobertura de docstrings cae por debajo de 90%, o si este README, el mapa del repo o el doc de arquitectura se alejan del código | no |
+| `make evals` | Vuelve a correr los 231 casos; gasta hasta $2.00 | sí |
+| `make evals-rapido` | Un subconjunto más rápido; hasta $1.00 | sí |
+| `make db` | Postgres sola | no |
+| `make run` | Todo en primer plano, con la salida del build | no |
+
 ## Llamadas a modelos de Meta vs. código
 
 En runtime (`VIGIA_MODO=eval|prod`) cada llamada a modelo es un modelo de
